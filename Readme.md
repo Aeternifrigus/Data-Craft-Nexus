@@ -60,6 +60,7 @@ Clone the repo:
 
 ```bash
 git clone https://github.com/Aeternifrigus/Data-Craft-Nexus.git
+```
 ## Stack
 
 - **HTML/CSS/JS** — single file, no build step
@@ -80,4 +81,3 @@ By [Aeternifrigus](https://aeternifrigus.netlify.app/)
 ---
 
 Copy this into a file named `README.md` in your repo root. GitHub will render it automatically on your repo's main page.
-```

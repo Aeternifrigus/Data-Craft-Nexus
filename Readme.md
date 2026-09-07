@@ -80,4 +80,5 @@ By [Aeternifrigus](https://aeternifrigus.netlify.app/)
 
 ---
 
-Copy this into a file named `README.md` in your repo root. GitHub will render it automatically on your repo's main page.
+License
+MIT — use it, remix it, cite it.

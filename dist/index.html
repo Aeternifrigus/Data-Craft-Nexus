@@ -343,9 +343,11 @@ footer .sig{font-size:27px}
 
   <section class="intake">
     <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload a CSV file">
-      <p><b>Drop a CSV here</b>, or click to choose one</p>
-      <p style="margin-top:7px;font-size:12px">Stays in your browser. Nothing is uploaded anywhere.</p>
-      <input type="file" id="file" accept=".csv,text/csv" hidden>
+      <div id="drop-msg">
+        <p><b>Drop a CSV here</b>, or click to choose one</p>
+        <p style="margin-top:7px;font-size:12px">Stays in your browser. Nothing is uploaded anywhere.</p>
+      </div>
+      <input type="file" id="file" accept=".csv,.tsv,.txt,text/csv" hidden>
     </div>
     <p class="altline">
       No file handy? <button class="link" id="sample">Load a sample shipment table</button>
@@ -489,30 +491,140 @@ footer .sig{font-size:27px}
 
   // site/js/csv.js
   var MAX_ROWS = 5e3;
-  function parseCSV(text) {
-    const lines = text.trim().split(/\r?\n/).filter((l) => l.length);
-    const head = splitLine(lines[0]);
-    const body = lines.slice(1, MAX_ROWS + 1).map(splitLine);
-    return { head, body };
-  }
-  function splitLine(l) {
-    const out = [];
-    let cur = "", q = false;
-    for (let i = 0; i < l.length; i++) {
-      const ch = l[i];
-      if (ch === '"') {
-        q = !q;
-        continue;
+  var DELIMITERS = [",", ";", "	", "|"];
+  function decodeBytes(bytes) {
+    const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+    try {
+      return { text: new TextDecoder("utf-8", { fatal: true }).decode(data).replace(/^﻿/, ""), encoding: "UTF-8" };
+    } catch {
+      for (const encoding of ["windows-1250", "windows-1252"]) {
+        try {
+          return { text: new TextDecoder(encoding).decode(data), encoding };
+        } catch {
+        }
       }
-      if (ch === "," && !q) {
-        out.push(cur.trim());
-        cur = "";
-        continue;
-      }
-      cur += ch;
+      return { text: new TextDecoder("utf-8").decode(data), encoding: "UTF-8 (with invalid bytes)" };
     }
-    out.push(cur.trim());
-    return out;
+  }
+  function tokenize(text, delimiter, limit = Infinity) {
+    const rows = [];
+    let row = [], field = "", quoted = false, fieldWasQuoted = false;
+    let i = 0;
+    const n = text.length;
+    const endField = () => {
+      row.push(fieldWasQuoted ? field : field.trim());
+      field = "";
+      fieldWasQuoted = false;
+    };
+    const endRow = () => {
+      endField();
+      if (!(row.length === 1 && row[0] === "")) rows.push(row);
+      row = [];
+    };
+    while (i < n && rows.length < limit) {
+      const ch = text[i];
+      if (quoted) {
+        if (ch === '"') {
+          if (text[i + 1] === '"') {
+            field += '"';
+            i += 2;
+            continue;
+          }
+          quoted = false;
+          i++;
+          continue;
+        }
+        field += ch;
+        i++;
+        continue;
+      }
+      if (ch === '"' && field.trim() === "") {
+        quoted = true;
+        fieldWasQuoted = true;
+        field = "";
+        i++;
+        continue;
+      }
+      if (ch === delimiter) {
+        endField();
+        i++;
+        continue;
+      }
+      if (ch === "\r" || ch === "\n") {
+        endRow();
+        i += ch === "\r" && text[i + 1] === "\n" ? 2 : 1;
+        continue;
+      }
+      field += ch;
+      i++;
+    }
+    if (rows.length < limit && (field !== "" || row.length || fieldWasQuoted)) endRow();
+    const truncated = i < n && text.slice(i).trim() !== "";
+    return { rows, truncated };
+  }
+  function detectDelimiter(text) {
+    const sample = text.slice(0, 64 * 1024);
+    let best = { delimiter: ",", score: -1 };
+    for (const d of DELIMITERS) {
+      const { rows } = tokenize(sample, d, 30);
+      if (rows.length === 0) continue;
+      const width = rows[0].length;
+      if (width < 2) continue;
+      const checked = rows.length > 2 ? rows.slice(0, -1) : rows;
+      const consistent = checked.filter((r) => r.length === width).length / checked.length;
+      const score = consistent * 1e3 + width;
+      if (score > best.score) best = { delimiter: d, score };
+    }
+    return best.delimiter;
+  }
+  var DECIMAL_COMMA = /^[+-]?(\d+|\d{1,3}(\.\d{3})+),\d+$/;
+  function normalizeDecimal(value) {
+    if (!DECIMAL_COMMA.test(value)) return value;
+    return value.replace(/\.(?=\d{3}(\.|,))/g, "").replace(",", ".");
+  }
+  function cleanHeader(head) {
+    const seen = /* @__PURE__ */ new Map();
+    return head.map((name, i) => {
+      let base = name === "" ? `column_${i + 1}` : name;
+      if (!seen.has(base)) {
+        seen.set(base, 1);
+        return base;
+      }
+      let k = seen.get(base) + 1;
+      while (seen.has(`${base}_${k}`)) k++;
+      seen.set(base, k);
+      const unique = `${base}_${k}`;
+      seen.set(unique, 1);
+      return unique;
+    });
+  }
+  function parseCSV(text, options = {}) {
+    var _a;
+    const clean = text.replace(/^﻿/, "");
+    const delimiter = (_a = options.delimiter) != null ? _a : detectDelimiter(clean);
+    const { rows, truncated } = tokenize(clean, delimiter, MAX_ROWS + 1);
+    if (rows.length === 0) return { head: [], body: [], delimiter, truncated: false, decimalComma: false };
+    const head = cleanHeader(rows[0]);
+    let body = rows.slice(1);
+    let decimalComma = false;
+    if (delimiter !== ",") {
+      body = body.map((r) => r.map((v) => {
+        const out = normalizeDecimal(v);
+        if (out !== v) decimalComma = true;
+        return out;
+      }));
+    }
+    return { head, body, delimiter, truncated, decimalComma };
+  }
+  function delimiterName(d) {
+    var _a;
+    return (_a = { ",": "comma", ";": "semicolon", "	": "tab", "|": "pipe" }[d]) != null ? _a : JSON.stringify(d);
+  }
+
+  // site/js/html.js
+  var ENTITIES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  function esc(value) {
+    return String(value != null ? value : "").replace(/[&<>"']/g, (c) => ENTITIES[c]);
   }
 
   // site/js/profile.js
@@ -630,20 +742,20 @@ footer .sig{font-size:27px}
       return `
     <article class="rec">
       <div>
-        <div class="rec-code" data-model="${m.c}">${m.c}</div>
+        <div class="rec-code" data-model="${esc(m.c)}">${esc(m.c)}</div>
         <div class="rec-rank">${m.score} of 3 axes</div>
       </div>
       <div>
-        <div class="rec-name">${m.n}</div>
-        <div class="rec-meta">${((_a = T.MODEL_DOMAINS[m.dom]) == null ? void 0 : _a.name) || m.dom} \xB7 ${paradigmLabel(m.p)}</div>
-        <p class="rec-metaphor">${m.met}</p>
+        <div class="rec-name">${esc(m.n)}</div>
+        <div class="rec-meta">${esc(((_a = T.MODEL_DOMAINS[m.dom]) == null ? void 0 : _a.name) || m.dom)} \xB7 ${paradigmLabel(m.p)}</div>
+        <p class="rec-metaphor">${esc(m.met)}</p>
         <div class="matchline">
-          ${m.data.map((d) => `<span class="chip ${sig.includes(d) ? "hit" : "miss"}" data-code="${d}">${d} ${T.CODES[d] ? T.CODES[d].name.toLowerCase() : ""}</span>`).join("")}
+          ${m.data.map((d) => `<span class="chip ${sig.includes(d) ? "hit" : "miss"}" data-code="${esc(d)}">${esc(d)} ${T.CODES[d] ? esc(T.CODES[d].name.toLowerCase()) : ""}</span>`).join("")}
         </div>
-        <p class="rec-body">${m.mech}</p>
-        <p class="rec-body warn">${m.fail}</p>
+        <p class="rec-body">${esc(m.mech)}</p>
+        <p class="rec-body warn">${esc(m.fail)}</p>
         <div class="mathline">math:
-          ${m.math.map((x) => `<span class="chip" data-math="${x}">${x}</span>`).join("")}
+          ${m.math.map((x) => `<span class="chip" data-math="${esc(x)}">${esc(x)}</span>`).join("")}
         </div>
       </div>
     </article>`;
@@ -654,16 +766,16 @@ footer .sig{font-size:27px}
       var _a;
       return `
     <article class="rec">
-      <div><div class="rec-code" data-drift="${d.c}">${d.c}</div></div>
+      <div><div class="rec-code" data-drift="${esc(d.c)}">${esc(d.c)}</div></div>
       <div>
-        <div class="rec-name">${d.n}</div>
-        <div class="rec-meta">${((_a = T.DRIFT_DOMAINS[d.domain]) == null ? void 0 : _a.name) || d.domain}</div>
-        <p class="rec-metaphor">${d.met}</p>
-        <p class="rec-body">${d.mech}</p>
-        <p class="rec-body"><span style="color:var(--sage)">Threshold.</span> ${d.thr}</p>
-        <p class="rec-body warn">${d.fail}</p>
+        <div class="rec-name">${esc(d.n)}</div>
+        <div class="rec-meta">${esc(((_a = T.DRIFT_DOMAINS[d.domain]) == null ? void 0 : _a.name) || d.domain)}</div>
+        <p class="rec-metaphor">${esc(d.met)}</p>
+        <p class="rec-body">${esc(d.mech)}</p>
+        <p class="rec-body"><span style="color:var(--sage)">Threshold.</span> ${esc(d.thr)}</p>
+        <p class="rec-body warn">${esc(d.fail)}</p>
         <div class="mathline">math:
-          ${d.math.map((x) => `<span class="chip" data-math="${x}">${x}</span>`).join("")}
+          ${d.math.map((x) => `<span class="chip" data-math="${esc(x)}">${esc(x)}</span>`).join("")}
         </div>
       </div>
     </article>`;
@@ -674,17 +786,17 @@ footer .sig{font-size:27px}
       var _a;
       return `
     <article class="rec">
-      <div><div class="rec-code" data-pipeline="${p.c}">${p.c}</div></div>
+      <div><div class="rec-code" data-pipeline="${esc(p.c)}">${esc(p.c)}</div></div>
       <div>
-        <div class="rec-name">${p.n}</div>
-        <div class="rec-meta">${((_a = T.PIPELINE_DOMAINS[p.p]) == null ? void 0 : _a.name) || p.p}</div>
-        <p class="rec-metaphor">${p.met}</p>
-        <p class="rec-body">${p.mech}</p>
-        <p class="rec-body warn">${p.fail}</p>
+        <div class="rec-name">${esc(p.n)}</div>
+        <div class="rec-meta">${esc(((_a = T.PIPELINE_DOMAINS[p.p]) == null ? void 0 : _a.name) || p.p)}</div>
+        <p class="rec-metaphor">${esc(p.met)}</p>
+        <p class="rec-body">${esc(p.mech)}</p>
+        <p class="rec-body warn">${esc(p.fail)}</p>
         <div class="mathline">stages:
-          ${p.stages.map((s) => `<span class="chip" data-stage="${s}">${s}</span>`).join("")}
+          ${p.stages.map((s) => `<span class="chip" data-stage="${esc(s)}">${esc(s)}</span>`).join("")}
         </div>
-        <div class="pipeline-diagram" id="diagram-${p.c}"></div>
+        <div class="pipeline-diagram" id="diagram-${esc(p.c)}"></div>
       </div>
     </article>`;
     }).join("");
@@ -765,69 +877,68 @@ footer .sig{font-size:27px}
       drawer.classList.remove("on");
       scrim.classList.remove("on");
     }
-    function field(l, t, warn) {
-      return `<div class="d-field"><div class="d-label">${l}</div><div class="d-text${warn ? " warn" : ""}">${t}</div></div>`;
+    function field(l, html, warn) {
+      return `<div class="d-field"><div class="d-label">${esc(l)}</div><div class="d-text${warn ? " warn" : ""}">${html}</div></div>`;
     }
+    const text = (l, t, warn) => field(l, esc(t), warn);
+    const chips = (attr, codes) => codes.map((x) => `<span class="chip" ${attr}="${esc(x)}">${esc(x)}</span>`).join(" ");
+    const head = (code, name, meta) => `<div class="d-code">${esc(code)}</div><div class="d-name">${esc(name)}</div>
+    ${meta ? `<div class="rec-meta" style="margin-bottom:12px">${esc(meta)}</div>` : ""}`;
     function openMath(code) {
       const m = T.MATH[code];
       if (!m) return;
       const domain = T.MATH_DOMAINS[m.domain];
-      show(`<div class="d-code">${code}</div><div class="d-name">${m.name}</div>
-    ${domain ? `<div class="rec-meta" style="margin-bottom:12px">${domain.name}</div>` : ""}
-    <div class="d-formula">${m.f}</div>
-    ${m.intu ? field("The idea", m.intu) : ""}
-    ${field("What it computes", m.mech)}
-    ${field("Where it misleads", m.fail, true)}`);
+      show(`${head(code, m.name, domain == null ? void 0 : domain.name)}
+    <div class="d-formula">${esc(m.f)}</div>
+    ${m.intu ? text("The idea", m.intu) : ""}
+    ${text("What it computes", m.mech)}
+    ${text("Where it misleads", m.fail, true)}`);
     }
     function openCode(code) {
       const c = T.CODES[code];
       if (!c) return;
       const axis = T.AXES.find((a) => a.n === c.axis);
-      show(`<div class="d-code">${code}</div><div class="d-name">${c.name}</div>
-    ${axis ? `<div class="rec-meta" style="margin-bottom:12px">Axis ${axis.n}, ${axis.label}</div>` : ""}
-    ${field("Definition", c.note)}`);
+      show(`${head(code, c.name, axis && `Axis ${axis.n}, ${axis.label}`)}
+    ${text("Definition", c.note)}`);
     }
     function openModel(code) {
       const m = T.MODELS.find((x) => x.c === code);
       if (!m) return;
       const dom = T.MODEL_DOMAINS[m.dom];
-      show(`<div class="d-code">${code}</div><div class="d-name">${m.n}</div>
-    ${dom ? `<div class="rec-meta" style="margin-bottom:12px">${dom.name} \xB7 ${paradigmLabel(m.p)}</div>` : ""}
-    <p class="rec-metaphor">${m.met}</p>
-    ${field("How it works", m.mech)}
-    ${m.dfit ? field("Why these coordinates", m.dfit) : ""}
-    ${field("Where it breaks", m.fail, true)}
-    ${field("What to use instead", m.alt)}
-    ${field("Built on", m.math.map((x) => `<span class="chip" data-math="${x}">${x}</span>`).join(" "))}`);
+      show(`${head(code, m.n, dom && `${dom.name} \xB7 ${paradigmLabel(m.p)}`)}
+    <p class="rec-metaphor">${esc(m.met)}</p>
+    ${text("How it works", m.mech)}
+    ${m.dfit ? text("Why these coordinates", m.dfit) : ""}
+    ${text("Where it breaks", m.fail, true)}
+    ${text("What to use instead", m.alt)}
+    ${field("Built on", chips("data-math", m.math))}`);
     }
     function openDrift(code) {
       const d = T.DRIFTS.find((x) => x.c === code);
       if (!d) return;
       const dom = T.DRIFT_DOMAINS[d.domain];
-      show(`<div class="d-code">${code}</div><div class="d-name">${d.n}</div>
-    ${dom ? `<div class="rec-meta" style="margin-bottom:12px">${dom.name}</div>` : ""}
-    <p class="rec-metaphor">${d.met}</p>
-    ${field("How it works", d.mech)}
-    ${field("What counts as drift", d.thr)}
-    ${field("Where it misleads", d.fail, true)}
-    ${field("Built on", d.math.map((x) => `<span class="chip" data-math="${x}">${x}</span>`).join(" "))}`);
+      show(`${head(code, d.n, dom == null ? void 0 : dom.name)}
+    <p class="rec-metaphor">${esc(d.met)}</p>
+    ${text("How it works", d.mech)}
+    ${text("What counts as drift", d.thr)}
+    ${text("Where it misleads", d.fail, true)}
+    ${field("Built on", chips("data-math", d.math))}`);
     }
     function openPipeline(code) {
       const p = T.PIPELINES.find((x) => x.c === code);
       if (!p) return;
       const dom = T.PIPELINE_DOMAINS[p.p];
-      show(`<div class="d-code">${code}</div><div class="d-name">${p.n}</div>
-    ${dom ? `<div class="rec-meta" style="margin-bottom:12px">${dom.name}</div>` : ""}
-    <p class="rec-metaphor">${p.met}</p>
-    ${field("How it works", p.mech)}
-    ${field("Where it breaks", p.fail, true)}
-    ${field("Stages", p.stages.map((s) => `<span class="chip" data-stage="${s}">${s}</span>`).join(" "))}`);
+      show(`${head(code, p.n, dom == null ? void 0 : dom.name)}
+    <p class="rec-metaphor">${esc(p.met)}</p>
+    ${text("How it works", p.mech)}
+    ${text("Where it breaks", p.fail, true)}
+    ${field("Stages", chips("data-stage", p.stages))}`);
     }
     function openStage(code) {
       const s = T.STAGES[code];
       if (!s) return;
-      show(`<div class="d-code">${code}</div><div class="d-name">${s.name}</div>
-    ${field("Definition", s.note)}`);
+      show(`${head(code, s.name)}
+    ${text("Definition", s.note)}`);
     }
     document.addEventListener("click", (e) => {
       const m = e.target.closest("[data-math]");
@@ -852,9 +963,9 @@ footer .sig{font-size:27px}
   // site/js/library.js
   function libCard(code, name, note, attr) {
     return `<button class="lib-card" ${attr}>
-      <div class="lib-code">${code}</div>
-      <div class="lib-name">${name}</div>
-      <div class="lib-note">${note}</div>
+      <div class="lib-code">${esc(code)}</div>
+      <div class="lib-name">${esc(name)}</div>
+      <div class="lib-note">${esc(note)}</div>
     </button>`;
   }
   function buildLibrary(T) {
@@ -864,8 +975,8 @@ footer .sig{font-size:27px}
     T.AXES.forEach((a) => {
       const codes = Object.keys(T.CODES).filter((c) => c.startsWith("A" + a.n));
       if (!codes.length) return;
-      html += `<div class="lib-subheading">Axis ${a.n}, ${a.label}</div>
-      <div class="lib-grid">${codes.map((c) => libCard(c, T.CODES[c].name, T.CODES[c].note, `data-code="${c}"`)).join("")}</div>`;
+      html += `<div class="lib-subheading">Axis ${a.n}, ${esc(a.label)}</div>
+      <div class="lib-grid">${codes.map((c) => libCard(c, T.CODES[c].name, T.CODES[c].note, `data-code="${esc(c)}"`)).join("")}</div>`;
     });
     html += `</div>`;
     html += `<div class="lib-group"><h3>Math</h3>
@@ -874,9 +985,9 @@ footer .sig{font-size:27px}
       const domain = T.MATH_DOMAINS[dk];
       const codes = Object.keys(T.MATH).filter((m) => T.MATH[m].domain === dk);
       if (!codes.length) return;
-      html += `<div class="lib-subheading">${dk}, ${domain.name}</div>
-      <p class="lib-sub" style="margin-bottom:8px">${domain.note}</p>
-      <div class="lib-grid">${codes.map((c) => libCard(c, T.MATH[c].name, T.MATH[c].f, `data-math="${c}"`)).join("")}</div>`;
+      html += `<div class="lib-subheading">${esc(dk)}, ${esc(domain.name)}</div>
+      <p class="lib-sub" style="margin-bottom:8px">${esc(domain.note)}</p>
+      <div class="lib-grid">${codes.map((c) => libCard(c, T.MATH[c].name, T.MATH[c].f, `data-math="${esc(c)}"`)).join("")}</div>`;
     });
     html += `</div>`;
     html += `<div class="lib-group"><h3>Models</h3>
@@ -885,9 +996,9 @@ footer .sig{font-size:27px}
       const domain = T.MODEL_DOMAINS[dk];
       const codes = T.MODELS.filter((m) => m.dom === dk);
       if (!codes.length) return;
-      html += `<div class="lib-subheading">${domain.name}</div>
-      <p class="lib-sub" style="margin-bottom:8px">${domain.note}</p>
-      <div class="lib-grid">${codes.map((m) => libCard(m.c, m.n, m.met, `data-model="${m.c}"`)).join("")}</div>`;
+      html += `<div class="lib-subheading">${esc(domain.name)}</div>
+      <p class="lib-sub" style="margin-bottom:8px">${esc(domain.note)}</p>
+      <div class="lib-grid">${codes.map((m) => libCard(m.c, m.n, m.met, `data-model="${esc(m.c)}"`)).join("")}</div>`;
     });
     html += `</div>`;
     html += `<div class="lib-group"><h3>Drift checkers</h3>
@@ -896,9 +1007,9 @@ footer .sig{font-size:27px}
       const domain = T.DRIFT_DOMAINS[dk];
       const codes = T.DRIFTS.filter((d) => d.domain === dk);
       if (!codes.length) return;
-      html += `<div class="lib-subheading">${dk}, ${domain.name}</div>
-      <p class="lib-sub" style="margin-bottom:8px">${domain.note}</p>
-      <div class="lib-grid">${codes.map((d) => libCard(d.c, d.n, d.met, `data-drift="${d.c}"`)).join("")}</div>`;
+      html += `<div class="lib-subheading">${esc(dk)}, ${esc(domain.name)}</div>
+      <p class="lib-sub" style="margin-bottom:8px">${esc(domain.note)}</p>
+      <div class="lib-grid">${codes.map((d) => libCard(d.c, d.n, d.met, `data-drift="${esc(d.c)}"`)).join("")}</div>`;
     });
     html += `</div>`;
     html += `<div class="lib-group"><h3>Pipelines</h3>
@@ -907,14 +1018,14 @@ footer .sig{font-size:27px}
       const domain = T.PIPELINE_DOMAINS[dk];
       const codes = T.PIPELINES.filter((p) => p.p === dk);
       if (!codes.length) return;
-      html += `<div class="lib-subheading">${domain.name}</div>
-      <p class="lib-sub" style="margin-bottom:8px">${domain.note}</p>
-      <div class="lib-grid">${codes.map((p) => libCard(p.c, p.n, p.met, `data-pipeline="${p.c}"`)).join("")}</div>`;
+      html += `<div class="lib-subheading">${esc(domain.name)}</div>
+      <p class="lib-sub" style="margin-bottom:8px">${esc(domain.note)}</p>
+      <div class="lib-grid">${codes.map((p) => libCard(p.c, p.n, p.met, `data-pipeline="${esc(p.c)}"`)).join("")}</div>`;
     });
     html += `</div>`;
     html += `<div class="lib-group"><h3>Stage library</h3>
     <p class="lib-sub">Every reusable stage.</p>
-    <div class="lib-grid">${Object.keys(T.STAGES).map((s) => libCard(s, T.STAGES[s].name, T.STAGES[s].note, `data-stage="${s}"`)).join("")}</div></div>`;
+    <div class="lib-grid">${Object.keys(T.STAGES).map((s) => libCard(s, T.STAGES[s].name, T.STAGES[s].note, `data-stage="${esc(s)}"`)).join("")}</div></div>`;
     document.getElementById("lib-body").innerHTML = html;
   }
   function initLibrarySearch() {
@@ -945,7 +1056,7 @@ footer .sig{font-size:27px}
       <div class="slot-code" id="code-${a.n}">-, -</div>
       <div>
         <div class="slot-val" id="val-${a.n}"></div>
-        <div class="slot-axis">${a.n}. ${a.label}</div>
+        <div class="slot-axis">${a.n}. ${esc(a.label)}</div>
       </div>
     </div>`).join("");
   }
@@ -956,8 +1067,22 @@ footer .sig{font-size:27px}
     s.classList.add("filled");
     if (declared) s.classList.add("declared");
   }
-  function ingest(text) {
-    const { head, body } = parseCSV(text);
+  function readNote(parsed, encoding) {
+    const parts = [`${delimiterName(parsed.delimiter)}-separated`];
+    if (encoding && encoding !== "UTF-8") parts.push(`${encoding} text`);
+    if (parsed.decimalComma) parts.push("decimal commas read as numbers");
+    if (parsed.truncated) parts.push(`only the first ${MAX_ROWS.toLocaleString()} rows are used`);
+    return parts.join(" \xB7 ");
+  }
+  function ingest(text, encoding) {
+    const parsed = parseCSV(text);
+    const { head, body } = parsed;
+    const drop = document.getElementById("drop-msg");
+    if (head.length === 0 || body.length === 0) {
+      drop.innerHTML = `<p><b>No rows found.</b></p>
+      <p style="margin-top:7px;font-size:12px">The file needs a header row and at least one data row.</p>`;
+      return;
+    }
     state.cols = head;
     state.rows = body;
     state.profile = profileData(head, body);
@@ -965,9 +1090,9 @@ footer .sig{font-size:27px}
     setSlot(3, profile.a3);
     setSlot(4, profile.a4);
     setSlot(6, profile.a6);
-    const drop = document.getElementById("drop");
     drop.innerHTML = `<p><b>${profile.n.toLocaleString()} rows \xB7 ${profile.feat} columns</b> read</p>
-    <p style="margin-top:7px;font-size:12px">Axes 3, 4 and 6 measured. Three more need your intent.</p>`;
+    <p style="margin-top:7px;font-size:12px">${esc(readNote(parsed, encoding))}</p>
+    <p style="margin-top:4px;font-size:12px">Axes 3, 4 and 6 measured. Three more need your intent.</p>`;
     buildDeclarations();
     document.getElementById("declare").classList.add("on");
     document.getElementById("declare").scrollIntoView({ block: "start" });
@@ -978,7 +1103,7 @@ footer .sig{font-size:27px}
     t.innerHTML = "";
     const sel = document.createElement("select");
     sel.className = "opt";
-    sel.innerHTML = `<option value="">choose a column\u2026</option>` + state.cols.map((c) => `<option value="${c}">${c}</option>`).join("") + `<option value="__none__">nothing, there is no target</option>`;
+    sel.innerHTML = `<option value="">choose a column\u2026</option>` + state.cols.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("") + `<option value="__none__">nothing, there is no target</option>`;
     sel.addEventListener("change", () => {
       decl.target = sel.value || null;
       setSlot(1, decl.target === "__none__" ? "A12" : "A11", true);
@@ -986,7 +1111,7 @@ footer .sig{font-size:27px}
     });
     t.appendChild(sel);
     const tk = document.getElementById("q-task");
-    tk.innerHTML = T.TASKS.map((x) => `<button class="opt" data-task="${x.id}">${x.label}</button>`).join("");
+    tk.innerHTML = T.TASKS.map((x) => `<button class="opt" data-task="${esc(x.id)}">${esc(x.label)}</button>`).join("");
     tk.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
       tk.querySelectorAll("button").forEach((o) => o.classList.remove("sel"));
       b.classList.add("sel");
@@ -994,7 +1119,7 @@ footer .sig{font-size:27px}
       checkReady();
     }));
     const od = document.getElementById("q-order");
-    const hint = profile.dateCols.length ? ` (a date column was found: ${profile.dateCols[0].name})` : "";
+    const hint = profile.dateCols.length ? ` (a date column was found: ${esc(profile.dateCols[0].name)})` : "";
     od.innerHTML = `<button class="opt" data-o="A22">Yes, it is a sequence${hint}</button>
      <button class="opt" data-o="A21">No, rows are independent</button>`;
     od.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
@@ -1013,8 +1138,11 @@ footer .sig{font-size:27px}
     const drop = document.getElementById("drop"), fileIn = document.getElementById("file");
     const readFile = (f) => {
       const fr = new FileReader();
-      fr.onload = () => ingest(fr.result);
-      fr.readAsText(f);
+      fr.onload = () => {
+        const { text, encoding } = decodeBytes(fr.result);
+        ingest(text, encoding);
+      };
+      fr.readAsArrayBuffer(f);
     };
     drop.addEventListener("click", () => fileIn.click());
     drop.addEventListener("keydown", (e) => {
@@ -1037,9 +1165,10 @@ footer .sig{font-size:27px}
     fileIn.addEventListener("change", (e) => {
       const f = e.target.files[0];
       if (f) readFile(f);
+      fileIn.value = "";
     });
     document.getElementById("sample").addEventListener("click", async () => {
-      ingest(await loadSample());
+      ingest(await loadSample(), "UTF-8");
     });
     document.getElementById("run").addEventListener("click", () => {
       const sig = signature(state.profile, state.rows, state.decl);
@@ -1061,7 +1190,7 @@ footer .sig{font-size:27px}
     try {
       state.T = await loadTaxonomy();
     } catch (err) {
-      document.getElementById("drop").innerHTML = `<p><b>The taxonomy could not be loaded.</b></p>
+      document.getElementById("drop-msg").innerHTML = `<p><b>The taxonomy could not be loaded.</b></p>
        <p style="margin-top:7px;font-size:12px">To open it straight from disk, use <code>dist/index.html</code>. The files in <code>site/</code> need a server: <code>npm run serve</code></p>`;
       throw err;
     }

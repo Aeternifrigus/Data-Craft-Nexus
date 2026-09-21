@@ -5849,155 +5849,299 @@
  },
  "semicolon.csv": {
   "rows": 50,
-  "columns": 1,
+  "columns": 3,
   "measured": [
-   "A31",
+   "A38",
    "A41",
    "A61"
   ],
   "runs": {
-   "kwota;miasto;status | number | A21": {
-    "signature": "A11 A21 A31 A41 A53 A61",
-    "models": "LM1 (3), LM3 (3), LM6 (3), LM7 (3)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+   "kwota | number | A21": {
+    "signature": "A11 A21 A38 A41 A53 A61",
+    "models": "TR2 (3), TR3 (3), EN6 (3), EN7 (3)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
     "pipelines": "PL-T1, PL-T3, PL-T2"
    },
-   "kwota;miasto;status | number | A22": {
-    "signature": "A11 A22 A31 A41 A54 A61",
-    "models": "LM1 (2), LM3 (2), LM6 (2), LM7 (2)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+   "kwota | number | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "TR2 (2), TR3 (2), EN6 (2), EN7 (2)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
     "pipelines": "PL-T1, PL-T3, PL-T2"
    },
-   "kwota;miasto;status | category | A21": {
-    "signature": "A11 A21 A31 A41 A53 A61",
-    "models": "EN2 (3), IB1 (3), NN1 (3), LM2 (2)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+   "kwota | category | A21": {
+    "signature": "A11 A21 A38 A41 A53 A61",
+    "models": "TR2 (3), TR3 (3), EN6 (3), EN7 (3)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
     "pipelines": "PL-T1, PL-T3, PL-T2"
    },
-   "kwota;miasto;status | category | A22": {
-    "signature": "A11 A22 A31 A41 A54 A61",
-    "models": "EN2 (2), PR3 (2), PR5 (2), IB1 (2)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+   "kwota | category | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "TR2 (2), TR3 (2), EN6 (2), EN7 (2)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
     "pipelines": "PL-T1, PL-T3, PL-T2"
    },
-   "kwota;miasto;status | forecast | A21": {
-    "signature": "A11 A21 A31 A41 A53 A61",
-    "models": "SA-M1 (3), SA-M2 (3), TSM1 (2), TSM2 (2)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+   "kwota | forecast | A21": {
+    "signature": "A11 A21 A38 A41 A53 A61",
+    "models": "SA-M1 (2), SA-M2 (2), PR3 (1), NN4 (1)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
     "pipelines": "PL-T1, PL-T3, PL-T2"
    },
-   "kwota;miasto;status | forecast | A22": {
-    "signature": "A11 A22 A31 A41 A54 A61",
-    "models": "TSM1 (3), TSM2 (3), TSM3 (3), PR3 (2)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+   "kwota | forecast | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "PR3 (2), NN4 (2), NN5 (2), NN6 (2)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
     "pipelines": "PL-T1, PL-T3, PL-T2"
    },
-   "kwota;miasto;status | group | A21": {
-    "signature": "A11 A21 A31 A41 A53 A61",
+   "kwota | group | A21": {
+    "signature": "A11 A21 A38 A41 A53 A61",
     "models": "",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
     "pipelines": "PL-T1, PL-T2, PL-T3"
    },
-   "kwota;miasto;status | group | A22": {
-    "signature": "A11 A22 A31 A41 A54 A61",
+   "kwota | group | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
     "models": "",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
     "pipelines": "PL-T1, PL-T2, PL-T3"
    },
-   "kwota;miasto;status | anomaly | A21": {
-    "signature": "A11 A21 A31 A41 A53 A61",
+   "kwota | anomaly | A21": {
+    "signature": "A11 A21 A38 A41 A53 A61",
     "models": "",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
     "pipelines": "PL-T1, PL-T2, PL-T3"
    },
-   "kwota;miasto;status | anomaly | A22": {
-    "signature": "A11 A22 A31 A41 A54 A61",
+   "kwota | anomaly | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
     "models": "",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
     "pipelines": "PL-T1, PL-T2, PL-T3"
    },
-   "kwota;miasto;status | compress | A21": {
-    "signature": "A11 A21 A31 A41 A53 A61",
+   "kwota | compress | A21": {
+    "signature": "A11 A21 A38 A41 A53 A61",
     "models": "DR4 (2)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
     "pipelines": "PL-T1, PL-T2, PL-T3"
    },
-   "kwota;miasto;status | compress | A22": {
-    "signature": "A11 A22 A31 A41 A54 A61",
+   "kwota | compress | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
     "models": "DR4 (1)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T2, PL-T3"
+   },
+   "miasto | number | A21": {
+    "signature": "A11 A21 A38 A41 A51 A61",
+    "models": "TR2 (3), TR3 (3), EN6 (3), EN7 (3)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T3, PL-T14"
+   },
+   "miasto | number | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "TR2 (2), TR3 (2), EN6 (2), EN7 (2)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T3, PL-T2"
+   },
+   "miasto | category | A21": {
+    "signature": "A11 A21 A38 A41 A51 A61",
+    "models": "TR2 (3), TR3 (3), EN6 (3), EN7 (3)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T3, PL-T14"
+   },
+   "miasto | category | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "TR2 (2), TR3 (2), EN6 (2), EN7 (2)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T3, PL-T2"
+   },
+   "miasto | forecast | A21": {
+    "signature": "A11 A21 A38 A41 A51 A61",
+    "models": "SA-M1 (2), SA-M2 (2), PR3 (1), NN4 (1)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T3, PL-T2"
+   },
+   "miasto | forecast | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "PR3 (2), NN4 (2), NN5 (2), NN6 (2)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T3, PL-T2"
+   },
+   "miasto | group | A21": {
+    "signature": "A11 A21 A38 A41 A51 A61",
+    "models": "",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T2, PL-T3"
+   },
+   "miasto | group | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T2, PL-T3"
+   },
+   "miasto | anomaly | A21": {
+    "signature": "A11 A21 A38 A41 A51 A61",
+    "models": "",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T2, PL-T3"
+   },
+   "miasto | anomaly | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T2, PL-T3"
+   },
+   "miasto | compress | A21": {
+    "signature": "A11 A21 A38 A41 A51 A61",
+    "models": "DR4 (2)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T2, PL-T3"
+   },
+   "miasto | compress | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "DR4 (1)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T2, PL-T3"
+   },
+   "status | number | A21": {
+    "signature": "A11 A21 A38 A41 A51 A61",
+    "models": "TR2 (3), TR3 (3), EN6 (3), EN7 (3)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T3, PL-T14"
+   },
+   "status | number | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "TR2 (2), TR3 (2), EN6 (2), EN7 (2)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T3, PL-T2"
+   },
+   "status | category | A21": {
+    "signature": "A11 A21 A38 A41 A51 A61",
+    "models": "TR2 (3), TR3 (3), EN6 (3), EN7 (3)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T3, PL-T14"
+   },
+   "status | category | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "TR2 (2), TR3 (2), EN6 (2), EN7 (2)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T3, PL-T2"
+   },
+   "status | forecast | A21": {
+    "signature": "A11 A21 A38 A41 A51 A61",
+    "models": "SA-M1 (2), SA-M2 (2), PR3 (1), NN4 (1)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T3, PL-T2"
+   },
+   "status | forecast | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "PR3 (2), NN4 (2), NN5 (2), NN6 (2)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T3, PL-T2"
+   },
+   "status | group | A21": {
+    "signature": "A11 A21 A38 A41 A51 A61",
+    "models": "",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T2, PL-T3"
+   },
+   "status | group | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T2, PL-T3"
+   },
+   "status | anomaly | A21": {
+    "signature": "A11 A21 A38 A41 A51 A61",
+    "models": "",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T2, PL-T3"
+   },
+   "status | anomaly | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T2, PL-T3"
+   },
+   "status | compress | A21": {
+    "signature": "A11 A21 A38 A41 A51 A61",
+    "models": "DR4 (2)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
+    "pipelines": "PL-T1, PL-T2, PL-T3"
+   },
+   "status | compress | A22": {
+    "signature": "A11 A22 A38 A41 A54 A61",
+    "models": "DR4 (1)",
+    "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
     "pipelines": "PL-T1, PL-T2, PL-T3"
    },
    "__none__ | number | A21": {
-    "signature": "A12 A21 A31 A41 A53 A61",
+    "signature": "A12 A21 A38 A41 A53 A61",
     "models": "",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-CV1",
     "pipelines": "PL-T1, PL-T3, PL-T2"
    },
    "__none__ | number | A22": {
-    "signature": "A12 A22 A31 A41 A54 A61",
+    "signature": "A12 A22 A38 A41 A54 A61",
     "models": "",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-CV1",
     "pipelines": "PL-T1, PL-T3, PL-T2"
    },
    "__none__ | category | A21": {
-    "signature": "A12 A21 A31 A41 A53 A61",
+    "signature": "A12 A21 A38 A41 A53 A61",
     "models": "NN13 (2), NN12 (1)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-CV1",
     "pipelines": "PL-T1, PL-T3, PL-T2"
    },
    "__none__ | category | A22": {
-    "signature": "A12 A22 A31 A41 A54 A61",
+    "signature": "A12 A22 A38 A41 A54 A61",
     "models": "NN12 (1), NN13 (1)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-CV1",
     "pipelines": "PL-T1, PL-T3, PL-T2"
    },
    "__none__ | forecast | A21": {
-    "signature": "A12 A21 A31 A41 A53 A61",
+    "signature": "A12 A21 A38 A41 A53 A61",
     "models": "",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-CV1",
     "pipelines": "PL-T1, PL-T3, PL-T2"
    },
    "__none__ | forecast | A22": {
-    "signature": "A12 A22 A31 A41 A54 A61",
+    "signature": "A12 A22 A38 A41 A54 A61",
     "models": "",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-CV1",
     "pipelines": "PL-T1, PL-T3, PL-T2"
    },
    "__none__ | group | A21": {
-    "signature": "A12 A21 A31 A41 A53 A61",
-    "models": "PR2 (3), IB2 (3), CL1 (3), CL2 (3)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "signature": "A12 A21 A38 A41 A53 A61",
+    "models": "PR2 (2), IB2 (2), CL1 (2), CL2 (2)",
+    "drift": "DR-CV1",
     "pipelines": "PL-T1, PL-T2, PL-T3"
    },
    "__none__ | group | A22": {
-    "signature": "A12 A22 A31 A41 A54 A61",
-    "models": "PR2 (2), IB2 (2), CL1 (2), CL2 (2)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "signature": "A12 A22 A38 A41 A54 A61",
+    "models": "PR2 (1), IB2 (1), CL1 (1), CL2 (1)",
+    "drift": "DR-CV1",
     "pipelines": "PL-T1, PL-T2, PL-T3"
    },
    "__none__ | anomaly | A21": {
-    "signature": "A12 A21 A31 A41 A53 A61",
-    "models": "TR4 (3), SV3 (3), CL2 (3)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "signature": "A12 A21 A38 A41 A53 A61",
+    "models": "TR4 (2), SV3 (2), CL2 (2)",
+    "drift": "DR-CV1",
     "pipelines": "PL-T1, PL-T2, PL-T3"
    },
    "__none__ | anomaly | A22": {
-    "signature": "A12 A22 A31 A41 A54 A61",
-    "models": "TR4 (2), SV3 (2), CL2 (2)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "signature": "A12 A22 A38 A41 A54 A61",
+    "models": "TR4 (1), SV3 (1), CL2 (1)",
+    "drift": "DR-CV1",
     "pipelines": "PL-T1, PL-T2, PL-T3"
    },
    "__none__ | compress | A21": {
-    "signature": "A12 A21 A31 A41 A53 A61",
+    "signature": "A12 A21 A38 A41 A53 A61",
     "models": "DR1 (2), DR2 (2), DR3 (2), NN13 (2)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-CV1",
     "pipelines": "PL-T1, PL-T2, PL-T3"
    },
    "__none__ | compress | A22": {
-    "signature": "A12 A22 A31 A41 A54 A61",
+    "signature": "A12 A22 A38 A41 A54 A61",
     "models": "DR1 (1), DR2 (1), DR3 (1), NN13 (1)",
-    "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
+    "drift": "DR-CV1",
     "pipelines": "PL-T1, PL-T2, PL-T3"
    }
   }

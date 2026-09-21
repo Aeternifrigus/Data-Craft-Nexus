@@ -1,5 +1,6 @@
 // The side drawer that opens when any code is clicked.
 
+import { esc } from './html.js';
 import { paradigmLabel } from './recommend.js';
 
 export function initDrawer(T) {
@@ -13,64 +14,64 @@ export function initDrawer(T) {
   }
   function closeDrawer() { drawer.classList.remove('on'); scrim.classList.remove('on'); }
 
-  function field(l, t, warn) {
-    return `<div class="d-field"><div class="d-label">${l}</div><div class="d-text${warn ? ' warn' : ''}">${t}</div></div>`;
+  // `html` is already-built markup; plain text goes through text().
+  function field(l, html, warn) {
+    return `<div class="d-field"><div class="d-label">${esc(l)}</div><div class="d-text${warn ? ' warn' : ''}">${html}</div></div>`;
   }
+  const text = (l, t, warn) => field(l, esc(t), warn);
+  const chips = (attr, codes) => codes.map(x => `<span class="chip" ${attr}="${esc(x)}">${esc(x)}</span>`).join(' ');
+  const head = (code, name, meta) => `<div class="d-code">${esc(code)}</div><div class="d-name">${esc(name)}</div>
+    ${meta ? `<div class="rec-meta" style="margin-bottom:12px">${esc(meta)}</div>` : ''}`;
 
   function openMath(code) {
     const m = T.MATH[code]; if (!m) return;
     const domain = T.MATH_DOMAINS[m.domain];
-    show(`<div class="d-code">${code}</div><div class="d-name">${m.name}</div>
-    ${domain ? `<div class="rec-meta" style="margin-bottom:12px">${domain.name}</div>` : ''}
-    <div class="d-formula">${m.f}</div>
-    ${m.intu ? field('The idea', m.intu) : ''}
-    ${field('What it computes', m.mech)}
-    ${field('Where it misleads', m.fail, true)}`);
+    show(`${head(code, m.name, domain?.name)}
+    <div class="d-formula">${esc(m.f)}</div>
+    ${m.intu ? text('The idea', m.intu) : ''}
+    ${text('What it computes', m.mech)}
+    ${text('Where it misleads', m.fail, true)}`);
   }
   function openCode(code) {
     const c = T.CODES[code]; if (!c) return;
     const axis = T.AXES.find(a => a.n === c.axis);
-    show(`<div class="d-code">${code}</div><div class="d-name">${c.name}</div>
-    ${axis ? `<div class="rec-meta" style="margin-bottom:12px">Axis ${axis.n}, ${axis.label}</div>` : ''}
-    ${field('Definition', c.note)}`);
+    show(`${head(code, c.name, axis && `Axis ${axis.n}, ${axis.label}`)}
+    ${text('Definition', c.note)}`);
   }
   function openModel(code) {
     const m = T.MODELS.find(x => x.c === code); if (!m) return;
     const dom = T.MODEL_DOMAINS[m.dom];
-    show(`<div class="d-code">${code}</div><div class="d-name">${m.n}</div>
-    ${dom ? `<div class="rec-meta" style="margin-bottom:12px">${dom.name} · ${paradigmLabel(m.p)}</div>` : ''}
-    <p class="rec-metaphor">${m.met}</p>
-    ${field('How it works', m.mech)}
-    ${m.dfit ? field('Why these coordinates', m.dfit) : ''}
-    ${field('Where it breaks', m.fail, true)}
-    ${field('What to use instead', m.alt)}
-    ${field('Built on', m.math.map(x => `<span class="chip" data-math="${x}">${x}</span>`).join(' '))}`);
+    show(`${head(code, m.n, dom && `${dom.name} · ${paradigmLabel(m.p)}`)}
+    <p class="rec-metaphor">${esc(m.met)}</p>
+    ${text('How it works', m.mech)}
+    ${m.dfit ? text('Why these coordinates', m.dfit) : ''}
+    ${text('Where it breaks', m.fail, true)}
+    ${text('What to use instead', m.alt)}
+    ${field('Built on', chips('data-math', m.math))}`);
   }
   function openDrift(code) {
     const d = T.DRIFTS.find(x => x.c === code); if (!d) return;
     const dom = T.DRIFT_DOMAINS[d.domain];
-    show(`<div class="d-code">${code}</div><div class="d-name">${d.n}</div>
-    ${dom ? `<div class="rec-meta" style="margin-bottom:12px">${dom.name}</div>` : ''}
-    <p class="rec-metaphor">${d.met}</p>
-    ${field('How it works', d.mech)}
-    ${field('What counts as drift', d.thr)}
-    ${field('Where it misleads', d.fail, true)}
-    ${field('Built on', d.math.map(x => `<span class="chip" data-math="${x}">${x}</span>`).join(' '))}`);
+    show(`${head(code, d.n, dom?.name)}
+    <p class="rec-metaphor">${esc(d.met)}</p>
+    ${text('How it works', d.mech)}
+    ${text('What counts as drift', d.thr)}
+    ${text('Where it misleads', d.fail, true)}
+    ${field('Built on', chips('data-math', d.math))}`);
   }
   function openPipeline(code) {
     const p = T.PIPELINES.find(x => x.c === code); if (!p) return;
     const dom = T.PIPELINE_DOMAINS[p.p];
-    show(`<div class="d-code">${code}</div><div class="d-name">${p.n}</div>
-    ${dom ? `<div class="rec-meta" style="margin-bottom:12px">${dom.name}</div>` : ''}
-    <p class="rec-metaphor">${p.met}</p>
-    ${field('How it works', p.mech)}
-    ${field('Where it breaks', p.fail, true)}
-    ${field('Stages', p.stages.map(s => `<span class="chip" data-stage="${s}">${s}</span>`).join(' '))}`);
+    show(`${head(code, p.n, dom?.name)}
+    <p class="rec-metaphor">${esc(p.met)}</p>
+    ${text('How it works', p.mech)}
+    ${text('Where it breaks', p.fail, true)}
+    ${field('Stages', chips('data-stage', p.stages))}`);
   }
   function openStage(code) {
     const s = T.STAGES[code]; if (!s) return;
-    show(`<div class="d-code">${code}</div><div class="d-name">${s.name}</div>
-    ${field('Definition', s.note)}`);
+    show(`${head(code, s.name)}
+    ${text('Definition', s.note)}`);
   }
 
   document.addEventListener('click', e => {

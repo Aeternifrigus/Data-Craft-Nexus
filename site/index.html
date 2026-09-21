@@ -43,9 +43,11 @@
 
   <section class="intake">
     <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload a CSV file">
-      <p><b>Drop a CSV here</b>, or click to choose one</p>
-      <p style="margin-top:7px;font-size:12px">Stays in your browser. Nothing is uploaded anywhere.</p>
-      <input type="file" id="file" accept=".csv,text/csv" hidden>
+      <div id="drop-msg">
+        <p><b>Drop a CSV here</b>, or click to choose one</p>
+        <p style="margin-top:7px;font-size:12px">Stays in your browser. Nothing is uploaded anywhere.</p>
+      </div>
+      <input type="file" id="file" accept=".csv,.tsv,.txt,text/csv" hidden>
     </div>
     <p class="altline">
       No file handy? <button class="link" id="sample">Load a sample shipment table</button>
@@ -143,7 +145,7 @@
 <script>
   // The unbuilt site uses ES modules, which browsers refuse to load from disk.
   if (location.protocol === 'file:') {
-    document.getElementById('drop').innerHTML =
+    document.getElementById('drop-msg').innerHTML =
       '<p><b>This copy needs a web server.</b></p>' +
       '<p style="margin-top:7px;font-size:12px">Open <code>dist/index.html</code> instead, or run <code>npm run serve</code>.</p>';
   }

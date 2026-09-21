@@ -1,6 +1,7 @@
 // Renders the recommendation sections and the 3D plot.
 // Plotly and mermaid are loaded as globals by index.html.
 
+import { esc } from './html.js';
 import { paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
 
 export function renderResults(T, sig, task) {
@@ -14,20 +15,20 @@ export function renderResults(T, sig, task) {
   document.getElementById('models').innerHTML = scored.map((m, i) => `
     <article class="rec">
       <div>
-        <div class="rec-code" data-model="${m.c}">${m.c}</div>
+        <div class="rec-code" data-model="${esc(m.c)}">${esc(m.c)}</div>
         <div class="rec-rank">${m.score} of 3 axes</div>
       </div>
       <div>
-        <div class="rec-name">${m.n}</div>
-        <div class="rec-meta">${T.MODEL_DOMAINS[m.dom]?.name || m.dom} · ${paradigmLabel(m.p)}</div>
-        <p class="rec-metaphor">${m.met}</p>
+        <div class="rec-name">${esc(m.n)}</div>
+        <div class="rec-meta">${esc(T.MODEL_DOMAINS[m.dom]?.name || m.dom)} · ${paradigmLabel(m.p)}</div>
+        <p class="rec-metaphor">${esc(m.met)}</p>
         <div class="matchline">
-          ${m.data.map(d => `<span class="chip ${sig.includes(d) ? 'hit' : 'miss'}" data-code="${d}">${d} ${T.CODES[d] ? T.CODES[d].name.toLowerCase() : ''}</span>`).join('')}
+          ${m.data.map(d => `<span class="chip ${sig.includes(d) ? 'hit' : 'miss'}" data-code="${esc(d)}">${esc(d)} ${T.CODES[d] ? esc(T.CODES[d].name.toLowerCase()) : ''}</span>`).join('')}
         </div>
-        <p class="rec-body">${m.mech}</p>
-        <p class="rec-body warn">${m.fail}</p>
+        <p class="rec-body">${esc(m.mech)}</p>
+        <p class="rec-body warn">${esc(m.fail)}</p>
         <div class="mathline">math:
-          ${m.math.map(x => `<span class="chip" data-math="${x}">${x}</span>`).join('')}
+          ${m.math.map(x => `<span class="chip" data-math="${esc(x)}">${esc(x)}</span>`).join('')}
         </div>
       </div>
     </article>`).join('');
@@ -41,16 +42,16 @@ export function renderResults(T, sig, task) {
 
   document.getElementById('drifts').innerHTML = dscored.map(d => `
     <article class="rec">
-      <div><div class="rec-code" data-drift="${d.c}">${d.c}</div></div>
+      <div><div class="rec-code" data-drift="${esc(d.c)}">${esc(d.c)}</div></div>
       <div>
-        <div class="rec-name">${d.n}</div>
-        <div class="rec-meta">${T.DRIFT_DOMAINS[d.domain]?.name || d.domain}</div>
-        <p class="rec-metaphor">${d.met}</p>
-        <p class="rec-body">${d.mech}</p>
-        <p class="rec-body"><span style="color:var(--sage)">Threshold.</span> ${d.thr}</p>
-        <p class="rec-body warn">${d.fail}</p>
+        <div class="rec-name">${esc(d.n)}</div>
+        <div class="rec-meta">${esc(T.DRIFT_DOMAINS[d.domain]?.name || d.domain)}</div>
+        <p class="rec-metaphor">${esc(d.met)}</p>
+        <p class="rec-body">${esc(d.mech)}</p>
+        <p class="rec-body"><span style="color:var(--sage)">Threshold.</span> ${esc(d.thr)}</p>
+        <p class="rec-body warn">${esc(d.fail)}</p>
         <div class="mathline">math:
-          ${d.math.map(x => `<span class="chip" data-math="${x}">${x}</span>`).join('')}
+          ${d.math.map(x => `<span class="chip" data-math="${esc(x)}">${esc(x)}</span>`).join('')}
         </div>
       </div>
     </article>`).join('');
@@ -62,17 +63,17 @@ export function renderResults(T, sig, task) {
 
   document.getElementById('pipelines').innerHTML = pscored.map(p => `
     <article class="rec">
-      <div><div class="rec-code" data-pipeline="${p.c}">${p.c}</div></div>
+      <div><div class="rec-code" data-pipeline="${esc(p.c)}">${esc(p.c)}</div></div>
       <div>
-        <div class="rec-name">${p.n}</div>
-        <div class="rec-meta">${T.PIPELINE_DOMAINS[p.p]?.name || p.p}</div>
-        <p class="rec-metaphor">${p.met}</p>
-        <p class="rec-body">${p.mech}</p>
-        <p class="rec-body warn">${p.fail}</p>
+        <div class="rec-name">${esc(p.n)}</div>
+        <div class="rec-meta">${esc(T.PIPELINE_DOMAINS[p.p]?.name || p.p)}</div>
+        <p class="rec-metaphor">${esc(p.met)}</p>
+        <p class="rec-body">${esc(p.mech)}</p>
+        <p class="rec-body warn">${esc(p.fail)}</p>
         <div class="mathline">stages:
-          ${p.stages.map(s => `<span class="chip" data-stage="${s}">${s}</span>`).join('')}
+          ${p.stages.map(s => `<span class="chip" data-stage="${esc(s)}">${esc(s)}</span>`).join('')}
         </div>
-        <div class="pipeline-diagram" id="diagram-${p.c}"></div>
+        <div class="pipeline-diagram" id="diagram-${esc(p.c)}"></div>
       </div>
     </article>`).join('');
 

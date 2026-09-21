@@ -1,10 +1,12 @@
 // "The reference" view: every code in the taxonomy, searchable.
 
+import { esc } from './html.js';
+
 function libCard(code, name, note, attr) {
   return `<button class="lib-card" ${attr}>
-      <div class="lib-code">${code}</div>
-      <div class="lib-name">${name}</div>
-      <div class="lib-note">${note}</div>
+      <div class="lib-code">${esc(code)}</div>
+      <div class="lib-name">${esc(name)}</div>
+      <div class="lib-note">${esc(note)}</div>
     </button>`;
 }
 
@@ -15,9 +17,9 @@ export function buildLibrary(T) {
   T.AXES.forEach(a => {
     const codes = Object.keys(T.CODES).filter(c => c.startsWith('A' + a.n));
     if (!codes.length) return;
-    html += `<div class="lib-subheading">Axis ${a.n}, ${a.label}</div>
+    html += `<div class="lib-subheading">Axis ${a.n}, ${esc(a.label)}</div>
       <div class="lib-grid">${codes.map(c =>
-        libCard(c, T.CODES[c].name, T.CODES[c].note, `data-code="${c}"`)).join('')}</div>`;
+        libCard(c, T.CODES[c].name, T.CODES[c].note, `data-code="${esc(c)}"`)).join('')}</div>`;
   });
   html += `</div>`;
 
@@ -27,10 +29,10 @@ export function buildLibrary(T) {
     const domain = T.MATH_DOMAINS[dk];
     const codes = Object.keys(T.MATH).filter(m => T.MATH[m].domain === dk);
     if (!codes.length) return;
-    html += `<div class="lib-subheading">${dk}, ${domain.name}</div>
-      <p class="lib-sub" style="margin-bottom:8px">${domain.note}</p>
+    html += `<div class="lib-subheading">${esc(dk)}, ${esc(domain.name)}</div>
+      <p class="lib-sub" style="margin-bottom:8px">${esc(domain.note)}</p>
       <div class="lib-grid">${codes.map(c =>
-        libCard(c, T.MATH[c].name, T.MATH[c].f, `data-math="${c}"`)).join('')}</div>`;
+        libCard(c, T.MATH[c].name, T.MATH[c].f, `data-math="${esc(c)}"`)).join('')}</div>`;
   });
   html += `</div>`;
 
@@ -40,10 +42,10 @@ export function buildLibrary(T) {
     const domain = T.MODEL_DOMAINS[dk];
     const codes = T.MODELS.filter(m => m.dom === dk);
     if (!codes.length) return;
-    html += `<div class="lib-subheading">${domain.name}</div>
-      <p class="lib-sub" style="margin-bottom:8px">${domain.note}</p>
+    html += `<div class="lib-subheading">${esc(domain.name)}</div>
+      <p class="lib-sub" style="margin-bottom:8px">${esc(domain.note)}</p>
       <div class="lib-grid">${codes.map(m =>
-        libCard(m.c, m.n, m.met, `data-model="${m.c}"`)).join('')}</div>`;
+        libCard(m.c, m.n, m.met, `data-model="${esc(m.c)}"`)).join('')}</div>`;
   });
   html += `</div>`;
 
@@ -53,10 +55,10 @@ export function buildLibrary(T) {
     const domain = T.DRIFT_DOMAINS[dk];
     const codes = T.DRIFTS.filter(d => d.domain === dk);
     if (!codes.length) return;
-    html += `<div class="lib-subheading">${dk}, ${domain.name}</div>
-      <p class="lib-sub" style="margin-bottom:8px">${domain.note}</p>
+    html += `<div class="lib-subheading">${esc(dk)}, ${esc(domain.name)}</div>
+      <p class="lib-sub" style="margin-bottom:8px">${esc(domain.note)}</p>
       <div class="lib-grid">${codes.map(d =>
-        libCard(d.c, d.n, d.met, `data-drift="${d.c}"`)).join('')}</div>`;
+        libCard(d.c, d.n, d.met, `data-drift="${esc(d.c)}"`)).join('')}</div>`;
   });
   html += `</div>`;
 
@@ -66,17 +68,17 @@ export function buildLibrary(T) {
     const domain = T.PIPELINE_DOMAINS[dk];
     const codes = T.PIPELINES.filter(p => p.p === dk);
     if (!codes.length) return;
-    html += `<div class="lib-subheading">${domain.name}</div>
-      <p class="lib-sub" style="margin-bottom:8px">${domain.note}</p>
+    html += `<div class="lib-subheading">${esc(domain.name)}</div>
+      <p class="lib-sub" style="margin-bottom:8px">${esc(domain.note)}</p>
       <div class="lib-grid">${codes.map(p =>
-        libCard(p.c, p.n, p.met, `data-pipeline="${p.c}"`)).join('')}</div>`;
+        libCard(p.c, p.n, p.met, `data-pipeline="${esc(p.c)}"`)).join('')}</div>`;
   });
   html += `</div>`;
 
   html += `<div class="lib-group"><h3>Stage library</h3>
     <p class="lib-sub">Every reusable stage.</p>
     <div class="lib-grid">${Object.keys(T.STAGES).map(s =>
-      libCard(s, T.STAGES[s].name, T.STAGES[s].note, `data-stage="${s}"`)).join('')}</div></div>`;
+      libCard(s, T.STAGES[s].name, T.STAGES[s].note, `data-stage="${esc(s)}"`)).join('')}</div></div>`;
 
   document.getElementById('lib-body').innerHTML = html;
 }

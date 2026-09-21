@@ -1,7 +1,8 @@
 // Entry point: loads the taxonomy and wires up the page.
 
 import { loadTaxonomy, loadSample } from './taxonomy.js';
-import { parseCSV } from './csv.js';
+import { parseCSV, decodeBytes, delimiterName, MAX_ROWS } from './csv.js';
+import { esc } from './html.js';
 import { profileData, signature } from './profile.js';
 import { renderResults } from './results.js';
 import { initDrawer } from './drawer.js';
@@ -15,7 +16,7 @@ function buildReadout(T) {
       <div class="slot-code" id="code-${a.n}">-, -</div>
       <div>
         <div class="slot-val" id="val-${a.n}"></div>
-        <div class="slot-axis">${a.n}. ${a.label}</div>
+        <div class="slot-axis">${a.n}. ${esc(a.label)}</div>
       </div>
     </div>`).join('');
 }
@@ -28,17 +29,33 @@ function setSlot(n, code, declared) {
   if (declared) s.classList.add('declared');
 }
 
-function ingest(text) {
-  const { head, body } = parseCSV(text);
+// What was detected while reading, shown under the row count.
+function readNote(parsed, encoding) {
+  const parts = [`${delimiterName(parsed.delimiter)}-separated`];
+  if (encoding && encoding !== 'UTF-8') parts.push(`${encoding} text`);
+  if (parsed.decimalComma) parts.push('decimal commas read as numbers');
+  if (parsed.truncated) parts.push(`only the first ${MAX_ROWS.toLocaleString()} rows are used`);
+  return parts.join(' · ');
+}
+
+function ingest(text, encoding) {
+  const parsed = parseCSV(text);
+  const { head, body } = parsed;
+  const drop = document.getElementById('drop-msg');
+  if (head.length === 0 || body.length === 0) {
+    drop.innerHTML = `<p><b>No rows found.</b></p>
+      <p style="margin-top:7px;font-size:12px">The file needs a header row and at least one data row.</p>`;
+    return;
+  }
   state.cols = head; state.rows = body;
   state.profile = profileData(head, body);
   const { profile } = state;
   setSlot(3, profile.a3);
   setSlot(4, profile.a4);
   setSlot(6, profile.a6);
-  const drop = document.getElementById('drop');
   drop.innerHTML = `<p><b>${profile.n.toLocaleString()} rows · ${profile.feat} columns</b> read</p>
-    <p style="margin-top:7px;font-size:12px">Axes 3, 4 and 6 measured. Three more need your intent.</p>`;
+    <p style="margin-top:7px;font-size:12px">${esc(readNote(parsed, encoding))}</p>
+    <p style="margin-top:4px;font-size:12px">Axes 3, 4 and 6 measured. Three more need your intent.</p>`;
   buildDeclarations();
   document.getElementById('declare').classList.add('on');
   document.getElementById('declare').scrollIntoView({ block: 'start' });
@@ -51,7 +68,7 @@ function buildDeclarations() {
   const sel = document.createElement('select');
   sel.className = 'opt';
   sel.innerHTML = `<option value="">choose a column…</option>` +
-    state.cols.map(c => `<option value="${c}">${c}</option>`).join('') +
+    state.cols.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('') +
     `<option value="__none__">nothing, there is no target</option>`;
   sel.addEventListener('change', () => {
     decl.target = sel.value || null;
@@ -61,14 +78,14 @@ function buildDeclarations() {
   t.appendChild(sel);
 
   const tk = document.getElementById('q-task');
-  tk.innerHTML = T.TASKS.map(x => `<button class="opt" data-task="${x.id}">${x.label}</button>`).join('');
+  tk.innerHTML = T.TASKS.map(x => `<button class="opt" data-task="${esc(x.id)}">${esc(x.label)}</button>`).join('');
   tk.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
     tk.querySelectorAll('button').forEach(o => o.classList.remove('sel'));
     b.classList.add('sel'); decl.task = b.dataset.task; checkReady();
   }));
 
   const od = document.getElementById('q-order');
-  const hint = profile.dateCols.length ? ` (a date column was found: ${profile.dateCols[0].name})` : '';
+  const hint = profile.dateCols.length ? ` (a date column was found: ${esc(profile.dateCols[0].name)})` : '';
   od.innerHTML =
     `<button class="opt" data-o="A22">Yes, it is a sequence${hint}</button>
      <button class="opt" data-o="A21">No, rows are independent</button>`;
@@ -88,8 +105,11 @@ function initIntake() {
   const drop = document.getElementById('drop'), fileIn = document.getElementById('file');
   const readFile = f => {
     const fr = new FileReader();
-    fr.onload = () => ingest(fr.result);
-    fr.readAsText(f);
+    fr.onload = () => {
+      const { text, encoding } = decodeBytes(fr.result);
+      ingest(text, encoding);
+    };
+    fr.readAsArrayBuffer(f);
   };
   drop.addEventListener('click', () => fileIn.click());
   drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileIn.click(); } });
@@ -99,10 +119,13 @@ function initIntake() {
     e.preventDefault(); drop.classList.remove('over');
     const f = e.dataTransfer.files[0]; if (f) readFile(f);
   });
-  fileIn.addEventListener('change', e => { const f = e.target.files[0]; if (f) readFile(f); });
+  fileIn.addEventListener('change', e => {
+    const f = e.target.files[0]; if (f) readFile(f);
+    fileIn.value = ''; // so choosing the same file again still triggers a read
+  });
 
   document.getElementById('sample').addEventListener('click', async () => {
-    ingest(await loadSample());
+    ingest(await loadSample(), 'UTF-8');
   });
 
   document.getElementById('run').addEventListener('click', () => {
@@ -127,7 +150,7 @@ async function main() {
   try {
     state.T = await loadTaxonomy();
   } catch (err) {
-    document.getElementById('drop').innerHTML =
+    document.getElementById('drop-msg').innerHTML =
       `<p><b>The taxonomy could not be loaded.</b></p>
        <p style="margin-top:7px;font-size:12px">To open it straight from disk, use <code>dist/index.html</code>. The files in <code>site/</code> need a server: <code>npm run serve</code></p>`;
     throw err;

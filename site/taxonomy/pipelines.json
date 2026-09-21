@@ -1,0 +1,495 @@
+{
+ "domains": {
+  "ETL": {
+   "name": "Data Movement",
+   "note": "Batch ETL and streaming ELT"
+  },
+  "Feature": {
+   "name": "Feature Engineering",
+   "note": "Feature store and engineering"
+  },
+  "Training": {
+   "name": "Model Training",
+   "note": "Training and tuning pipelines"
+  },
+  "Evaluation": {
+   "name": "Evaluation",
+   "note": "Validation and champion-challenger"
+  },
+  "Deployment": {
+   "name": "Deployment",
+   "note": "CI/CD and serving"
+  },
+  "Inference": {
+   "name": "Inference",
+   "note": "Batch and real-time scoring"
+  },
+  "Monitoring": {
+   "name": "Monitoring",
+   "note": "Drift detection and alerting"
+  },
+  "Retraining": {
+   "name": "Retraining",
+   "note": "Continuous learning"
+  },
+  "Labeling": {
+   "name": "Labeling",
+   "note": "Human-in-the-loop annotation"
+  },
+  "RAG": {
+   "name": "RAG",
+   "note": "Retrieval-augmented generation"
+  },
+  "FineTuning": {
+   "name": "LLM Fine-Tuning",
+   "note": "SFT and preference optimization"
+  },
+  "ABTesting": {
+   "name": "A/B Testing",
+   "note": "Experimentation"
+  }
+ },
+ "pipelines": [
+  {
+   "c": "PL-T1",
+   "n": "Batch ETL Pipeline",
+   "p": "ETL",
+   "task": [
+    "any"
+   ],
+   "met": "A factory assembly line.",
+   "stages": [
+    "PL-S3",
+    "PL-S4",
+    "PL-S2",
+    "PL-S5"
+   ],
+   "data": [
+    "A22",
+    "A3x",
+    "A6x"
+   ],
+   "mech": "Extract → Transform → Load on schedule.",
+   "fail": "Schema changes break transforms.",
+   "flowchart": "flowchart TD\n    A[\"PL-S3 Extract\"] --> B[\"PL-S4 Transform\"]\n    B --> C{\"PL-S2 Validate\"}\n    C -->|Pass| D[\"PL-S5 Load\"]\n    C -->|Fail| E[\"Quarantine\"]"
+  },
+  {
+   "c": "PL-T2",
+   "n": "Streaming ELT Pipeline",
+   "p": "ETL",
+   "task": [
+    "any"
+   ],
+   "met": "Warehouse accepting deliveries all day.",
+   "stages": [
+    "PL-S3",
+    "PL-S5",
+    "PL-S4",
+    "PL-S2"
+   ],
+   "data": [
+    "A22",
+    "A6x"
+   ],
+   "mech": "Extract → Load → Transform continuously.",
+   "fail": "Quality issues surface late.",
+   "flowchart": "flowchart TD\n    A[\"PL-S3 Extract\"] --> B[\"PL-S5 Load\"]\n    B --> C[\"PL-S4 Transform\"]\n    C --> D{\"PL-S2 Validate\"}\n    D -->|Pass| E[\"Serve\"]\n    D -->|Fail| F[\"Dead-letter\"]"
+  },
+  {
+   "c": "PL-T3",
+   "n": "Feature Engineering & Store Pipeline",
+   "p": "Feature",
+   "task": [
+    "number",
+    "category",
+    "forecast"
+   ],
+   "met": "A pantry prepping ingredients once.",
+   "stages": [
+    "PL-S6",
+    "PL-S7"
+   ],
+   "data": [
+    "A3x",
+    "A4x",
+    "A54"
+   ],
+   "mech": "Turns data into model-ready features.",
+   "fail": "Feature drift between stores.",
+   "flowchart": "flowchart TD\n    A[\"Validated data\"] --> B[\"PL-S6 Feature Eng\"]\n    B --> C[\"PL-S7 Store Write\"]\n    C --> D[\"PL-S7 Store Read\"]"
+  },
+  {
+   "c": "PL-T4",
+   "n": "Model Training Pipeline",
+   "p": "Training",
+   "task": [
+    "number",
+    "category",
+    "forecast",
+    "group"
+   ],
+   "met": "A student studying for exams.",
+   "stages": [
+    "PL-S7",
+    "PL-S8",
+    "PL-S9",
+    "PL-S10",
+    "PL-S11",
+    "PL-S12",
+    "PL-S13"
+   ],
+   "data": [
+    "A11"
+   ],
+   "mech": "Split, fit, tune, evaluate, register.",
+   "fail": "Leakage between splits.",
+   "flowchart": "flowchart TD\n    A[\"PL-S7 Store Read\"] --> B[\"PL-S8 Split\"]\n    B --> C[\"PL-S9 Train\"]\n    C --> D[\"PL-S10 Tune\"]\n    D --> E[\"PL-S11 Evaluate\"]\n    E --> F{\"PL-S12 Gate\"}\n    F -->|No| C\n    F -->|Yes| G[\"PL-S13 Registry\"]"
+  },
+  {
+   "c": "PL-T5",
+   "n": "Model Evaluation & Validation Pipeline",
+   "p": "Evaluation",
+   "task": [
+    "any"
+   ],
+   "met": "A board exam.",
+   "stages": [
+    "PL-S11",
+    "PL-S17"
+   ],
+   "data": [
+    "A11"
+   ],
+   "mech": "Gate-checks candidate against champion.",
+   "fail": "Unrepresentative evaluation data.",
+   "flowchart": "flowchart TD\n    A[\"Candidate\"] --> B[\"Evaluate\"]\n    B --> C[\"Bias Check\"]\n    C --> D[\"PL-S17 Champion\"]\n    D --> E{\"Beats?\"}\n    E -->|Yes| F[\"Promote\"]\n    E -->|No| G[\"Reject\"]"
+  },
+  {
+   "c": "PL-T6",
+   "n": "CI/CD Deployment Pipeline",
+   "p": "Deployment",
+   "task": [
+    "any"
+   ],
+   "met": "Software release for models.",
+   "stages": [
+    "PL-S13",
+    "PL-S14",
+    "PL-S15",
+    "PL-S16",
+    "PL-S17"
+   ],
+   "data": [
+    "A11"
+   ],
+   "mech": "Builds, tests, ships model artifact.",
+   "fail": "Production behaves differently.",
+   "flowchart": "flowchart TD\n    A[\"PL-S13 Registry\"] --> B[\"PL-S14 Build\"]\n    B --> C{\"Tests?\"}\n    C -->|No| D[\"Fail\"]\n    C -->|Yes| E[\"Deploy\"]\n    E --> F[\"PL-S17 Shadow\"]\n    F --> G[\"Rollout\"]"
+  },
+  {
+   "c": "PL-T7",
+   "n": "Batch Inference Pipeline",
+   "p": "Inference",
+   "task": [
+    "number",
+    "category",
+    "forecast"
+   ],
+   "met": "Mail-sorting facility.",
+   "stages": [
+    "PL-S15",
+    "PL-S13",
+    "PL-S7",
+    "PL-S18"
+   ],
+   "data": [
+    "A22",
+    "A54"
+   ],
+   "mech": "Scores large dataset on schedule.",
+   "fail": "Stale features.",
+   "flowchart": "flowchart TD\n    A[\"Scheduled\"] --> B[\"Load model\"]\n    B --> C[\"PL-S7 Read\"]\n    C --> D[\"Score\"]\n    D --> E[\"Write\"]\n    E --> F[\"PL-S18 Monitor\"]"
+  },
+  {
+   "c": "PL-T8",
+   "n": "Real-Time Inference Pipeline",
+   "p": "Inference",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "A single teller window.",
+   "stages": [
+    "PL-S16",
+    "PL-S7",
+    "PL-S18"
+   ],
+   "data": [
+    "A22",
+    "A54"
+   ],
+   "mech": "Serves predictions synchronously.",
+   "fail": "Latency bottlenecks.",
+   "flowchart": "flowchart TD\n    A[\"Request\"] --> B[\"Gateway\"]\n    B --> C[\"PL-S7 Read\"]\n    C --> D[\"PL-S16 Serve\"]\n    D --> E[\"Response\"]\n    E --> F[\"PL-S18 Log\"]"
+  },
+  {
+   "c": "PL-T9",
+   "n": "Monitoring & Drift Pipeline",
+   "p": "Monitoring",
+   "task": [
+    "any"
+   ],
+   "met": "Building's smoke detectors.",
+   "stages": [
+    "PL-S18",
+    "PL-S19",
+    "PL-S20"
+   ],
+   "data": [
+    "A54",
+    "A22"
+   ],
+   "mech": "Watches for drift, fires alerts.",
+   "fail": "False alarms or missed drift.",
+   "flowchart": "flowchart TD\n    A[\"Logs\"] --> B[\"Checkers\"]\n    B --> C{\"Drift?\"}\n    C -->|No| A\n    C -->|Yes| D[\"PL-S19 Alert\"]\n    D --> E{\"Severity\"}\n    E -->|Moderate| F[\"Alert Only\"]\n    E -->|Significant| G[\"PL-S20 Retrain\"]"
+  },
+  {
+   "c": "PL-T10",
+   "n": "Retraining Pipeline",
+   "p": "Retraining",
+   "task": [
+    "any"
+   ],
+   "met": "Fire drill that becomes evacuation.",
+   "stages": [
+    "PL-S20",
+    "PL-T1",
+    "PL-T3",
+    "PL-T4",
+    "PL-T5",
+    "PL-T6"
+   ],
+   "data": [
+    "A54"
+   ],
+   "mech": "Full data→train→evaluate→deploy chain.",
+   "fail": "Catastrophic forgetting.",
+   "flowchart": "flowchart TD\n    A[\"Trigger\"] --> B[\"Pull data\"]\n    B --> C[\"Features\"]\n    C --> D[\"Train\"]\n    D --> E[\"Evaluate\"]\n    E --> F{\"Approved?\"}\n    F -->|Yes| G[\"Deploy\"]\n    F -->|No| H[\"Rollback\"]"
+  },
+  {
+   "c": "PL-T11",
+   "n": "Data Labeling Pipeline",
+   "p": "Labeling",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "Courtroom stenographer.",
+   "stages": [
+    "PL-S21",
+    "PL-S22"
+   ],
+   "data": [
+    "A12",
+    "A13"
+   ],
+   "mech": "Human review produces labels.",
+   "fail": "Label noise.",
+   "flowchart": "flowchart TD\n    A[\"Unlabeled\"] --> B[\"PL-S21 Review\"]\n    B --> C[\"PL-S22 Label\"]\n    C --> D[\"Agreement\"]\n    D --> E{\"OK?\"}\n    E -->|Yes| F[\"Labeled\"]\n    E -->|No| G[\"Re-annotate\"]"
+  },
+  {
+   "c": "PL-T12",
+   "n": "RAG Pipeline",
+   "p": "RAG",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "Student with open textbook.",
+   "stages": [
+    "PL-S23",
+    "PL-S24",
+    "PL-S25",
+    "PL-S26"
+   ],
+   "data": [
+    "A34",
+    "A15"
+   ],
+   "mech": "Retrieves chunks and injects into LLM.",
+   "fail": "Retrieval misses relevant chunks.",
+   "flowchart": "flowchart TD\n    A[\"Corpus\"] --> B[\"Chunk\"]\n    B --> C[\"Embed\"]\n    C --> D[\"PL-S23 Index\"]\n    E[\"Query\"] --> F[\"PL-S24 Retrieve\"]\n    D --> F\n    F --> G[\"PL-S25 Inject\"]\n    G --> H[\"PL-S26 Generate\"]"
+  },
+  {
+   "c": "PL-T13",
+   "n": "LLM Fine-Tuning Pipeline",
+   "p": "FineTuning",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "Specialist residency.",
+   "stages": [
+    "PL-S27",
+    "PL-S28",
+    "PL-S11",
+    "PL-S29",
+    "PL-S13"
+   ],
+   "data": [
+    "A11",
+    "A34"
+   ],
+   "mech": "SFT then preference optimization.",
+   "fail": "Catastrophic forgetting.",
+   "flowchart": "flowchart TD\n    A[\"PL-S27 Prep\"] --> B[\"PL-S28 SFT\"]\n    B --> C[\"PL-S11 Eval\"]\n    C --> D{\"Meets?\"}\n    D -->|No| B\n    D -->|Yes| E[\"PL-S29 Pref\"]\n    E --> F[\"PL-S13 Registry\"]"
+  },
+  {
+   "c": "PL-T14",
+   "n": "A/B Testing Pipeline",
+   "p": "ABTesting",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "Blind taste test.",
+   "stages": [
+    "PL-S30",
+    "PL-S31"
+   ],
+   "data": [
+    "A11",
+    "A51"
+   ],
+   "mech": "Splits traffic and tests.",
+   "fail": "Insufficient sample size.",
+   "flowchart": "flowchart TD\n    A[\"PL-S30 Split\"] --> B[\"Champion\"]\n    A --> C[\"Challenger\"]\n    B --> D[\"Metrics\"]\n    C --> D\n    D --> E[\"PL-S31 Analyze\"]\n    E --> F{\"Significant?\"}\n    F -->|Yes| G[\"Promote\"]\n    F -->|No| H[\"Keep\"]"
+  }
+ ],
+ "stages": {
+  "PL-S1": {
+   "name": "Ingestion",
+   "note": "Pulls raw data from a source system."
+  },
+  "PL-S2": {
+   "name": "Validation",
+   "note": "Schema/quality/type checks."
+  },
+  "PL-S3": {
+   "name": "Extract (E)",
+   "note": "Pulls raw data without transforming."
+  },
+  "PL-S4": {
+   "name": "Transform",
+   "note": "Cleans, joins, aggregates."
+  },
+  "PL-S5": {
+   "name": "Load (L)",
+   "note": "Writes data to warehouse."
+  },
+  "PL-S6": {
+   "name": "Feature Engineering",
+   "note": "Derives model-ready features."
+  },
+  "PL-S7": {
+   "name": "Feature Store Read/Write",
+   "note": "Versioned feature storage."
+  },
+  "PL-S8": {
+   "name": "Train / Val / Test Split",
+   "note": "Partitions data."
+  },
+  "PL-S9": {
+   "name": "Model Training",
+   "note": "Fits Model Codes."
+  },
+  "PL-S10": {
+   "name": "Hyperparameter Tuning",
+   "note": "Searches hyperparameter space."
+  },
+  "PL-S11": {
+   "name": "Evaluation",
+   "note": "Computes metrics."
+  },
+  "PL-S12": {
+   "name": "Validation Gate",
+   "note": "Pass/fail decision."
+  },
+  "PL-S13": {
+   "name": "Model Registry",
+   "note": "Versioned model artifact."
+  },
+  "PL-S14": {
+   "name": "CI/CD Build & Test",
+   "note": "Packages and tests."
+  },
+  "PL-S15": {
+   "name": "Batch Deployment",
+   "note": "Recurring scoring job."
+  },
+  "PL-S16": {
+   "name": "Real-Time Deployment",
+   "note": "Serving endpoint."
+  },
+  "PL-S17": {
+   "name": "Shadow / Champion-Challenger",
+   "note": "Parallel run before cutover."
+  },
+  "PL-S18": {
+   "name": "Monitoring",
+   "note": "Watches for drift."
+  },
+  "PL-S19": {
+   "name": "Alerting",
+   "note": "Notifies on threshold."
+  },
+  "PL-S20": {
+   "name": "Retraining Trigger",
+   "note": "Kicks off retraining."
+  },
+  "PL-S21": {
+   "name": "Human-in-the-Loop Review",
+   "note": "Routes to human."
+  },
+  "PL-S22": {
+   "name": "Labeling / Annotation",
+   "note": "Produces ground truth."
+  },
+  "PL-S23": {
+   "name": "Retrieval Index Build",
+   "note": "Indexes corpus."
+  },
+  "PL-S24": {
+   "name": "Retrieval Query",
+   "note": "Finds nearest chunks."
+  },
+  "PL-S25": {
+   "name": "Context Injection",
+   "note": "Assembles prompt."
+  },
+  "PL-S26": {
+   "name": "LLM Generation",
+   "note": "Produces output."
+  },
+  "PL-S27": {
+   "name": "Fine-Tuning Data Prep",
+   "note": "Formats instruction pairs."
+  },
+  "PL-S28": {
+   "name": "Supervised Fine-Tuning Loop",
+   "note": "Trains on instructions."
+  },
+  "PL-S29": {
+   "name": "Preference Optimization",
+   "note": "Aligns with preference."
+  },
+  "PL-S30": {
+   "name": "Traffic Split",
+   "note": "Divides champion/challenger."
+  },
+  "PL-S31": {
+   "name": "Statistical Analysis",
+   "note": "Tests significance."
+  }
+ }
+}

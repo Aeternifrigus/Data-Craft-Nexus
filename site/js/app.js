@@ -1,0 +1,144 @@
+// Entry point: loads the taxonomy and wires up the page.
+
+import { loadTaxonomy } from './taxonomy.js';
+import { parseCSV } from './csv.js';
+import { profileData, signature } from './profile.js';
+import { renderResults } from './results.js';
+import { initDrawer } from './drawer.js';
+import { buildLibrary, initLibrarySearch } from './library.js';
+
+const state = { T: null, rows: [], cols: [], profile: null, decl: { target: null, task: null, order: null } };
+
+function buildReadout(T) {
+  document.getElementById('readout').innerHTML = T.AXES.map(a => `
+    <div class="slot" id="slot-${a.n}">
+      <div class="slot-code" id="code-${a.n}">-, -</div>
+      <div>
+        <div class="slot-val" id="val-${a.n}"></div>
+        <div class="slot-axis">${a.n}. ${a.label}</div>
+      </div>
+    </div>`).join('');
+}
+
+function setSlot(n, code, declared) {
+  const s = document.getElementById('slot-' + n);
+  document.getElementById('code-' + n).textContent = code;
+  document.getElementById('val-' + n).textContent = state.T.CODES[code] ? state.T.CODES[code].name : '';
+  s.classList.add('filled');
+  if (declared) s.classList.add('declared');
+}
+
+function ingest(text) {
+  const { head, body } = parseCSV(text);
+  state.cols = head; state.rows = body;
+  state.profile = profileData(head, body);
+  const { profile } = state;
+  setSlot(3, profile.a3);
+  setSlot(4, profile.a4);
+  setSlot(6, profile.a6);
+  const drop = document.getElementById('drop');
+  drop.innerHTML = `<p><b>${profile.n.toLocaleString()} rows · ${profile.feat} columns</b> read</p>
+    <p style="margin-top:7px;font-size:12px">Axes 3, 4 and 6 measured. Three more need your intent.</p>`;
+  buildDeclarations();
+  document.getElementById('declare').classList.add('on');
+  document.getElementById('declare').scrollIntoView({ block: 'start' });
+}
+
+function buildDeclarations() {
+  const { decl, profile, T } = state;
+  const t = document.getElementById('q-target');
+  t.innerHTML = '';
+  const sel = document.createElement('select');
+  sel.className = 'opt';
+  sel.innerHTML = `<option value="">choose a column…</option>` +
+    state.cols.map(c => `<option value="${c}">${c}</option>`).join('') +
+    `<option value="__none__">nothing, there is no target</option>`;
+  sel.addEventListener('change', () => {
+    decl.target = sel.value || null;
+    setSlot(1, decl.target === '__none__' ? 'A12' : 'A11', true);
+    checkReady();
+  });
+  t.appendChild(sel);
+
+  const tk = document.getElementById('q-task');
+  tk.innerHTML = T.TASKS.map(x => `<button class="opt" data-task="${x.id}">${x.label}</button>`).join('');
+  tk.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    tk.querySelectorAll('button').forEach(o => o.classList.remove('sel'));
+    b.classList.add('sel'); decl.task = b.dataset.task; checkReady();
+  }));
+
+  const od = document.getElementById('q-order');
+  const hint = profile.dateCols.length ? ` (a date column was found: ${profile.dateCols[0].name})` : '';
+  od.innerHTML =
+    `<button class="opt" data-o="A22">Yes, it is a sequence${hint}</button>
+     <button class="opt" data-o="A21">No, rows are independent</button>`;
+  od.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    od.querySelectorAll('button').forEach(o => o.classList.remove('sel'));
+    b.classList.add('sel'); decl.order = b.dataset.o;
+    setSlot(2, decl.order, true); checkReady();
+  }));
+}
+
+function checkReady() {
+  const { decl } = state;
+  document.getElementById('run').disabled = !(decl.target && decl.task && decl.order);
+}
+
+function initIntake() {
+  const drop = document.getElementById('drop'), fileIn = document.getElementById('file');
+  const readFile = f => {
+    const fr = new FileReader();
+    fr.onload = () => ingest(fr.result);
+    fr.readAsText(f);
+  };
+  drop.addEventListener('click', () => fileIn.click());
+  drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileIn.click(); } });
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); drop.classList.remove('over');
+    const f = e.dataTransfer.files[0]; if (f) readFile(f);
+  });
+  fileIn.addEventListener('change', e => { const f = e.target.files[0]; if (f) readFile(f); });
+
+  document.getElementById('sample').addEventListener('click', async () => {
+    const res = await fetch(new URL('../sample.csv', import.meta.url));
+    ingest(await res.text());
+  });
+
+  document.getElementById('run').addEventListener('click', () => {
+    const sig = signature(state.profile, state.rows, state.decl);
+    setSlot(5, sig[4], true);
+    renderResults(state.T, sig, state.decl.task);
+    document.getElementById('results').classList.add('on');
+    document.getElementById('results').scrollIntoView({ block: 'start' });
+  });
+}
+
+function initNav() {
+  document.querySelectorAll('.navlink').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.navlink').forEach(o => o.classList.remove('on'));
+    b.classList.add('on');
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+    document.getElementById('view-' + b.dataset.view).classList.add('on');
+  }));
+}
+
+async function main() {
+  try {
+    state.T = await loadTaxonomy();
+  } catch (err) {
+    document.getElementById('drop').innerHTML =
+      `<p><b>The taxonomy could not be loaded.</b></p>
+       <p style="margin-top:7px;font-size:12px">If you opened index.html straight from disk, serve the folder instead: <code>python3 -m http.server -d site</code></p>`;
+    throw err;
+  }
+  buildReadout(state.T);
+  initNav();
+  initIntake();
+  initDrawer(state.T);
+  buildLibrary(state.T);
+  initLibrarySearch();
+}
+
+main();

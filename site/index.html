@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Craft Nexus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500;700&family=Mrs+Saint+Delafield&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <div id="product-name">
+      DATA CRAFT
+      <span class="nexus">NEXUS</span>
+    </div>
+    <nav class="nav">
+      <button class="navlink on" data-view="instrument">Read a specimen</button>
+      <button class="navlink" data-view="library">The reference</button>
+    </nav>
+    <a href="https://aeternifrigus.netlify.app" target="_blank" class="sig-link">
+      <span class="sig">by Aeternifrigus</span>
+    </a>
+  </header>
+
+  <div class="view on" id="view-instrument">
+
+  <section class="hero">
+    <h1 class="hero-lede">Every dataset has <em>coordinates</em>.</h1>
+    <p class="hero-sub">
+      Feed it a snippet. It reads six axes, returns a signature, and prescribes the models,
+      drift checkers, and pipelines that fit those coordinates. Every code is clickable, down to the
+      formula underneath.
+    </p>
+
+    <div class="readout" id="readout"></div>
+  </section>
+
+  <section class="intake">
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload a CSV file">
+      <p><b>Drop a CSV here</b>, or click to choose one</p>
+      <p style="margin-top:7px;font-size:12px">Stays in your browser. Nothing is uploaded anywhere.</p>
+      <input type="file" id="file" accept=".csv,text/csv" hidden>
+    </div>
+    <p class="altline">
+      No file handy? <button class="link" id="sample">Load a sample shipment table</button>
+    </p>
+  </section>
+
+  <section class="declare" id="declare">
+    <div class="qrow">
+      <div>
+        <h4>What should it predict?</h4>
+        <p class="why">Data can't tell you the task. This sets axis 1 and filters which paradigms are even possible.</p>
+      </div>
+      <div>
+        <div class="opts" id="q-target"></div>
+      </div>
+    </div>
+
+    <div class="qrow">
+      <div>
+        <h4>What kind of answer?</h4>
+        <p class="why">A number, a category, a forecast, a grouping. This decides the paradigm before data ranks the models.</p>
+      </div>
+      <div><div class="opts" id="q-task"></div></div>
+    </div>
+
+    <div class="qrow">
+      <div>
+        <h4>Does row order matter?</h4>
+        <p class="why">Sets axis 2. If order carries signal, validation must respect time and most i.i.d. models drop out.</p>
+      </div>
+      <div><div class="opts" id="q-order"></div></div>
+    </div>
+
+    <div class="runrow">
+      <button class="run" id="run" disabled>Read the specimen</button>
+    </div>
+  </section>
+
+  <div class="results" id="results">
+    <section class="sect">
+      <h2 class="sect-h">Where your data sits</h2>
+      <p class="sect-note">
+        Your specimen plotted against reference datasets in the first three axes. Nearby points
+        are datasets that share your structure, so they tend to share your model options too.
+      </p>
+      <div id="plot"></div>
+    </section>
+
+    <section class="sect">
+      <h2 class="sect-h">Models that fit</h2>
+      <p class="sect-note" id="model-note"></p>
+      <div id="models"></div>
+    </section>
+
+    <section class="sect">
+      <h2 class="sect-h">Drift checkers that fit</h2>
+      <p class="sect-note" id="drift-note"></p>
+      <div id="drifts"></div>
+    </section>
+
+    <section class="sect">
+      <h2 class="sect-h">Pipelines that fit</h2>
+      <p class="sect-note" id="pipeline-note"></p>
+      <div id="pipelines"></div>
+    </section>
+  </div>
+
+  </div>
+
+  <div class="view" id="view-library">
+    <section class="sect" style="border-top:none">
+      <h2 class="sect-h">The reference</h2>
+      <p class="sect-note">
+        Every code the instrument uses, in one place. Search by name or code, or browse by
+        group. Click anything for the full definition, the same drawer the specimen reader uses.
+      </p>
+      <input class="lib-search" id="lib-search" type="text"
+             placeholder="Search codes, models, formulas…">
+      <div id="lib-body"></div>
+    </section>
+  </div>
+
+  <footer>
+    <div>A reference instrument for choosing models, watching them decay, and assembling pipelines.</div>
+    <a href="https://aeternifrigus.netlify.app" target="_blank" class="sig-link">
+      <span class="sig">Aeternifrigus</span>
+    </a>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-live="polite"></aside>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

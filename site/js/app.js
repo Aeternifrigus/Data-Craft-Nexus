@@ -1,6 +1,6 @@
 // Entry point: loads the taxonomy and wires up the page.
 
-import { loadTaxonomy } from './taxonomy.js';
+import { loadTaxonomy, loadSample } from './taxonomy.js';
 import { parseCSV } from './csv.js';
 import { profileData, signature } from './profile.js';
 import { renderResults } from './results.js';
@@ -102,8 +102,7 @@ function initIntake() {
   fileIn.addEventListener('change', e => { const f = e.target.files[0]; if (f) readFile(f); });
 
   document.getElementById('sample').addEventListener('click', async () => {
-    const res = await fetch(new URL('../sample.csv', import.meta.url));
-    ingest(await res.text());
+    ingest(await loadSample());
   });
 
   document.getElementById('run').addEventListener('click', () => {
@@ -130,7 +129,7 @@ async function main() {
   } catch (err) {
     document.getElementById('drop').innerHTML =
       `<p><b>The taxonomy could not be loaded.</b></p>
-       <p style="margin-top:7px;font-size:12px">If you opened index.html straight from disk, serve the folder instead: <code>python3 -m http.server -d site</code></p>`;
+       <p style="margin-top:7px;font-size:12px">To open it straight from disk, use <code>dist/index.html</code>. The files in <code>site/</code> need a server: <code>npm run serve</code></p>`;
     throw err;
   }
   buildReadout(state.T);

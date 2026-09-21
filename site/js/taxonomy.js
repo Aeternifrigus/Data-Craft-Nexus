@@ -1,6 +1,10 @@
 // Loads the taxonomy from site/taxonomy/*.json.
 // The JSON files are the single source of truth: the site, the tests and
 // (later) the Python benchmark all read the same files.
+//
+// The built single-file page (dist/index.html) carries the same files inside
+// a <script id="dcn-data" type="application/json"> tag, so it works when
+// opened straight from disk. The unbuilt site/ fetches them instead.
 
 export const TAXONOMY_FILES = ['axes', 'math', 'models', 'drift', 'pipelines', 'instrument'];
 
@@ -24,12 +28,31 @@ export function assembleTaxonomy(files) {
   };
 }
 
-// Browser loader. `base` is the URL of the taxonomy directory.
-export async function loadTaxonomy(base = new URL('../taxonomy/', import.meta.url)) {
+// Data embedded by the build, or null in the unbuilt site.
+let embeddedCache;
+export function embeddedData() {
+  if (embeddedCache === undefined) {
+    const el = typeof document !== 'undefined' && document.getElementById('dcn-data');
+    embeddedCache = el ? JSON.parse(el.textContent) : null;
+  }
+  return embeddedCache;
+}
+
+export async function loadTaxonomy() {
+  const embedded = embeddedData();
+  if (embedded) return assembleTaxonomy(embedded.taxonomy);
+
   const entries = await Promise.all(TAXONOMY_FILES.map(async (name) => {
-    const res = await fetch(new URL(`${name}.json`, base));
+    const res = await fetch(new URL(`taxonomy/${name}.json`, document.baseURI));
     if (!res.ok) throw new Error(`Could not load taxonomy/${name}.json (HTTP ${res.status})`);
     return [name, await res.json()];
   }));
   return assembleTaxonomy(Object.fromEntries(entries));
+}
+
+export async function loadSample() {
+  const embedded = embeddedData();
+  if (embedded) return embedded.sample;
+  const res = await fetch(new URL('sample.csv', document.baseURI));
+  return res.text();
 }

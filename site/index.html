@@ -139,6 +139,16 @@
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-live="polite"></aside>
 
+<!-- dev-only -->
+<script>
+  // The unbuilt site uses ES modules, which browsers refuse to load from disk.
+  if (location.protocol === 'file:') {
+    document.getElementById('drop').innerHTML =
+      '<p><b>This copy needs a web server.</b></p>' +
+      '<p style="margin-top:7px;font-size:12px">Open <code>dist/index.html</code> instead, or run <code>npm run serve</code>.</p>';
+  }
+</script>
+<!-- /dev-only -->
 <script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -15,5 +15,8 @@ jobs:
           node-version: 22
       - name: Validate taxonomy JSON
         run: for f in site/taxonomy/*.json; do node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))" || exit 1; done
+      - run: npm ci
       - name: Run tests
         run: npm test
+      - name: Check dist/index.html is up to date
+        run: npm run build:check

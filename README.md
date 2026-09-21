@@ -56,21 +56,52 @@ Data Craft Nexus is built on a complete, interconnected taxonomy:
 
 ## Run Locally
 
-Clone the repo:
-
 ```bash
 git clone https://github.com/Aeternifrigus/Data-Craft-Nexus.git
+cd Data-Craft-Nexus
+npm run serve        # http://localhost:8000
 ```
+
+The page loads its taxonomy from JSON files, so it needs to be served over HTTP. Opening `site/index.html` straight from disk won't work. Any static server does the job; `npm run serve` just runs `python3 -m http.server`.
+
+## Tests
+
+```bash
+npm test             # Node 20+, no dependencies to install
+```
+
+- `tests/taxonomy.test.js` checks every cross-reference: each code a model, drift checker or pipeline points at must exist.
+- `tests/recommend.snapshot.test.js` runs every fixture in `tests/fixtures/` through every target, task and order answer, and compares what gets recommended with `tests/snapshots/recommendations.json`. When a change to the profiler or the ranking is intended, run `npm run test:update` and review the snapshot diff in the commit.
+
+## Project Layout
+
+```
+site/                  what GitHub Pages serves
+  index.html
+  css/style.css
+  sample.csv           the "load a sample" shipment table
+  taxonomy/*.json      axes, math, models, drift checkers, pipelines: the single source of truth
+  js/
+    taxonomy.js        loads and assembles the JSON
+    csv.js             CSV parsing
+    profile.js         measures axes 3, 4, 6 and derives axis 5 (no DOM)
+    recommend.js       ranks models, drift checkers, pipelines (no DOM)
+    results.js         renders the recommendations and the 3D plot
+    drawer.js          the definition drawer
+    library.js         "The reference" view
+    app.js             entry point
+docs/taxonomy/         the original taxonomy notes
+tests/
+```
+
+`profile.js` and `recommend.js` don't touch the page, so the same logic runs in the browser, in the tests and, later, in the benchmark.
+
 ## Stack
 
-- **HTML/CSS/JS** — single file, no build step
-    
-- **Plotly** — 3D coordinate visualization
-    
-- **Mermaid** — pipeline flowcharts
-    
-- **Google Fonts** — Instrument Serif, JetBrains Mono, Press Start 2P, Mrs Saint Delafield
-    
+- **HTML/CSS/JS**: plain ES modules, no build step
+- **Plotly**: 3D coordinate visualization
+- **Mermaid**: pipeline flowcharts
+- **Google Fonts**: Instrument Serif, JetBrains Mono, Press Start 2P, Mrs Saint Delafield
 
 ---
 

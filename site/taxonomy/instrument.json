@@ -1,0 +1,90 @@
+{
+ "tasks": [
+  {
+   "id": "number",
+   "label": "A number"
+  },
+  {
+   "id": "category",
+   "label": "A category"
+  },
+  {
+   "id": "forecast",
+   "label": "A future value"
+  },
+  {
+   "id": "group",
+   "label": "Natural groupings"
+  },
+  {
+   "id": "anomaly",
+   "label": "Unusual records"
+  },
+  {
+   "id": "compress",
+   "label": "A simpler view"
+  }
+ ],
+ "reference": [
+  {
+   "t": "Housing sale prices",
+   "x": 0,
+   "y": 0,
+   "z": 0
+  },
+  {
+   "t": "Customer transaction log",
+   "x": 1,
+   "y": 0,
+   "z": 7
+  },
+  {
+   "t": "Spam-flagged emails",
+   "x": 2,
+   "y": 0,
+   "z": 3
+  },
+  {
+   "t": "Tagged image subset",
+   "x": 3,
+   "y": 0,
+   "z": 4
+  },
+  {
+   "t": "Stock price history",
+   "x": 1,
+   "y": 1,
+   "z": 0
+  },
+  {
+   "t": "Speech-to-text transcripts",
+   "x": 2,
+   "y": 1,
+   "z": 5
+  },
+  {
+   "t": "Social network graph",
+   "x": 1,
+   "y": 3,
+   "z": 6
+  },
+  {
+   "t": "LiDAR point cloud",
+   "x": 1,
+   "y": 5,
+   "z": 0
+  },
+  {
+   "t": "Star-rated reviews",
+   "x": 0,
+   "y": 0,
+   "z": 2
+  },
+  {
+   "t": "Labeled X-ray diagnoses",
+   "x": 0,
+   "y": 0,
+   "z": 4
+  }
+ ]
+}

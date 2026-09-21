@@ -1,0 +1,1669 @@
+{
+ "domains": {
+  "Linear": {
+   "name": "Linear Models",
+   "note": "Linear regression, logistic, ridge, lasso, elastic net"
+  },
+  "Tree": {
+   "name": "Tree-Based Models",
+   "note": "Decision trees, random forests, isolation forests"
+  },
+  "Ensemble": {
+   "name": "Gradient Boosting / Ensemble",
+   "note": "Boosting, stacking, voting"
+  },
+  "SVM": {
+   "name": "Support Vector Models",
+   "note": "Maximum-margin classifiers"
+  },
+  "Probabilistic": {
+   "name": "Probabilistic & Graphical Models",
+   "note": "Naive Bayes, HMM, GMM, Bayesian networks"
+  },
+  "Instance": {
+   "name": "Instance-Based Models",
+   "note": "KNN, K-medoids"
+  },
+  "Clustering": {
+   "name": "Clustering Models",
+   "note": "K-means, DBSCAN, hierarchical, spectral"
+  },
+  "Reduction": {
+   "name": "Dimensionality Reduction",
+   "note": "PCA, t-SNE, UMAP, LDA, autoencoders"
+  },
+  "Neural": {
+   "name": "Neural Network Models",
+   "note": "MLP, CNN, RNN, LSTM, Transformer, GAN, VAE"
+  },
+  "NLP": {
+   "name": "NLP-Specific Architectures",
+   "note": "Word2Vec, BERT, GPT"
+  },
+  "Graph": {
+   "name": "Graph Models",
+   "note": "GNN, GCN, GAT"
+  },
+  "RL": {
+   "name": "Reinforcement Learning Models",
+   "note": "Q-learning, DQN, policy gradient, actor-critic"
+  },
+  "Survival": {
+   "name": "Survival Models",
+   "note": "Cox proportional hazards, Kaplan-Meier"
+  },
+  "Time series": {
+   "name": "Time Series Models",
+   "note": "ARIMA, exponential smoothing, Prophet"
+  }
+ },
+ "models": [
+  {
+   "c": "LM1",
+   "n": "Linear Regression",
+   "p": "SL",
+   "dom": "Linear",
+   "task": [
+    "number"
+   ],
+   "met": "A ruler drawn through scattered dots, chasing the average trend.",
+   "data": [
+    "A11",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "LA1",
+    "LA12",
+    "CA8",
+    "PS4"
+   ],
+   "mech": "Finds coefficients minimizing squared error. Uniquely among ML models it has a closed-form solution (the Normal Equation, using LA12 matrix inverse), so no iterative training is strictly required.",
+   "fail": "Assumes linearity, which most real relationships violate. Extremely outlier-sensitive because of the squaring in CA8. Breaks entirely under perfect multicollinearity, where LA12 has no inverse to compute.",
+   "alt": "LM3 (Ridge) if features are correlated, LM6 (Polynomial) if the relationship curves, EN3 (XGBoost) if the relationship is genuinely complex.",
+   "dfit": "Needs labels (A11) since it is supervised, assumes rows are independent (A21) since it has no memory of order, and expects numeric features (A31) because coefficients must multiply something numeric."
+  },
+  {
+   "c": "LM2",
+   "n": "Logistic Regression",
+   "p": "SL",
+   "dom": "Linear",
+   "task": [
+    "category"
+   ],
+   "met": "A bouncer at the door, weighing a checklist to decide yes or no.",
+   "data": [
+    "A11",
+    "A21",
+    "A32"
+   ],
+   "math": [
+    "LA1",
+    "CA10",
+    "CA22",
+    "PS3"
+   ],
+   "mech": "Computes a weighted sum like linear regression, then squashes it through a sigmoid (CA10) into a probability. Fitted by maximum likelihood (PS3), which for this model is equivalent to minimizing log loss (CA22).",
+   "fail": "The decision boundary is linear in feature space, so it cannot separate classes requiring a curve without manual feature engineering. Struggles badly with class imbalance unless weighted. Coefficients are interpretable as log-odds, which is a genuine strength but frequently misread as direct probability effects.",
+   "alt": "SV1 (linear SVM) for a margin-based alternative, EN3 if interpretability is not required.",
+   "dfit": "Categorical target (A32) because the output is class membership, not a continuous quantity."
+  },
+  {
+   "c": "LM3",
+   "n": "Ridge Regression",
+   "p": "SL",
+   "dom": "Linear",
+   "task": [
+    "number"
+   ],
+   "met": "Linear Regression wearing a seatbelt.",
+   "data": [
+    "A11",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "LA1",
+    "LA4",
+    "CA8"
+   ],
+   "mech": "Adds an L2 penalty (LA4) to the loss, shrinking all coefficients toward zero without eliminating any. Mathematically this adds λ to the diagonal before inversion, which guarantees LM1's invertibility problem disappears.",
+   "fail": "Never produces exact zeros, so it does not simplify the model or perform selection. λ requires tuning, and because the penalty is scale-dependent, features must be standardized first or the shrinkage applies unevenly.",
+   "alt": "LM4 (Lasso) when you want features eliminated outright, LM5 (Elastic Net) when you want both behaviors.",
+   "dfit": "Same as LM1, but specifically valuable when features are correlated."
+  },
+  {
+   "c": "LM4",
+   "n": "Lasso Regression",
+   "p": "SL",
+   "dom": "Linear",
+   "task": [
+    "number"
+   ],
+   "met": "A strict editor that deletes dead weight variables.",
+   "data": [
+    "A11",
+    "A21",
+    "A42"
+   ],
+   "math": [
+    "LA1",
+    "LA3",
+    "CA8"
+   ],
+   "mech": "Adds an L1 penalty (LA3), whose diamond-shaped constraint region has corners on the axes. Optimal solutions land on those corners, producing coefficients of exactly zero.",
+   "fail": "With a group of correlated features it arbitrarily keeps one and zeroes the rest, which misleads anyone reading the survivors as uniquely important. Also cannot select more features than there are samples.",
+   "alt": "LM5 (Elastic Net) specifically to fix the correlated-group problem.",
+   "dfit": "High-dimensional (A42) is where it earns its keep, since automatic feature selection matters most when features outnumber intuition."
+  },
+  {
+   "c": "LM5",
+   "n": "Elastic Net",
+   "p": "SL",
+   "dom": "Linear",
+   "task": [
+    "number"
+   ],
+   "met": "The diplomat between Ridge and Lasso.",
+   "data": [
+    "A11",
+    "A21",
+    "A42"
+   ],
+   "math": [
+    "CA23",
+    "LA3",
+    "LA4"
+   ],
+   "mech": "Applies both penalties simultaneously (CA23). L1 provides sparsity, L2 provides the grouping effect that keeps correlated features together rather than arbitrarily discarding them.",
+   "fail": "Two hyperparameters instead of one, with non-obvious interaction. Requires standardized features like both parents.",
+   "alt": "LM3 or LM4 individually if you know which behavior you need and want fewer knobs.",
+   "dfit": "High-dimensional data with correlated feature groups, the exact case where pure Lasso misbehaves."
+  },
+  {
+   "c": "LM6",
+   "n": "Polynomial Regression",
+   "p": "SL",
+   "dom": "Linear",
+   "task": [
+    "number"
+   ],
+   "met": "Linear Regression that learned to draw curves.",
+   "data": [
+    "A11",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "LA1",
+    "CA8",
+    "CA27"
+   ],
+   "mech": "Not actually a new model. You expand features into powers and interactions, then run ordinary linear regression on the expanded set. The model stays linear in its parameters while becoming non-linear in the original inputs.",
+   "fail": "Overfits aggressively as degree rises, and extrapolates catastrophically: beyond the training range, high-degree polynomials shoot toward infinity in ways that are physically absurd. Feature count also explodes combinatorially with degree.",
+   "alt": "EN3 or TR2, which capture non-linearity without polynomial extrapolation pathology.",
+   "dfit": "Numeric features (A31) where the relationship is known or suspected to curve."
+  },
+  {
+   "c": "LM7",
+   "n": "Bayesian Linear Regression",
+   "p": "SL",
+   "dom": "Linear",
+   "task": [
+    "number"
+   ],
+   "met": "Linear Regression that refuses to give one answer.",
+   "data": [
+    "A11",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "PS1",
+    "PS3",
+    "PS2"
+   ],
+   "mech": "Places a prior distribution over coefficients, then uses Bayes (PS1) to update it with observed data. The output is a full posterior distribution per coefficient, not a single point estimate, so predictions come with genuine uncertainty intervals.",
+   "fail": "Prior choice influences results meaningfully on small data, and defending that choice is a real burden. Computationally heavier than ordinary regression, and the machinery is wasted when you only need a point prediction.",
+   "alt": "LM3, which is mathematically equivalent to Bayesian regression under a specific Gaussian prior, but far cheaper.",
+   "dfit": "Same as LM1, but especially valuable on small datasets where uncertainty is large and worth quantifying."
+  },
+  {
+   "c": "TR1",
+   "n": "Decision Tree",
+   "p": "SL",
+   "dom": "Tree",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "A flowchart of yes-or-no questions.",
+   "data": [
+    "A11",
+    "A21",
+    "A32"
+   ],
+   "math": [
+    "IT1",
+    "IT2"
+   ],
+   "mech": "Greedily searches all features and split points for the one maximizing information gain (IT2), splits the data, and recurses on each branch until a stopping condition. Prediction walks the tree to a leaf and returns its majority class or mean value.",
+   "fail": "Wildly unstable: change a few rows and the tree can restructure entirely, because a different split wins at the root and everything downstream cascades. Overfits severely without pruning or depth limits. Biased toward high-cardinality features (see IT2's failure mode).",
+   "alt": "TR2 (Random Forest) fixes the instability by averaging many trees.",
+   "dfit": "Handles categorical features (A32) natively, requires no scaling, and tolerates missing values better than most."
+  },
+  {
+   "c": "TR2",
+   "n": "Random Forest",
+   "p": "SL",
+   "dom": "Tree",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "Democracy. Hundreds of trees vote.",
+   "data": [
+    "A11",
+    "A21",
+    "A38"
+   ],
+   "math": [
+    "IT1",
+    "IT2",
+    "PS20"
+   ],
+   "mech": "Trains many trees, each on a bootstrap resample (PS20) of the rows and considering only a random subset of features per split. Predictions average across trees. The double randomness decorrelates the trees, which is what makes averaging effective.",
+   "fail": "Loses the interpretability that made a single tree attractive. Memory-heavy at prediction time since every tree must be stored. Still biased toward high-cardinality features. Cannot extrapolate beyond the range of training targets, which matters for forecasting.",
+   "alt": "EN3 (XGBoost) usually wins on accuracy; TR2 wins on being harder to misconfigure.",
+   "dfit": "Handles mixed modality (A38) comfortably, which is why it is such a common default on messy real-world tables."
+  },
+  {
+   "c": "TR3",
+   "n": "Extra Trees",
+   "p": "SL",
+   "dom": "Tree",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "Democracy with even more randomness.",
+   "data": [
+    "A11",
+    "A21",
+    "A38"
+   ],
+   "math": [
+    "IT1",
+    "IT2"
+   ],
+   "mech": "Like Random Forest, but split thresholds are chosen at random rather than optimized. This extra randomness raises bias slightly while cutting variance further, and trains considerably faster since no split search is performed.",
+   "fail": "The added randomness can underfit on small or low-signal datasets, where deliberate split selection genuinely matters.",
+   "alt": "TR2, which optimizes splits and usually performs marginally better at higher training cost.",
+   "dfit": "Same as TR2."
+  },
+  {
+   "c": "TR4",
+   "n": "Isolation Forest",
+   "p": "USL",
+   "dom": "Tree",
+   "task": [
+    "anomaly"
+   ],
+   "met": "The odd one out in a police lineup.",
+   "data": [
+    "A12",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "IT1",
+    "PS4"
+   ],
+   "mech": "Builds random trees and measures how many splits it takes to isolate each point. Anomalies sit in sparse regions, so they get isolated in few splits; normal points require many. Path length becomes the anomaly score.",
+   "fail": "Assumes anomalies are both rare and easily separable. Struggles with local anomalies that are unusual only relative to their neighborhood, and with high-dimensional data where random splits become uninformative. The contamination parameter (expected anomaly fraction) heavily influences results and is usually guessed.",
+   "alt": "SV3 (One-Class SVM) for a boundary-based alternative, LA21-based methods when correlation structure matters.",
+   "dfit": "Unlabeled (A12) because it needs no examples of anomalies, only the assumption that they are rare and different."
+  },
+  {
+   "c": "EN1",
+   "n": "AdaBoost",
+   "p": "SL",
+   "dom": "Ensemble",
+   "task": [
+    "category"
+   ],
+   "met": "A classroom where the teacher re-tests failures.",
+   "data": [
+    "A11",
+    "A21",
+    "A32"
+   ],
+   "math": [
+    "CA8",
+    "PS3"
+   ],
+   "mech": "Trains weak learners sequentially, reweighting training samples after each round so misclassified points get more attention. Final prediction is a weighted vote where better-performing learners count more.",
+   "fail": "Highly sensitive to noise and outliers, because persistently misclassified points get their weights escalated indefinitely, eventually dominating training. Largely superseded by gradient boosting.",
+   "alt": "EN2, which generalizes the same idea to arbitrary differentiable losses.",
+   "dfit": "Categorical target (A32), classically with decision stumps as the weak learner."
+  },
+  {
+   "c": "EN2",
+   "n": "Gradient Boosting (GBM)",
+   "p": "SL",
+   "dom": "Ensemble",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "A relay team correcting each runner's error.",
+   "data": [
+    "A11",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "CA2",
+    "CA3",
+    "CA8"
+   ],
+   "mech": "Each new tree is fit to the residuals (the gradient of the loss) of the current ensemble, then added with a shrinkage factor. Prediction is the running sum of all trees' contributions.",
+   "fail": "Sequential by nature, so it cannot parallelize across trees the way Random Forest can. Overfits without regularization and careful learning-rate control. Slower to train than bagging methods.",
+   "alt": "EN3 and EN4, which are optimized implementations of this same algorithm with added regularization and speed.",
+   "dfit": "Numeric target (A31) for regression, though the framework generalizes to any differentiable loss."
+  },
+  {
+   "c": "EN3",
+   "n": "XGBoost",
+   "p": "SL",
+   "dom": "Ensemble",
+   "task": [
+    "number",
+    "category"
+   ],
+   "met": "Centralized, top-down correction with heavy penalties.",
+   "data": [
+    "A11",
+    "A21",
+    "A42"
+   ],
+   "math": [
+    "CA3",
+    "CA23",
+    "CA6",
+    "LA4"
+   ],
+   "mech": "Gradient boosting with second-order optimization (uses CA6 Hessian information, not just gradients), explicit L1+L2 regularization built into the split criterion (CA23), and native handling of missing values by learning a default direction per split.",
+   "fail": "Many hyperparameters, so poor tuning wastes its advantage. Still cannot extrapolate beyond training target range. Categorical features need encoding first, unlike EN5. Sequential training limits parallelism to within-tree operations.",
+   "alt": "EN4 for speed on large data, EN5 for heavy categorical data, TR2 when you want fewer knobs to get wrong.",
+   "dfit": "High-dimensional (A42) and, in practice, the default choice for structured tabular problems."
+  },
+  {
+   "c": "EN4",
+   "n": "LightGBM",
+   "p": "SL",
+   "dom": "Ensemble",
+   "task": [
+    "number",
+    "category"
+   ],
+   "met": "XGBoost's leaner cousin: grows leaf-wise.",
+   "data": [
+    "A11",
+    "A21",
+    "A42"
+   ],
+   "math": [
+    "CA3",
+    "IT2"
+   ],
+   "mech": "Grows trees leaf-wise (always splitting the leaf with highest loss reduction) rather than level-wise, and buckets continuous features into histograms to make split-finding dramatically faster.",
+   "fail": "Leaf-wise growth produces deeper, more asymmetric trees that overfit more readily on small datasets, requiring stricter leaf limits. Histogram binning sacrifices a little precision on split thresholds.",
+   "alt": "EN3 for smaller data where its regularization discipline matters more than raw speed.",
+   "dfit": "Same as EN3, with a decisive speed advantage as row count grows large."
+  },
+  {
+   "c": "EN5",
+   "n": "CatBoost",
+   "p": "SL",
+   "dom": "Ensemble",
+   "task": [
+    "category"
+   ],
+   "met": "The specialist bureaucrat for categorical paperwork.",
+   "data": [
+    "A11",
+    "A21",
+    "A32"
+   ],
+   "math": [
+    "CA3",
+    "PS1"
+   ],
+   "mech": "Handles categorical features natively using ordered target statistics, computed in a permutation-based scheme that avoids the target leakage naive target encoding introduces. Also uses ordered boosting to reduce prediction shift.",
+   "fail": "Slower to train than EN4. Its advantage largely evaporates when data is mostly numeric, at which point the added complexity buys little.",
+   "alt": "EN3 or EN4 when categorical features are few or low-cardinality.",
+   "dfit": "Categorical-heavy data (A32), its explicit design purpose."
+  },
+  {
+   "c": "EN6",
+   "n": "Stacking",
+   "p": "SL",
+   "dom": "Ensemble",
+   "task": [
+    "number",
+    "category"
+   ],
+   "met": "A panel of experts combined by a trained judge.",
+   "data": [
+    "A11",
+    "A21",
+    "A38"
+   ],
+   "math": [
+    "CA8",
+    "LA1"
+   ],
+   "mech": "Base models each produce predictions. A meta-learner is then trained on those predictions (as features) against the true target, learning how much to weight each base model. Critically, the meta-learner must train on out-of-fold predictions, where each base model predicted on data it did not train on, or the whole thing leaks and the meta-learner becomes wildly overconfident.",
+   "fail": "The out-of-fold requirement is the single most common implementation error. Adds substantial complexity and training cost. Gains are usually marginal unless base models have genuinely complementary strengths, which must be verified rather than assumed.",
+   "alt": "EN7 (Voting) when you want combination without the extra training stage and leakage risk.",
+   "dfit": "Mixed modality (A38), since different base models can specialize in different feature types."
+  },
+  {
+   "c": "EN7",
+   "n": "Voting Ensemble",
+   "p": "SL",
+   "dom": "Ensemble",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "A jury that averages raw votes.",
+   "data": [
+    "A11",
+    "A21",
+    "A38"
+   ],
+   "math": [
+    "PS4"
+   ],
+   "mech": "Averages predictions (soft voting on probabilities, or hard voting on labels). No meta-model, no additional training, no leakage risk.",
+   "fail": "Weights every model equally regardless of quality, so a weak base model actively drags the ensemble down. Cannot learn that one model is more reliable in certain regions of feature space, which is exactly what EN6 can do.",
+   "alt": "EN6 when models differ meaningfully in quality and you can afford the extra machinery.",
+   "dfit": "Same as EN6."
+  },
+  {
+   "c": "SV1",
+   "n": "SVM (linear)",
+   "p": "SL",
+   "dom": "SVM",
+   "task": [
+    "category"
+   ],
+   "met": "Drawing the widest highway between neighborhoods.",
+   "data": [
+    "A11",
+    "A21",
+    "A55"
+   ],
+   "math": [
+    "LA1",
+    "CA14",
+    "CA20"
+   ],
+   "mech": "Finds the hyperplane maximizing the margin between classes. Solved via Lagrange multipliers (CA14) in dual form, which is what allows the kernel trick later. Only the points on the margin (support vectors) affect the solution at all, a direct consequence of hinge loss (CA20) being zero elsewhere.",
+   "fail": "Scales poorly beyond tens of thousands of samples, since training is roughly quadratic. Produces no calibrated probabilities without a separate fitting step. Requires feature scaling. Sensitive to the C parameter trading margin width against misclassification tolerance.",
+   "alt": "LM2 for a probabilistic linear alternative that scales better.",
+   "dfit": "Linearly separable data (A55) specifically, which is the honest precondition."
+  },
+  {
+   "c": "SV2",
+   "n": "Kernel SVM (RBF/Poly)",
+   "p": "SL",
+   "dom": "SVM",
+   "task": [
+    "category"
+   ],
+   "met": "Warping the map into higher dimensions.",
+   "data": [
+    "A11",
+    "A21",
+    "A56"
+   ],
+   "math": [
+    "LA22",
+    "LA23",
+    "CA14",
+    "CA20"
+   ],
+   "mech": "Replaces dot products with a kernel function (LA22 or LA23), implicitly mapping data into a higher-dimensional space where a linear boundary exists, without ever computing coordinates in that space. This is the kernel trick.",
+   "fail": "γ and C interact in unintuitive ways, and getting them wrong swings between severe overfitting and useless underfitting. Prediction cost grows with the number of support vectors, which can be most of the training set on hard problems. Effectively uninterpretable.",
+   "alt": "EN3, which usually matches or beats kernel SVM on tabular data while training faster and scaling better.",
+   "dfit": "Non-linearly separable data (A56), which is most real data."
+  },
+  {
+   "c": "SV3",
+   "n": "One-Class SVM",
+   "p": "USL",
+   "dom": "SVM",
+   "task": [
+    "anomaly"
+   ],
+   "met": "A bouncer who only knows regulars.",
+   "data": [
+    "A12",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "LA22",
+    "CA14"
+   ],
+   "mech": "Learns a boundary enclosing the bulk of the training data in kernel space, treating anything outside as anomalous. Trained only on normal examples.",
+   "fail": "The ν parameter (expected outlier fraction) strongly determines results and is usually a guess. Very sensitive to feature scaling and kernel choice. Scales badly to large datasets.",
+   "alt": "TR4 (Isolation Forest), which is faster, needs less tuning, and handles higher dimensions better.",
+   "dfit": "Unlabeled (A12), since it never sees anomalies during training."
+  },
+  {
+   "c": "PR1",
+   "n": "Naive Bayes",
+   "p": "SL",
+   "dom": "Probabilistic",
+   "task": [
+    "category"
+   ],
+   "met": "A stereotyping detective.",
+   "data": [
+    "A11",
+    "A21",
+    "A32"
+   ],
+   "math": [
+    "PS1",
+    "PS9",
+    "PS2"
+   ],
+   "mech": "Applies Bayes (PS1) with the deliberately naive assumption that all features are conditionally independent given the class. This turns an intractable joint probability into a simple product of individual ones.",
+   "fail": "The independence assumption is almost always false. Remarkably, classification accuracy often survives this because ranking classes correctly does not require correct probabilities, but the predicted probabilities themselves are badly miscalibrated and should not be trusted as confidence estimates. Zero-frequency categories require smoothing or the whole product collapses to zero.",
+   "alt": "LM2 when calibrated probabilities matter.",
+   "dfit": "Categorical features (A32) classically, though Gaussian variants handle numeric."
+  },
+  {
+   "c": "PR2",
+   "n": "Gaussian Mixture Model",
+   "p": "USL",
+   "dom": "Probabilistic",
+   "task": [
+    "group"
+   ],
+   "met": "A committee of bell curves.",
+   "data": [
+    "A12",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "PS2",
+    "LA10",
+    "LA21"
+   ],
+   "mech": "Models data as a weighted sum of Gaussian components, fitted via Expectation-Maximization. Unlike K-Means it gives soft assignments: each point has a probability of belonging to each cluster.",
+   "fail": "Requires choosing the number of components in advance. EM converges to local optima, so results vary by initialization. Requires estimating a covariance matrix per component (LA10), which fails in high dimensions where there is insufficient data per component.",
+   "alt": "CL1 (K-Means) when clusters are spherical and hard assignment suffices; CL2 (DBSCAN) when cluster count is unknown.",
+   "dfit": "Numeric, unlabeled data where clusters may overlap or have elliptical rather than spherical shape."
+  },
+  {
+   "c": "PR3",
+   "n": "Hidden Markov Model",
+   "p": "SL",
+   "dom": "Probabilistic",
+   "task": [
+    "forecast",
+    "category"
+   ],
+   "met": "A weather guesser who only sees umbrellas.",
+   "data": [
+    "A11",
+    "A22",
+    "A34"
+   ],
+   "math": [
+    "RL5",
+    "PS9",
+    "PS1"
+   ],
+   "mech": "Models a sequence of hidden states that emit observable outputs. Transition probabilities (RL5) govern state changes; emission probabilities govern what each state produces. Viterbi finds the most likely hidden sequence; Baum-Welch learns parameters.",
+   "fail": "The Markov assumption limits memory to the immediately previous state, which is too short for many real dependencies. Also generative, modelling the joint distribution, which wastes capacity when you only need discriminative labeling.",
+   "alt": "PR5 (CRF) for the discriminative alternative; NN5 (LSTM) for learned long-range memory.",
+   "dfit": "Sequential (A22) by definition, classically applied to text (A34)."
+  },
+  {
+   "c": "PR4",
+   "n": "Bayesian Network",
+   "p": "SL",
+   "dom": "Probabilistic",
+   "task": [
+    "category"
+   ],
+   "met": "A family tree of cause and effect.",
+   "data": [
+    "A11",
+    "A24",
+    "A32"
+   ],
+   "math": [
+    "PS1",
+    "PS9",
+    "PS10"
+   ],
+   "mech": "A directed acyclic graph where each node's probability depends only on its parents. This factorization makes an otherwise intractable joint distribution computable, and encodes explicit conditional independence assumptions.",
+   "fail": "Structure learning from data is combinatorially hard, so the graph is usually hand-specified by domain experts. Exact inference is intractable in dense graphs, requiring approximation. Directed edges invite causal interpretation that observational data alone cannot justify.",
+   "alt": "PR1 (Naive Bayes), which is the degenerate case where all features share a single parent.",
+   "dfit": "Relational/graph structure (A24), since the model is a graph of dependencies."
+  },
+  {
+   "c": "PR5",
+   "n": "Conditional Random Field",
+   "p": "SL",
+   "dom": "Probabilistic",
+   "task": [
+    "category"
+   ],
+   "met": "HMM's smarter cousin: labels whole sequence at once.",
+   "data": [
+    "A11",
+    "A22",
+    "A34"
+   ],
+   "math": [
+    "PS9",
+    "CA9",
+    "IT3"
+   ],
+   "mech": "Discriminative rather than generative: models P(labels | observations) directly instead of the joint distribution. This allows arbitrary, overlapping features of the entire input sequence, which HMM's independence assumptions forbid.",
+   "fail": "Training is computationally expensive relative to HMM. Feature engineering carries most of the weight, which is exactly what neural sequence models later automated away.",
+   "alt": "PR3 (HMM) when you need a generative model; NN7 (Transformer) for modern sequence labeling.",
+   "dfit": "Sequential text (A22, A34), classically for named entity recognition and part-of-speech tagging."
+  },
+  {
+   "c": "IB1",
+   "n": "k-Nearest Neighbors",
+   "p": "SL",
+   "dom": "Instance",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "You are the average of your 5 closest friends.",
+   "data": [
+    "A11",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "LA9",
+    "LA19",
+    "LA20"
+   ],
+   "mech": "No training phase at all. At prediction time, find the k closest training points by some distance metric and return their majority label or mean value.",
+   "fail": "Prediction cost grows with training set size, since every prediction scans the whole dataset. Requires feature scaling absolutely, or large-unit features dominate distance. Degrades severely in high dimensions where all points become roughly equidistant (see LA9's failure mode). k must be chosen, and it directly trades bias against variance.",
+   "alt": "TR2 or EN3 for anything beyond small, low-dimensional data.",
+   "dfit": "Numeric features (A31) since distance must be computable."
+  },
+  {
+   "c": "IB2",
+   "n": "K-Medoids",
+   "p": "USL",
+   "dom": "Instance",
+   "task": [
+    "group"
+   ],
+   "met": "K-Means's grounded cousin.",
+   "data": [
+    "A12",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "LA9",
+    "LA19"
+   ],
+   "mech": "Like K-Means, but cluster centers must be actual data points rather than computed averages. Minimizes sum of distances to the chosen medoid.",
+   "fail": "Substantially slower than K-Means, since it must evaluate candidate medoids rather than compute a mean. Still requires k in advance.",
+   "alt": "CL1 (K-Means) when centroids are meaningful and speed matters.",
+   "dfit": "Unlabeled numeric data, particularly where an average would be meaningless (categorical-like or non-Euclidean spaces)."
+  },
+  {
+   "c": "CL1",
+   "n": "K-Means",
+   "p": "USL",
+   "dom": "Clustering",
+   "task": [
+    "group"
+   ],
+   "met": "Towns forming around the closest well.",
+   "data": [
+    "A12",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "LA9",
+    "PS4"
+   ],
+   "mech": "Alternates between assigning points to the nearest centroid and recomputing centroids as the mean of their assigned points, until assignments stabilize.",
+   "fail": "Requires k upfront. Assumes spherical, similarly-sized clusters, so it fails badly on elongated or unevenly-sized ones. Converges to local optima, requiring multiple restarts. Highly outlier-sensitive since centroids are means. Requires scaling.",
+   "alt": "CL2 (DBSCAN) when cluster count is unknown or shapes are irregular; PR2 (GMM) for soft assignment and elliptical clusters.",
+   "dfit": "Numeric, unlabeled (A12, A31)."
+  },
+  {
+   "c": "CL2",
+   "n": "DBSCAN",
+   "p": "USL",
+   "dom": "Clustering",
+   "task": [
+    "group",
+    "anomaly"
+   ],
+   "met": "A party where you need enough people close by.",
+   "data": [
+    "A12",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "LA9"
+   ],
+   "mech": "Groups points that have at least a minimum number of neighbors within a radius ε, expanding clusters through density-connected chains. Points in sparse regions are labeled noise rather than forced into a cluster.",
+   "fail": "Cannot handle clusters of widely varying density, since a single ε cannot suit both. ε is genuinely hard to choose and results are highly sensitive to it. Degrades in high dimensions along with all distance-based methods.",
+   "alt": "CL1 when clusters are spherical and every point should belong somewhere.",
+   "dfit": "Numeric unlabeled data with irregular cluster shapes."
+  },
+  {
+   "c": "CL3",
+   "n": "Hierarchical (Agglomerative) Clustering",
+   "p": "USL",
+   "dom": "Clustering",
+   "task": [
+    "group"
+   ],
+   "met": "A family reunion merging closest pairs.",
+   "data": [
+    "A12",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "LA9",
+    "LA19"
+   ],
+   "mech": "Starts with every point as its own cluster, repeatedly merges the two closest clusters, and records the merge order as a dendrogram. Cutting the dendrogram at a chosen height yields any desired number of clusters.",
+   "fail": "Cost grows roughly cubically, so it is impractical beyond a few thousand points. Merges are irreversible, so an early mistake propagates. The linkage criterion (single, complete, average, Ward) substantially changes results and must be chosen deliberately.",
+   "alt": "CL1 for scale; CL2 when noise should be excluded rather than merged.",
+   "dfit": "Numeric unlabeled data where the nested structure itself is informative."
+  },
+  {
+   "c": "CL4",
+   "n": "Spectral Clustering",
+   "p": "USL",
+   "dom": "Clustering",
+   "task": [
+    "group"
+   ],
+   "met": "Cutting a graph along its weakest bridges.",
+   "data": [
+    "A12",
+    "A24",
+    "A37"
+   ],
+   "math": [
+    "GT1",
+    "GT2",
+    "LA5"
+   ],
+   "mech": "Builds a similarity graph over the data, computes the graph Laplacian (GT2), takes its lowest eigenvectors (LA5), and runs K-Means in that reduced spectral space. Finds clusters that are connected rather than compact.",
+   "fail": "Eigendecomposition is expensive, limiting scale. Requires constructing a similarity graph, whose parameters materially affect results. Still requires k.",
+   "alt": "CL2 when density rather than connectivity defines your clusters.",
+   "dfit": "Graph-native data (A24, A37), or any data where a meaningful similarity graph can be built."
+  },
+  {
+   "c": "DR1",
+   "n": "PCA",
+   "p": "USL",
+   "dom": "Reduction",
+   "task": [
+    "compress"
+   ],
+   "met": "Photographing a sculpture from the best angle.",
+   "data": [
+    "A12",
+    "A21",
+    "A42"
+   ],
+   "math": [
+    "LA5",
+    "LA6",
+    "LA10"
+   ],
+   "mech": "Computes the covariance matrix (LA10), finds its eigenvectors (LA5), and projects data onto the top components. Those components are the orthogonal directions of maximum variance, ranked.",
+   "fail": "Captures only linear structure, so it misses curved manifolds entirely. Components are mathematically optimal but usually not interpretable. Requires standardization first or high-variance-unit features dominate. Maximum variance is not always maximum usefulness: the discarded low-variance direction can be exactly the one carrying the signal.",
+   "alt": "DR4 (LDA) when labels exist and class separation matters more than variance; DR3 (UMAP) for non-linear structure.",
+   "dfit": "High-dimensional numeric data (A42)."
+  },
+  {
+   "c": "DR2",
+   "n": "t-SNE",
+   "p": "USL",
+   "dom": "Reduction",
+   "task": [
+    "compress"
+   ],
+   "met": "A seating chart keeping friends close.",
+   "data": [
+    "A12",
+    "A21",
+    "A42"
+   ],
+   "math": [
+    "IT4",
+    "PS2"
+   ],
+   "mech": "Converts pairwise distances into probabilities in both high and low dimensional space, then minimizes KL divergence (IT4) between them. Optimized specifically to preserve local neighborhoods.",
+   "fail": "Global structure is not preserved, so distances between clusters in a t-SNE plot are meaningless and routinely over-interpreted. Non-deterministic across runs. Perplexity strongly changes the visual. Strictly a visualization tool: it produces no reusable transform for new data.",
+   "alt": "DR3 (UMAP), which preserves more global structure and runs faster.",
+   "dfit": "High-dimensional data being visualized in 2D or 3D."
+  },
+  {
+   "c": "DR3",
+   "n": "UMAP",
+   "p": "USL",
+   "dom": "Reduction",
+   "task": [
+    "compress"
+   ],
+   "met": "t-SNE's faster cousin.",
+   "data": [
+    "A12",
+    "A21",
+    "A42"
+   ],
+   "math": [
+    "GT1",
+    "IT4"
+   ],
+   "mech": "Builds a weighted k-neighbor graph (GT1), then optimizes a low-dimensional layout preserving that graph's topological structure.",
+   "fail": "Inter-cluster distances are more meaningful than t-SNE's but still not fully trustworthy. Several interacting hyperparameters. Can manufacture apparent cluster structure in data that has none, which is a genuine interpretive hazard.",
+   "alt": "DR2 for very small datasets; DR1 when linear structure suffices and interpretability matters.",
+   "dfit": "Same as DR2, but scales to larger datasets and can transform new points."
+  },
+  {
+   "c": "DR4",
+   "n": "LDA (Linear Discriminant Analysis)",
+   "p": "SL",
+   "dom": "Reduction",
+   "task": [
+    "compress",
+    "category"
+   ],
+   "met": "PCA that plays favorites with labels.",
+   "data": [
+    "A11",
+    "A21",
+    "A42"
+   ],
+   "math": [
+    "LA5",
+    "LA10",
+    "PS4"
+   ],
+   "mech": "Finds projections maximizing between-class variance relative to within-class variance, the same ratio logic as ANOVA (PS21). Supervised, unlike PCA.",
+   "fail": "Limited to at most (classes minus 1) components, so binary problems yield only one dimension. Assumes Gaussian classes with equal covariance. Requires inverting a within-class scatter matrix, inheriting LA12's problems in high dimensions.",
+   "alt": "DR1 when labels are unavailable.",
+   "dfit": "Labeled high-dimensional data (A11, A42)."
+  },
+  {
+   "c": "DR5",
+   "n": "Autoencoder",
+   "p": "SSL",
+   "dom": "Reduction",
+   "task": [
+    "compress"
+   ],
+   "met": "Compress a shout into a whisper, then rebuild it.",
+   "data": [
+    "A15",
+    "A23",
+    "A38"
+   ],
+   "math": [
+    "CA3",
+    "CA8",
+    "LA2"
+   ],
+   "mech": "A neural network trained to reconstruct its own input through a narrow bottleneck layer. The bottleneck forces a compressed representation. Self-supervised (A15) since the label is the input itself.",
+   "fail": "Can learn a trivial identity mapping if the bottleneck is too wide or the network too powerful. Latent dimensions are unstructured and uninterpretable (VAE addresses this). Requires substantially more data and compute than PCA for what is often a modest gain on tabular data.",
+   "alt": "DR1 when the structure is linear, which for tabular data it frequently is.",
+   "dfit": "Any modality (A38), particularly spatial data (A23) like images."
+  },
+  {
+   "c": "NN1",
+   "n": "Perceptron",
+   "p": "SL",
+   "dom": "Neural",
+   "task": [
+    "category"
+   ],
+   "met": "A single neuron voting yes/no.",
+   "data": [
+    "A11",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "CA26",
+    "LA1"
+   ],
+   "mech": "Computes a weighted sum of inputs (LA1), applies a step threshold, outputs a binary decision. Weights update only on mistakes (CA26), nudging the boundary toward misclassified points.",
+   "fail": "Converges only if data is linearly separable; on anything else it oscillates forever without settling. Its inability to solve XOR is the historically famous limitation that stalled neural network research for years. No probability output, only a hard decision.",
+   "alt": "LM2 (Logistic Regression), which is the same architecture with a sigmoid instead of a step, gaining probabilities and a differentiable loss.",
+   "dfit": "Labeled numeric features, historically the simplest possible supervised setup."
+  },
+  {
+   "c": "NN2",
+   "n": "MLP (Feedforward)",
+   "p": "SL",
+   "dom": "Neural",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "An assembly line of perceptrons.",
+   "data": [
+    "A11",
+    "A21",
+    "A38"
+   ],
+   "math": [
+    "CA4",
+    "CA12",
+    "CA3"
+   ],
+   "mech": "Stacks layers of weighted sums with non-linear activations between them. Trained by backpropagation: the chain rule (CA4) propagates error gradients backward through every layer, and gradient descent (CA3) updates weights.",
+   "fail": "Needs substantially more data than tree models to justify itself, and on tabular problems it usually loses to EN3 despite being more flexible. Requires feature scaling, careful initialization, and many architectural choices. Uninterpretable without post-hoc tools.",
+   "alt": "EN3 (XGBoost) for tabular data, which is the honest default despite MLPs sounding more advanced.",
+   "dfit": "Mixed modality (A38), since with enough capacity it can approximate arbitrary functions."
+  },
+  {
+   "c": "NN3",
+   "n": "CNN",
+   "p": "SL",
+   "dom": "Neural",
+   "task": [
+    "category"
+   ],
+   "met": "A loupe sliding over an image.",
+   "data": [
+    "A11",
+    "A23",
+    "A35"
+   ],
+   "math": [
+    "CA7",
+    "CA12",
+    "CA24"
+   ],
+   "mech": "Applies learned convolution filters (CA7) across the input, so each filter detects its pattern regardless of position. Pooling layers progressively shrink spatial dimensions while deepening feature channels.",
+   "fail": "Actively wrong for tabular data, where column adjacency carries no meaning. Requires large labeled datasets unless transfer learning is used. Vulnerable to adversarial perturbations invisible to humans. Translation invariant but not rotation or scale invariant without augmentation.",
+   "alt": "NN8 (ResNet) for deeper versions; classical models for anything non-spatial.",
+   "dfit": "Spatial data (A23), images specifically (A35). The architecture assumes neighboring values are related, which is true for pixels and false for spreadsheet columns."
+  },
+  {
+   "c": "NN4",
+   "n": "RNN",
+   "p": "SL",
+   "dom": "Neural",
+   "task": [
+    "forecast",
+    "category"
+   ],
+   "met": "A reader who remembers the last few words.",
+   "data": [
+    "A11",
+    "A22",
+    "A34"
+   ],
+   "math": [
+    "CA4",
+    "CA15"
+   ],
+   "mech": "Maintains a hidden state updated at each timestep from the previous state plus the new input. That recurrence gives it memory, processing sequences of arbitrary length with fixed parameters.",
+   "fail": "Vanishing gradients are its defining flaw: backpropagating through many timesteps multiplies many small derivatives (CA4's failure mode), so it cannot learn dependencies more than a handful of steps back. Also inherently sequential, so it cannot parallelize across time during training.",
+   "alt": "NN5 (LSTM) which solves the memory problem; NN7 (Transformer) which solves both memory and parallelism.",
+   "dfit": "Sequential data (A22), classically text (A34)."
+  },
+  {
+   "c": "NN5",
+   "n": "LSTM",
+   "p": "SL",
+   "dom": "Neural",
+   "task": [
+    "forecast",
+    "category"
+   ],
+   "met": "The reader with a notebook.",
+   "data": [
+    "A11",
+    "A22",
+    "A34"
+   ],
+   "math": [
+    "CA15",
+    "LA7"
+   ],
+   "mech": "Adds a cell state running alongside the hidden state, controlled by three gates (forget, input, output) implemented as sigmoid-scaled element-wise multiplications (LA7). The cell state provides a near-linear path for gradients, which is what preserves long-range memory.",
+   "fail": "Four times the parameters of a plain RNN, so slower and more data-hungry. Still fundamentally sequential, so training cannot parallelize across time. Largely displaced by transformers for language, though it remains competitive for numeric time series where data is limited.",
+   "alt": "NN6 (GRU) for a cheaper approximation; NN7 for large-scale language work.",
+   "dfit": "Same as RNN, but viable for genuinely long sequences."
+  },
+  {
+   "c": "NN6",
+   "n": "GRU",
+   "p": "SL",
+   "dom": "Neural",
+   "task": [
+    "forecast",
+    "category"
+   ],
+   "met": "LSTM's leaner sibling.",
+   "data": [
+    "A11",
+    "A22",
+    "A34"
+   ],
+   "math": [
+    "CA15",
+    "LA7"
+   ],
+   "mech": "Merges LSTM's forget and input gates into a single update gate and drops the separate cell state, cutting parameter count meaningfully while preserving most of the long-range capability.",
+   "fail": "Slightly less expressive than LSTM on tasks requiring fine-grained memory control. Which of the two wins is empirically task-dependent with no reliable prior, so it usually requires testing both.",
+   "alt": "NN5 (LSTM) when you have data to spare and need maximum capacity.",
+   "dfit": "Same as LSTM."
+  },
+  {
+   "c": "NN7",
+   "n": "Transformer",
+   "p": "SSL",
+   "dom": "Neural",
+   "task": [
+    "forecast",
+    "category",
+    "compress"
+   ],
+   "met": "A conference room where every word talks at once.",
+   "data": [
+    "A15",
+    "A22",
+    "A34"
+   ],
+   "math": [
+    "AT1",
+    "AT2",
+    "AT3",
+    "AT4",
+    "AT5"
+   ],
+   "mech": "Replaces recurrence entirely with self-attention (AT1), letting every position directly attend to every other in a single step. Positional encodings (AT3) reinject the order that attention discards. Residuals (AT5) and layer norm (AT4) make deep stacking trainable.",
+   "fail": "Quadratic cost in sequence length, which is the fundamental constraint on context windows and the target of most efficiency research. Enormously data and compute hungry. Extrapolates poorly beyond trained sequence lengths with sinusoidal encodings.",
+   "alt": "NN5 when data is limited; NN4 essentially never, for new work.",
+   "dfit": "Self-labeled (A15) since pretraining manufactures its own targets from raw text."
+  },
+  {
+   "c": "NN8",
+   "n": "ResNet",
+   "p": "SL",
+   "dom": "Neural",
+   "task": [
+    "category"
+   ],
+   "met": "A relay race with skip connections.",
+   "data": [
+    "A11",
+    "A23",
+    "A35"
+   ],
+   "math": [
+    "AT5",
+    "CA7",
+    "CA12"
+   ],
+   "mech": "A CNN with residual connections (AT5) added around every block. The identity shortcut gives gradients an undecayed path backward, which is what made networks of 50, 100, and 150+ layers trainable when previously depth degraded performance.",
+   "fail": "Depth is not free: very deep versions show diminishing returns per layer while multiplying compute cost. Residuals also make the network tolerant of useless layers, hiding architectural waste rather than exposing it.",
+   "alt": "NN3 (plain CNN) for shallow tasks where the added machinery is unnecessary.",
+   "dfit": "Images (A35), spatial structure (A23)."
+  },
+  {
+   "c": "NN9",
+   "n": "U-Net",
+   "p": "SL",
+   "dom": "Neural",
+   "task": [
+    "category"
+   ],
+   "met": "An hourglass squeezing an image to essence.",
+   "data": [
+    "A11",
+    "A23",
+    "A35"
+   ],
+   "math": [
+    "CA7",
+    "AT5",
+    "CA12"
+   ],
+   "mech": "An encoder path progressively downsamples to capture context, a decoder path upsamples back to full resolution, and skip connections carry high-resolution detail directly across from encoder to decoder at matching scales. Those skips are what preserve fine boundaries that pure downsampling destroys.",
+   "fail": "Memory-heavy because skip connections require holding encoder activations throughout. Requires pixel-level labels, which are expensive to produce. Fixed input dimensions unless carefully designed.",
+   "alt": "NN3 or NN8 when a single label per image suffices rather than per-pixel output.",
+   "dfit": "Images requiring per-pixel output (segmentation), not a single classification."
+  },
+  {
+   "c": "NN10",
+   "n": "Siamese Network",
+   "p": "SL",
+   "dom": "Neural",
+   "task": [
+    "category"
+   ],
+   "met": "Twins compared side by side.",
+   "data": [
+    "A11",
+    "A21",
+    "A38"
+   ],
+   "math": [
+    "LA8",
+    "CA8"
+   ],
+   "mech": "Two identical networks with shared weights each embed one input, then a distance metric (commonly cosine similarity, LA8) compares the embeddings. Trained with contrastive or triplet loss to pull similar pairs together and push dissimilar ones apart.",
+   "fail": "Requires careful pair or triplet sampling; easy negatives teach nothing, so hard-negative mining becomes essential and fiddly. Training is unstable if the embedding space collapses to a single point, a real and common failure.",
+   "alt": "Standard classifiers when classes are fixed and known; Siamese wins specifically for one-shot recognition and open-set problems where new classes appear after training.",
+   "dfit": "Mixed modality, wherever the task is similarity rather than classification."
+  },
+  {
+   "c": "NN11",
+   "n": "Self-Organizing Map (SOM)",
+   "p": "USL",
+   "dom": "Neural",
+   "task": [
+    "group"
+   ],
+   "met": "Neurons competing for territory.",
+   "data": [
+    "A12",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "LA9",
+    "PS4"
+   ],
+   "mech": "A fixed grid of nodes, each holding a weight vector. For each input, the closest node wins and it plus its grid neighbors move toward that input. Over time the grid deforms to approximate the data's topology while preserving neighborhood relationships.",
+   "fail": "Grid size and shape must be chosen upfront and strongly constrain results. Training is slow and sensitive to learning-rate and neighborhood schedules. Largely superseded by DR3 (UMAP) for visualization purposes.",
+   "alt": "CL1 for plain clustering; DR3 for modern topology-preserving visualization.",
+   "dfit": "Unlabeled numeric data (A12, A31) being visualized or clustered."
+  },
+  {
+   "c": "NN12",
+   "n": "GAN",
+   "p": "USL",
+   "dom": "Neural",
+   "task": [
+    "category"
+   ],
+   "met": "A forger and detective in an arms race.",
+   "data": [
+    "A12",
+    "A23",
+    "A35"
+   ],
+   "math": [
+    "GM1",
+    "CA9"
+   ],
+   "mech": "A generator maps noise to fake samples; a discriminator tries to distinguish fake from real. Trained adversarially as a minimax game (GM1), each network's improvement pressures the other.",
+   "fail": "Notoriously unstable. Mode collapse (the generator finds a few outputs that reliably fool the discriminator and stops exploring), vanishing generator gradients when the discriminator wins too early, and no reliable convergence criterion. Evaluation is genuinely hard since there is no clean loss to minimize.",
+   "alt": "NN14 (Diffusion), which produces higher quality with far more stable training, and has largely displaced GANs for image generation.",
+   "dfit": "Unlabeled images (A12, A35) classically."
+  },
+  {
+   "c": "NN13",
+   "n": "VAE",
+   "p": "USL",
+   "dom": "Neural",
+   "task": [
+    "category",
+    "compress"
+   ],
+   "met": "Compressing a face into a cloud of possibility.",
+   "data": [
+    "A12",
+    "A21",
+    "A35"
+   ],
+   "math": [
+    "IT4",
+    "CA3",
+    "LA6"
+   ],
+   "mech": "An autoencoder whose bottleneck encodes a probability distribution rather than a point. A KL divergence term (IT4) regularizes that latent distribution toward a standard normal, which makes the latent space continuous and samplable, unlike a plain autoencoder's arbitrary latent layout.",
+   "fail": "Generated samples are characteristically blurry, because the reconstruction loss averages over plausible outputs rather than committing to one. Posterior collapse, where the model ignores the latent entirely and the decoder does all the work, is a common training failure.",
+   "alt": "DR5 (plain autoencoder) when you only need compression, not generation; NN14 for sample quality.",
+   "dfit": "Unlabeled data where generation or smooth interpolation is the goal."
+  },
+  {
+   "c": "NN14",
+   "n": "Diffusion Model",
+   "p": "SSL",
+   "dom": "Neural",
+   "task": [
+    "category"
+   ],
+   "met": "Sculpting by scraping noise off static.",
+   "data": [
+    "A15",
+    "A23",
+    "A35"
+   ],
+   "math": [
+    "DF1",
+    "DF2",
+    "DF3"
+   ],
+   "mech": "Learns to reverse a fixed noising process (DF1). Training is stable because each step is just a supervised denoising task with a known target, sidestepping the adversarial instability that plagues GANs. Generation chains hundreds of learned denoising steps (DF2).",
+   "fail": "Slow generation, requiring many sequential network passes versus a GAN's single pass, though distillation techniques have narrowed this. Compute-intensive to train. Errors early in the reverse chain compound downstream.",
+   "alt": "NN12 (GAN) for single-pass speed at the cost of training stability and sample quality.",
+   "dfit": "Self-labeled (A15), since the noise added is itself the training target."
+  },
+  {
+   "c": "NLP1",
+   "n": "Word2Vec",
+   "p": "SSL",
+   "dom": "NLP",
+   "task": [
+    "compress"
+   ],
+   "met": "Judging a word by the company it keeps.",
+   "data": [
+    "A15",
+    "A22",
+    "A34"
+   ],
+   "math": [
+    "LA8",
+    "CA10"
+   ],
+   "mech": "Trains a shallow network to predict context words from a target word (skip-gram) or the reverse (CBOW). The learned hidden weights become the word vectors. Self-supervised: labels come free from the text's own structure.",
+   "fail": "One fixed vector per word regardless of context, so \"bank\" gets a single embedding blending riverbank and financial senses. No handling of out-of-vocabulary words. Encodes and amplifies social biases present in the training corpus, which is a documented and consequential problem.",
+   "alt": "NLP2 (BERT) for context-dependent embeddings that resolve exactly this ambiguity.",
+   "dfit": "Text (A34), self-labeled (A15)."
+  },
+  {
+   "c": "NLP2",
+   "n": "BERT",
+   "p": "SSL",
+   "dom": "NLP",
+   "task": [
+    "category"
+   ],
+   "met": "Reading with both eyes open.",
+   "data": [
+    "A15",
+    "A22",
+    "A34"
+   ],
+   "math": [
+    "AT1",
+    "AT2",
+    "AT4",
+    "CA9"
+   ],
+   "mech": "A transformer encoder pretrained by masking random tokens and predicting them from both left and right context simultaneously. That bidirectionality is what distinguishes it from GPT and makes it strong at understanding tasks.",
+   "fail": "Cannot generate text naturally, since bidirectional training does not produce a left-to-right generative process. The pretrain/fine-tune mismatch (mask tokens appear in training but never at inference) is a known inefficiency. Inherits the transformer's quadratic length cost.",
+   "alt": "NLP3 (GPT) for generation; BERT for classification, extraction, and understanding.",
+   "dfit": "Text, self-supervised pretraining then task-specific fine-tuning."
+  },
+  {
+   "c": "NLP3",
+   "n": "GPT",
+   "p": "SSL",
+   "dom": "NLP",
+   "task": [
+    "category",
+    "number"
+   ],
+   "met": "A storyteller who only looks backward.",
+   "data": [
+    "A15",
+    "A22",
+    "A34"
+   ],
+   "math": [
+    "AT1",
+    "AT2",
+    "AT3",
+    "CA9"
+   ],
+   "mech": "A transformer decoder trained purely on next-token prediction with causal masking, so each position can only attend to earlier positions. That constraint is precisely what makes generation natural: the training objective and the inference procedure are the same operation.",
+   "fail": "Unidirectional context means it cannot use future tokens when understanding a position, a real disadvantage for some classification tasks. Generates fluent text regardless of factual accuracy. Context window bounded by the quadratic attention cost.",
+   "alt": "NLP2 (BERT) for understanding tasks where bidirectional context helps.",
+   "dfit": "Text, self-labeled since the next token is always available as a target."
+  },
+  {
+   "c": "GR1",
+   "n": "Graph Neural Network (GNN)",
+   "p": "SL",
+   "dom": "Graph",
+   "task": [
+    "category"
+   ],
+   "met": "Gossip passed around a friend circle.",
+   "data": [
+    "A11",
+    "A24",
+    "A37"
+   ],
+   "math": [
+    "GT1",
+    "GT2",
+    "LA2"
+   ],
+   "mech": "Each node aggregates messages from its neighbors, combines them with its own features, and updates its representation. Stacking k layers means information propagates k hops across the graph.",
+   "fail": "Over-smoothing: stacking too many layers makes all node representations converge toward the same value, so deep GNNs often perform worse than shallow ones. Scaling to very large graphs requires sampling strategies. Cannot naturally handle graphs whose structure changes over time without extension.",
+   "alt": "Classical models on flattened graph features (degree, centrality) when relationships are weak; GR3 when neighbors deserve unequal weight.",
+   "dfit": "Graph-native data (A24, A37), where relationships between entities carry the signal."
+  },
+  {
+   "c": "GR2",
+   "n": "Graph Convolutional Network (GCN)",
+   "p": "SL",
+   "dom": "Graph",
+   "task": [
+    "category"
+   ],
+   "met": "CNN's rule applied to social networks.",
+   "data": [
+    "A11",
+    "A24",
+    "A37"
+   ],
+   "math": [
+    "GT1",
+    "CA7"
+   ],
+   "mech": "A specific GNN formulation using a normalized adjacency matrix to average neighbor features, mathematically analogous to convolution but over an irregular graph rather than a regular grid.",
+   "fail": "Averages all neighbors with fixed normalization weights, so it cannot express that some neighbors matter more than others. Suffers the same over-smoothing problem. Transductive in its basic form, meaning it does not naturally generalize to nodes unseen during training.",
+   "alt": "GR3 (GAT), which adds learned neighbor weighting.",
+   "dfit": "Same as GR1."
+  },
+  {
+   "c": "GR3",
+   "n": "Graph Attention Network (GAT)",
+   "p": "SL",
+   "dom": "Graph",
+   "task": [
+    "category"
+   ],
+   "met": "Gossip with weighted opinions.",
+   "data": [
+    "A11",
+    "A24",
+    "A37"
+   ],
+   "math": [
+    "AT1",
+    "GT1"
+   ],
+   "mech": "Replaces GCN's fixed averaging with learned attention coefficients (AT1), so each node decides how much weight to give each neighbor based on their features. Naturally inductive, since attention is computed from features rather than fixed graph position.",
+   "fail": "More parameters and compute than GCN. Attention weights are tempting to read as explanations of importance, but that interpretation is contested and not reliably faithful. Still over-smooths at depth.",
+   "alt": "GR2 (GCN) when the graph is homogeneous enough that uniform weighting suffices, saving compute.",
+   "dfit": "Same as GR1 and GR2."
+  },
+  {
+   "c": "RLM1",
+   "n": "Q-Learning",
+   "p": "RL",
+   "dom": "RL",
+   "task": [
+    "category"
+   ],
+   "met": "A trial-and-error gambler.",
+   "data": [
+    "A15",
+    "A22",
+    "A31"
+   ],
+   "math": [
+    "RL1",
+    "RL2",
+    "RL5"
+   ],
+   "mech": "Maintains a table of state-action values, updated via temporal-difference learning (RL2) toward observed reward plus the discounted best future value. Model-free: it needs no knowledge of transition probabilities, learning purely from experience.",
+   "fail": "The table scales with states times actions, so it is unusable for anything beyond small discrete spaces. Continuous states require discretization that loses information. The max operator introduces systematic overestimation bias. Requires a deliberate exploration strategy or it exploits whatever it found first.",
+   "alt": "RLM2 (DQN), which replaces the table with a network to handle large state spaces.",
+   "dfit": "Self-labeled by reward signal (A15), sequential by nature (A22)."
+  },
+  {
+   "c": "RLM2",
+   "n": "Deep Q-Network (DQN)",
+   "p": "RL",
+   "dom": "RL",
+   "task": [
+    "category"
+   ],
+   "met": "Q-Learning with a neural net.",
+   "data": [
+    "A15",
+    "A22",
+    "A35"
+   ],
+   "math": [
+    "RL1",
+    "RL2",
+    "CA3"
+   ],
+   "mech": "Approximates the Q-function with a neural network. Two stabilizing tricks are essential: experience replay (sampling past transitions randomly to break temporal correlation) and a target network (a periodically-frozen copy providing stable update targets, since chasing a moving target diverges).",
+   "fail": "Notoriously sample-inefficient, often requiring millions of environment interactions. Handles only discrete action spaces. Inherits Q-learning's overestimation bias, which Double DQN addresses. Training can diverge without the stabilizing tricks above.",
+   "alt": "RLM3 for continuous action spaces where taking a max over actions is impossible.",
+   "dfit": "High-dimensional states including images (A35), which is what made Atari-from-pixels possible."
+  },
+  {
+   "c": "RLM3",
+   "n": "Policy Gradient / PPO",
+   "p": "RL",
+   "dom": "RL",
+   "task": [
+    "category"
+   ],
+   "met": "An actor adjusting based on applause.",
+   "data": [
+    "A15",
+    "A22",
+    "A31"
+   ],
+   "math": [
+    "RL3",
+    "RL4"
+   ],
+   "mech": "Optimizes the policy directly (RL4) rather than learning values and deriving a policy. PPO specifically adds a clipped objective preventing any single update from moving the policy too far, which is what made policy gradients practically stable.",
+   "fail": "High gradient variance is inherent (see RL4's failure mode). Typically on-policy, so collected data must be discarded after each update, making it sample-inefficient. Sensitive to reward scaling.",
+   "alt": "RLM4 (Actor-Critic), which adds a value baseline specifically to cut that variance.",
+   "dfit": "Sequential, reward-labeled, and crucially supports continuous action spaces where value-based methods cannot take a max."
+  },
+  {
+   "c": "RLM4",
+   "n": "Actor-Critic",
+   "p": "RL",
+   "dom": "RL",
+   "task": [
+    "category"
+   ],
+   "met": "An actor with a critic scoring every scene.",
+   "data": [
+    "A15",
+    "A22",
+    "A31"
+   ],
+   "math": [
+    "RL3",
+    "RL4",
+    "RL1"
+   ],
+   "mech": "Combines both families: an actor network chooses actions (policy gradient), a critic network estimates value (RL1). The critic's estimate serves as a baseline, so the actor updates on advantage (how much better than expected) rather than raw return, which substantially reduces variance.",
+   "fail": "Two networks means two sets of hyperparameters and two failure modes interacting. If the critic is poorly calibrated it actively misleads the actor. Still on-policy in standard forms.",
+   "alt": "RLM3 when simplicity matters more than variance reduction.",
+   "dfit": "Same as RLM3."
+  },
+  {
+   "c": "RLM5",
+   "n": "Monte Carlo Tree Search (MCTS)",
+   "p": "RL",
+   "dom": "RL",
+   "task": [
+    "category"
+   ],
+   "met": "Playing imaginary games before one real move.",
+   "data": [
+    "A15",
+    "A22",
+    "A32"
+   ],
+   "math": [
+    "RL1",
+    "RL3",
+    "PS20"
+   ],
+   "mech": "Four repeated phases: select promising nodes via an exploration/exploitation rule, expand a new node, simulate a rollout to a terminal outcome, then backpropagate the result up the tree. Statistics accumulate so promising branches get explored more deeply.",
+   "fail": "Requires a model of the environment to simulate forward, which most real-world problems do not provide. Computationally expensive per move. Struggles with large branching factors unless paired with a learned policy to prune candidates, which is precisely what AlphaGo added.",
+   "alt": "RLM2 or RLM3 when no simulator exists and learning must happen from real interaction only.",
+   "dfit": "Discrete action spaces (A32), sequential decision problems with a simulatable environment."
+  },
+  {
+   "c": "SA-M1",
+   "n": "Cox Proportional Hazards",
+   "p": "SL",
+   "dom": "Survival",
+   "task": [
+    "forecast",
+    "number"
+   ],
+   "met": "An actuary betting on when the shoe drops.",
+   "data": [
+    "A11",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "SA1",
+    "SA2",
+    "PS3"
+   ],
+   "mech": "Models the hazard rate (SA2) as a baseline hazard multiplied by an exponential function of covariates. Semi-parametric: it never specifies the baseline hazard's shape, only how covariates scale it, which is what makes it broadly applicable.",
+   "fail": "The proportional hazards assumption (that hazard ratios between groups stay constant over time) is frequently violated and must be tested, not assumed. Cannot easily handle time-varying covariate effects without extension.",
+   "alt": "SA-M2 for a non-parametric alternative with no covariates.",
+   "dfit": "Labeled numeric data with time-to-event outcomes and censoring."
+  },
+  {
+   "c": "SA-M2",
+   "n": "Kaplan-Meier Estimator",
+   "p": "SL",
+   "dom": "Survival",
+   "task": [
+    "forecast"
+   ],
+   "met": "A survivorship scoreboard.",
+   "data": [
+    "A11",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "SA1",
+    "SA3"
+   ],
+   "mech": "Builds the survival curve empirically by stepping down at each observed event, weighted by the number still at risk. Censored observations exit the risk set without causing a step.",
+   "fail": "Handles no covariates whatsoever, only group splits, so it cannot explain why groups differ. Tail estimates become unreliable as the at-risk population shrinks.",
+   "alt": "SA-M1 when covariate effects need quantifying.",
+   "dfit": "Time-to-event data with censoring, for group-level comparison."
+  },
+  {
+   "c": "TSM1",
+   "n": "ARIMA",
+   "p": "SL",
+   "dom": "Time series",
+   "task": [
+    "forecast"
+   ],
+   "met": "Predicting tomorrow from yesterday.",
+   "data": [
+    "A11",
+    "A22",
+    "A31"
+   ],
+   "math": [
+    "TS1",
+    "TS2",
+    "TS3",
+    "TS4"
+   ],
+   "mech": "Combines three components: AR (TS4) regresses on past values, I (TS2) differences the series to achieve stationarity, MA (TS3) models past forecast errors. The (p,d,q) orders specify how much of each.",
+   "fail": "Requires stationarity, which differencing must achieve without over-differencing. Order selection is genuinely difficult, typically via ACF/PACF inspection or automated search. Handles only one series at a time and struggles to incorporate external regressors. Assumes linear relationships.",
+   "alt": "TSM3 (Prophet) for easier seasonality handling; EN3 with lag features when external variables matter.",
+   "dfit": "Sequential numeric data (A22, A31)."
+  },
+  {
+   "c": "TSM2",
+   "n": "Exponential Smoothing (Holt-Winters)",
+   "p": "SL",
+   "dom": "Time series",
+   "task": [
+    "forecast"
+   ],
+   "met": "A rumor that fades but never disappears.",
+   "data": [
+    "A11",
+    "A22",
+    "A31"
+   ],
+   "math": [
+    "TS5"
+   ],
+   "mech": "Maintains exponentially weighted averages for level, and optionally trend and seasonality, each with its own smoothing parameter. Forecasts project these components forward.",
+   "fail": "Cannot incorporate external regressors at all. Multiple smoothing parameters to tune. Assumes the seasonal pattern is stable, so it adapts poorly when seasonality itself changes shape.",
+   "alt": "TSM1 when autocorrelation structure matters more than trend/seasonal decomposition.",
+   "dfit": "Sequential numeric data with clear trend and seasonal structure."
+  },
+  {
+   "c": "TSM3",
+   "n": "Prophet",
+   "p": "SL",
+   "dom": "Time series",
+   "task": [
+    "forecast"
+   ],
+   "met": "ARIMA's user-friendly cousin.",
+   "data": [
+    "A11",
+    "A22",
+    "A31"
+   ],
+   "math": [
+    "TS1",
+    "TS5",
+    "CA8"
+   ],
+   "mech": "Decomposes the series additively into trend, seasonality (via Fourier terms), and holiday effects, fitting each component separately. Designed to be robust to missing data and outliers.",
+   "fail": "Its automatic changepoint detection can over- or under-fit trend shifts. Being a curve-fitting approach rather than a true autoregressive one, it can miss genuine autocorrelation structure. Frequently outperformed by gradient boosting with engineered lag features on real business problems, despite its reputation.",
+   "alt": "EN3 with lag features, which often wins and handles external regressors more naturally.",
+   "dfit": "Business time series with strong calendar effects."
+  }
+ ]
+}

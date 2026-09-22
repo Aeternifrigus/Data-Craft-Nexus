@@ -44,7 +44,17 @@ A63 (missing not at random) is never reported. Whether a gap depends on the valu
 
 First, what cannot work is ruled out, with the reason shown on the page: a sequence model has no order to use on independent rows, a text model has nothing to read in a numeric table, a supervised model has no labels to learn from. A model that assumes independent rows still appears on ordered data, with a caution to split by time rather than at random.
 
-What is left is ranked by how many of its coordinates your data matches. **This leaves large ties, and the order inside a tie means nothing**: it is the order the models happen to sit in the taxonomy. The page says so rather than implying a ranking it cannot justify. Turning those ties into a real ranking is what the benchmark below is for.
+What is left is **ordered by what those models were worth on the benchmark**, not by how many coordinates they match. The coordinate count is still shown on every card, because it says what your data has in common with the model, but it no longer decides the order: it used to, and it put plain Linear Regression first on 17 of 20 regression datasets at a cost of up to 0.7 R².
+
+The weights are a prior per model, fitted in `bench/dcn/learn.py` and judged leave-one-dataset-out, so a dataset never contributes to the weights that rank it:
+
+| median regret, leave-one-dataset-out | classification | regression |
+|---|---|---|
+| counting matched coordinates (before) | 0.055 | 0.432 |
+| **learned from the benchmark (now)** | **0.011** | **0.002** |
+| always use boosting | 0.023 | 0.007 |
+
+A model the benchmark never ran is shown below the ones it did, with no score attached, and a task the benchmark never covered (forecasting, grouping, anomalies) still falls back to coordinates. The page says which of the two it used.
 
 ### What it was worth on real data
 
@@ -72,7 +82,8 @@ disagree with the run behind it.
 
 ### Not done yet
 
-- **Ranking inside a tie is arbitrary, and it is measurably expensive.** Six to eight models routinely tie on coordinates, and the order between them is the order they sit in the taxonomy. On one dataset that put a plain Decision Tree first where Random Forest had scored 0.44 R², a swing of half an R² decided by list position. The next step is to learn the ranking from the benchmark results, evaluated leave-one-dataset-out.
+- **The learned order is a per-model prior, not yet a per-dataset one.** Interactions between a dataset's measured features and a model's family were fitted and did not beat the plain prior on 20 datasets per task. Running all 229 datasets rather than 40 is what would let the order depend on your data rather than on averages.
+- **Only classification and regression are benchmarked.** Forecasting, survival, grouping, anomalies, compression and generation still fall back to counting coordinates.
 - Image, audio, graph and spatial data cannot be detected from a CSV, so those models are reachable in the reference but never recommended from an upload.
 - Separability (A55/A56) and weak or self-supervised labelling (A13 to A15) are not measured yet.
 

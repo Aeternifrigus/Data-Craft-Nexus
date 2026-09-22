@@ -93,14 +93,19 @@ def test_parsing_and_profile_match_javascript(path: Path, js_results):
 
         # The ranking has to match too, or the benchmark would score advice
         # the site never gave.
+        exp_shape = exp["shape"]
         for run_key, expected in exp["rankings"].items():
             order, task = run_key.split("|")
             sig = signature(profile, target, order)
             flags = f" +{' '.join(sig['flags'])}" if sig["flags"] else ""
             assert " ".join(sig["codes"]) + flags == expected["signature"], (key, run_key)
 
+            assert (sig["rows"], sig["features"]) == (exp_shape["rows"], exp_shape["features"]), key
+
             models = rank_models(TAXONOMY, sig, task)
-            got = [f"{m['c']}:{m['score']}/{m['of']}" + ("!" if caution(m, sig) else "") for m in models.items]
+            got = [f"{m['c']}:{m['score']}/{m['of']}" + ("!" if caution(m, sig) else "")
+                   + ("" if m["evidence_score"] is None else f"@{m['evidence_score']:.4f}")
+                   for m in models.items]
             assert got == expected["models"], (key, run_key)
             assert models.tied == expected["tied"], (key, run_key)
             assert models.candidates == expected["candidates"], (key, run_key)

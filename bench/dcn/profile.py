@@ -177,6 +177,8 @@ def signature(profile: Profile, target: str | None, order: str) -> dict:
         "flags": flags,
         "balance": balance,
         "drift": drift,
+        "rows": profile.n,
+        "features": len([c for c in profile.columns if c.name != target]),
     }
 
 

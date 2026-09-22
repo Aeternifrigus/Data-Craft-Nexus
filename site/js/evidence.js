@@ -45,6 +45,33 @@ function headlineTable(headline) {
   </table>`;
 }
 
+// How the order the site now uses compares with what it used to do, and with
+// reaching for boosting. Every number is leave-one-dataset-out: the dataset
+// being ranked never contributed to the weights that rank it.
+function rankingTable(ranking) {
+  if (!ranking) return '';
+  const tasks = Object.keys(ranking.tasks);
+  const keys = ['current', 'prior', 'prior_fit', 'boosting'];
+  const label = (key) => {
+    for (const task of tasks) {
+      const s = ranking.tasks[task].strategies[key];
+      if (s) return s.label;
+    }
+    return key;
+  };
+  const chosenNote = (key) => (key === ranking.chosen ? ' <span class="ev-chosen">in use</span>' : '');
+  return `<table class="ev-table">
+    <thead><tr><th>median regret, leave-one-dataset-out</th>${tasks.map(t =>
+      `<th>${esc(t)}<span class="ev-sub">${esc(ranking.tasks[t].metric)}, ${ranking.tasks[t].datasets} datasets</span></th>`).join('')}</tr></thead>
+    <tbody>${keys.map(key => `<tr>
+      <td>${esc(label(key))}${chosenNote(key)}</td>
+      ${tasks.map(t => { const s = ranking.tasks[t].strategies[key];
+        return `<td>${s ? num(s.median_regret) : '—'}${s ? `<span class="ev-sub">best ${pct(s.was_best)} of the time</span>` : ''}</td>`;
+      }).join('')}
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
 function modelTable(models) {
   const rows = [];
   for (const [code, model] of Object.entries(models)) {
@@ -101,20 +128,32 @@ export function buildEvidence(T) {
 
   const head = ev.headline;
   const classification = head.classification, regression = head.regression;
-  const verdict = `The four models shown contain the best available choice ${pct(classification.top4_was_best)} of the time on
-    classification and beat reaching for boosting on ${pct(classification.top4_beats_boosting)} of those datasets. On regression
-    boosting wins: it sits ${num(regression.boosting)} below the best model, against ${num(regression.top4)} for the four shown.
-    The single model shown first is the weakest part: several models tie on coordinates and the order between them is the order
-    they sit in the taxonomy, not a ranking.`;
+  const verdict = `These are the numbers for the run as it happened, when models were still ordered by counting matched
+    coordinates. That is what the next table replaced: the four shown contained the best available choice
+    ${pct(classification.top4_was_best)} of the time on classification, but the model shown first trailed the best by
+    ${num(classification.first)} on classification and ${num(regression.first)} on regression, which is worse than
+    reaching for boosting.`;
 
   body.innerHTML = `
     <h3 class="ev-h">How the advice did</h3>
     ${headlineTable(head)}
     <p class="sect-note" style="margin-top:18px">${verdict}</p>
 
+    ${ev.ranking ? `<h3 class="ev-h">What the order is worth</h3>
+    <p class="sect-note">The site used to show whichever model matched the most coordinates. It now shows them in the order
+      they were worth on the benchmark. Every number here is leave-one-dataset-out: the dataset being ranked contributed
+      nothing to the weights that rank it, so this is what the ranking does on data it has not seen.</p>
+    ${rankingTable(ev.ranking)}
+    <p class="sect-note" style="margin-top:14px">Interactions between a dataset's measured features and a model's family
+      were fitted too, and did not beat the plain per-model order on ${ev.ranking.trained_on?.datasets ?? 40} datasets.
+      They stay switched off until the benchmark is large enough to support them, which is an argument for running all 229
+      datasets rather than 40.</p>` : ''}
+
     <h3 class="ev-h">Every model that ran</h3>
     <p class="sect-note">“Was best” counts datasets where this model scored highest of all that ran.
-      “Shown first” counts datasets where the instrument put it at the top.</p>
+      “Shown first” counts datasets where the instrument put it at the top <em>during that run</em>, when models were still
+      ordered by counting coordinates. That column is what the learned order replaced: Linear Regression led 17 regression
+      datasets and was the best model on one of them.</p>
     ${modelTable(ev.models)}
 
     <h3 class="ev-h">Every dataset</h3>

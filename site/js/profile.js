@@ -153,6 +153,8 @@ export function signature(profile, decl) {
     balance,
     drift,
     measured: { a3, a4, a6 },
+    rows: profile.n,
+    features: profile.columns.filter(c => c.name !== target).length,
   };
 }
 

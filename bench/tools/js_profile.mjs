@@ -39,6 +39,8 @@ for (const path of process.argv.slice(2)) {
       balance: balance && { code: balance.code, majorityShare: round(balance.majorityShare), levels: balance.levels },
       drift: drift && { code: drift.code, psi: round(drift.psi), column: drift.column, scope: drift.scope },
       signature: signature(profile, { target: target ?? '__none__', task: 'number', order: 'A21' }).codes.join(' '),
+      shape: (() => { const s = signature(profile, { target: target ?? '__none__', task: 'number', order: 'A21' });
+        return { rows: s.rows, features: s.features }; })(),
       rankings: {},
     };
     for (const order of ['A21', 'A22']) {
@@ -47,7 +49,9 @@ for (const path of process.argv.slice(2)) {
         const models = rankModels(T, sig, t);
         entry.perTarget[key].rankings[`${order}|${t}`] = {
           signature: sig.codes.join(' ') + (sig.flags.length ? ` +${sig.flags.join(' ')}` : ''),
-          models: models.items.map(m => `${m.c}:${m.score}/${m.of}${m.caution ? '!' : ''}`),
+          models: models.items.map(m => `${m.c}:${m.score}/${m.of}${m.caution ? '!' : ''}` +
+            (m.evidenceScore == null ? '' : `@${m.evidenceScore.toFixed(4)}`)),
+          rankedBy: models.rankedBy,
           tied: models.tied, candidates: models.candidates,
           ruledOut: models.ruledOut.map(m => `${m.c}:${m.why}`),
           drifts: rankDrifts(T, sig).items.map(d => d.c),

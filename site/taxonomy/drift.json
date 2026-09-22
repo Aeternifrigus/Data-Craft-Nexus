@@ -36,7 +36,11 @@
    "met": "The widest gap between two cumulative curves.",
    "mech": "Builds empirical CDFs for reference and current samples, scans for the single widest vertical gap between them, and reports that gap as D. A p-value is derived from D and both sample sizes.",
    "thr": "Judged on the p-value, not D directly. A smaller alpha (0.01) makes the test stricter and harder to trigger; a larger alpha (0.10) makes it more sensitive and more prone to false alarms. Common default is 0.05. On small samples, lower alpha to avoid noise-driven alerts.",
-   "fail": "Most sensitive at the centre of the distribution and comparatively blind in the tails, so tail-only drift slips past. At large sample sizes it becomes hypersensitive, flagging statistically real but operationally irrelevant shifts. Univariate only."
+   "fail": "Most sensitive at the centre of the distribution and comparatively blind in the tails, so tail-only drift slips past. At large sample sizes it becomes hypersensitive, flagging statistically real but operationally irrelevant shifts. Univariate only.",
+   "ref": {
+    "label": "scipy.stats.ks_2samp",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html"
+   }
   },
   {
    "c": "DR-M2",
@@ -52,7 +56,11 @@
    "met": "How much weight shifted between buckets.",
    "mech": "Bins both samples (commonly 10 deciles defined on the reference), computes each bin's proportion in both, then sums the difference times the log ratio across bins. Aggregates shift across the entire range rather than reporting one worst point.",
    "thr": "The rare drift test with genuine industry-standard cutoffs: below 0.1 means no meaningful shift, 0.1 to 0.25 means moderate shift worth monitoring, above 0.25 means significant shift warranting action. These come from credit-risk practice and are conventions rather than statistical guarantees.",
-   "fail": "Bin count changes the answer, and empty bins produce infinite log ratios unless floored with a small epsilon. Bins defined on the reference window can become badly unbalanced if the current data shifts far, distorting the score."
+   "fail": "Bin count changes the answer, and empty bins produce infinite log ratios unless floored with a small epsilon. Bins defined on the reference window can become badly unbalanced if the current data shifts far, distorting the score.",
+   "ref": {
+    "label": "Evidently on GitHub",
+    "url": "https://github.com/evidentlyai/evidently"
+   }
   },
   {
    "c": "DR-M3",
@@ -68,7 +76,11 @@
    "met": "Counting how far categories drifted.",
    "mech": "Compares observed category counts in the current window against expected counts derived from the reference, summing squared deviations normalized by expected count.",
    "thr": "Converted to a p-value against the chi-square distribution with (categories minus 1) degrees of freedom. Same alpha-direction logic as DR-M1.",
-   "fail": "Unreliable when any expected count falls below roughly 5, which happens constantly with high-cardinality categoricals. Rare categories inflate the statistic since a tiny denominator explodes the term. New categories absent from the reference cannot be scored at all and must be handled separately."
+   "fail": "Unreliable when any expected count falls below roughly 5, which happens constantly with high-cardinality categoricals. Rare categories inflate the statistic since a tiny denominator explodes the term. New categories absent from the reference cannot be scored at all and must be handled separately.",
+   "ref": {
+    "label": "scipy.stats.chi2_contingency",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html"
+   }
   },
   {
    "c": "DR-M4",
@@ -84,7 +96,11 @@
    "met": "How surprised describing new using old vocabulary.",
    "mech": "Weights the log-ratio of two distributions by the reference distribution's probabilities, measuring information lost by using the current distribution to describe the reference.",
    "thr": "No natural scale, since it is unbounded. Thresholds must be calibrated empirically against a stable baseline period, which is a real operational cost.",
-   "fail": "Asymmetric and unbounded: it goes to infinity wherever the current distribution assigns zero probability but the reference does not. Requires smoothing to remain finite. The asymmetry means KL(P||Q) and KL(Q||P) give different answers, so direction must be chosen deliberately."
+   "fail": "Asymmetric and unbounded: it goes to infinity wherever the current distribution assigns zero probability but the reference does not. Requires smoothing to remain finite. The asymmetry means KL(P||Q) and KL(Q||P) give different answers, so direction must be chosen deliberately.",
+   "ref": {
+    "label": "scipy.stats.wasserstein_distance",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wasserstein_distance.html"
+   }
   },
   {
    "c": "DR-M5",
@@ -101,7 +117,11 @@
    "met": "A bounded, symmetric distance.",
    "mech": "Averages each distribution's KL divergence from their pointwise midpoint. That midpoint construction is what removes KL's infinity problem and makes the result symmetric.",
    "thr": "Bounded in [0,1] when using log base 2, which is precisely why it suits dashboards: a fixed threshold means the same thing across features. Commonly 0.1 to 0.2 as a warning band, tuned per system.",
-   "fail": "Being bounded means it saturates: once distributions are sufficiently different it stops distinguishing \"quite different\" from \"completely different,\" so it under-reports severe drift."
+   "fail": "Being bounded means it saturates: once distributions are sufficiently different it stops distinguishing \"quite different\" from \"completely different,\" so it under-reports severe drift.",
+   "ref": {
+    "label": "scipy.spatial.distance.jensenshannon",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.jensenshannon.html"
+   }
   },
   {
    "c": "DR-M6",
@@ -116,7 +136,11 @@
    "met": "Work to move one earth pile into another.",
    "mech": "Computes the minimum total cost to transform one distribution into the other, where cost is mass moved times distance travelled. For 1D this reduces to the area between the two CDFs.",
    "thr": "Reported in the feature's own units, which is its practical advantage: a Wasserstein distance of 500 PLN is directly interpretable to a business stakeholder in a way a KS statistic is not. Thresholds should therefore be set in domain terms.",
-   "fail": "Because it is unit-scaled, thresholds cannot transfer across features without normalization. Computationally heavier than KS, and expensive in high dimensions."
+   "fail": "Because it is unit-scaled, thresholds cannot transfer across features without normalization. Computationally heavier than KS, and expensive in high dimensions.",
+   "ref": {
+    "label": "scipy.stats.entropy",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.entropy.html"
+   }
   },
   {
    "c": "DR-M7",
@@ -131,7 +155,11 @@
    "met": "Do subgroups still share the same average?",
    "mech": "Compares variance between segment means against variance within segments. A large ratio means segments have genuinely diverged from each other rather than moving together.",
    "thr": "Converted to a p-value via the F distribution. Same alpha-direction logic as DR-M1.",
-   "fail": "Assumes roughly equal variance across groups and approximate normality. Tells you that some segment differs, never which, which is why it functions as step one of DR-RS rather than a complete answer."
+   "fail": "Assumes roughly equal variance across groups and approximate normality. Tells you that some segment differs, never which, which is why it functions as step one of DR-RS rather than a complete answer.",
+   "ref": {
+    "label": "Alibi Detect on GitHub",
+    "url": "https://github.com/SeldonIO/alibi-detect"
+   }
   },
   {
    "c": "DR-M8",
@@ -146,7 +174,11 @@
    "met": "Watching the model actually get worse.",
    "mech": "Tracks prediction error against ground truth over time, flagging sustained degradation. This is the most direct evidence that something has genuinely broken, since it measures the outcome rather than a proxy.",
    "thr": "Set relative to the model's validated baseline error, commonly a relative increase (say 20 percent above baseline MAE) sustained across a window rather than a single spike.",
-   "fail": "Requires ground-truth labels, which always arrive late. In credit or churn contexts that lag can be months, meaning the model has been degrading unnoticed the entire time. This lag is the entire reason unsupervised feature-drift tests exist. Also tells you performance dropped without indicating why."
+   "fail": "Requires ground-truth labels, which always arrive late. In credit or churn contexts that lag can be months, meaning the model has been degrading unnoticed the entire time. This lag is the entire reason unsupervised feature-drift tests exist. Also tells you performance dropped without indicating why.",
+   "ref": {
+    "label": "scipy.stats.anderson_ksamp",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.anderson_ksamp.html"
+   }
   },
   {
    "c": "DR-M9",
@@ -162,7 +194,11 @@
    "met": "The referee deciding if a gap is real.",
    "mech": "Not a standalone detector. Converts a test statistic into the probability of observing something at least this extreme if nothing had actually changed.",
    "thr": "Alpha, conventionally 0.05. Direction matters and is commonly inverted by mistake: raising alpha makes the test fire more often, lowering it makes the test stricter.",
-   "fail": "Testing many features simultaneously inflates false positives dramatically: at alpha 0.05 across 100 features, roughly 5 will flag by chance alone. This requires correction (Bonferroni or FDR), which is exactly what DR-MH exists to handle. Also never tells you the probability that drift occurred, only the probability of the data under no-drift."
+   "fail": "Testing many features simultaneously inflates false positives dramatically: at alpha 0.05 across 100 features, roughly 5 will flag by chance alone. This requires correction (Bonferroni or FDR), which is exactly what DR-MH exists to handle. Also never tells you the probability that drift occurred, only the probability of the data under no-drift.",
+   "ref": {
+    "label": "scipy.stats.mannwhitneyu",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html"
+   }
   },
   {
    "c": "DR-M10",
@@ -178,7 +214,11 @@
    "met": "Comparing kernel mean embeddings.",
    "mech": "Maps both samples into a reproducing kernel Hilbert space via a kernel (usually RBF), computes the mean embedding of each, and measures the distance between those means. Genuinely multivariate, so it catches drift that exists only in the joint distribution while every individual feature looks unchanged.",
    "thr": "Significance established by permutation testing: shuffle the combined samples repeatedly to build a null distribution of MMD values, then compare the observed value against it.",
-   "fail": "Kernel bandwidth strongly determines sensitivity, commonly set by the median heuristic but not reliably optimal. Permutation testing is computationally expensive. Detects that the joint distribution moved without indicating which features caused it."
+   "fail": "Kernel bandwidth strongly determines sensitivity, commonly set by the median heuristic but not reliably optimal. Permutation testing is computationally expensive. Detects that the joint distribution moved without indicating which features caused it.",
+   "ref": {
+    "label": "scipy.stats.cramervonmises_2samp",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.cramervonmises_2samp.html"
+   }
   },
   {
    "c": "DR-M11",
@@ -194,7 +234,11 @@
    "met": "Gap between density maps.",
    "mech": "Directly estimates the squared difference between the two densities using least-squares fitting, rather than comparing kernel mean embeddings as MMD does.",
    "thr": "Permutation-based, same approach as DR-M10.",
-   "fail": "Same kernel-bandwidth sensitivity as MMD, with the added burden of a regularization parameter. Less widely implemented in production tooling than MMD, so ecosystem support is thinner."
+   "fail": "Same kernel-bandwidth sensitivity as MMD, with the added burden of a regularization parameter. Less widely implemented in production tooling than MMD, so ecosystem support is thinner.",
+   "ref": {
+    "label": "Alibi Detect on GitHub",
+    "url": "https://github.com/SeldonIO/alibi-detect"
+   }
   },
   {
    "c": "DR-M12",
@@ -209,7 +253,11 @@
    "met": "KS's patient cousin.",
    "mech": "Integrates the squared difference between the two CDFs across their entire range, rather than taking only the maximum gap as KS does. Accumulates evidence everywhere instead of relying on one point.",
    "thr": "p-value based, same alpha logic as DR-M1.",
-   "fail": "Still univariate. More statistically powerful than KS for diffuse, broad shifts, but less pointed for a single sharp localized change, where KS is the better instrument. Less standard in tooling than KS."
+   "fail": "Still univariate. More statistically powerful than KS for diffuse, broad shifts, but less pointed for a single sharp localized change, where KS is the better instrument. Less standard in tooling than KS.",
+   "ref": {
+    "label": "scipy.stats.cramervonmises_2samp",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.cramervonmises_2samp.html"
+   }
   },
   {
    "c": "DR-M13",
@@ -224,7 +272,11 @@
    "met": "KS's cousin who cares about extremes.",
    "mech": "Like Cramér-von Mises but weights the CDF difference to emphasize the tails, where the two other CDF-based tests are weakest.",
    "thr": "p-value based, same alpha logic.",
-   "fail": "Tail emphasis cuts both ways: it becomes noisy in the tails precisely because few observations live there, so it can fire on very thin evidence. Univariate only."
+   "fail": "Tail emphasis cuts both ways: it becomes noisy in the tails precisely because few observations live there, so it can fire on very thin evidence. Univariate only.",
+   "ref": {
+    "label": "scipy.stats.anderson_ksamp",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.anderson_ksamp.html"
+   }
   },
   {
    "c": "DR-M14",
@@ -240,7 +292,11 @@
    "met": "Pairwise distance between distributions.",
    "mech": "Computes a statistic from average pairwise distances: distances between samples across the two groups, minus within-group distances. Zero exactly when the distributions match. Naturally extends to multiple dimensions, unlike KS.",
    "thr": "Permutation testing, same as DR-M10.",
-   "fail": "Cost grows quadratically in sample size since it requires all pairwise distances, so it needs subsampling on large data. Inherits distance-based degradation in very high dimensions."
+   "fail": "Cost grows quadratically in sample size since it requires all pairwise distances, so it needs subsampling on large data. Inherits distance-based degradation in very high dimensions.",
+   "ref": {
+    "label": "scipy.stats.energy_distance",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.energy_distance.html"
+   }
   },
   {
    "c": "DR-C1",
@@ -258,7 +314,11 @@
    "met": "Quality-control chart for error rate.",
    "mech": "Tracks running error rate p and its standard deviation s, recording the minimum of (p + s) seen so far. Raises warning when current p + s exceeds minimum by 2 standard deviations, and drift at 3.",
    "thr": "The 2-sigma and 3-sigma levels are the classical defaults, borrowed directly from statistical process control charts.",
-   "fail": "Assumes error rate should only decrease as learning proceeds, so it responds poorly to gradual drift where the degradation is slow enough to shift the running minimum along with it. Needs labels immediately."
+   "fail": "Assumes error rate should only decrease as learning proceeds, so it responds poorly to gradual drift where the degradation is slow enough to shift the running minimum along with it. Needs labels immediately.",
+   "ref": {
+    "label": "river drift.binary.DDM",
+    "url": "https://riverml.xyz/latest/api/drift/binary/DDM/"
+   }
   },
   {
    "c": "DR-C2",
@@ -274,7 +334,11 @@
    "met": "Watching distance between mistakes.",
    "mech": "Monitors the distance between consecutive errors rather than the error rate itself. When drift begins gradually, errors start clustering closer together before the overall rate visibly climbs, so this catches it earlier.",
    "thr": "Compares current average error distance against the maximum observed, with warning and drift levels analogous to DDM.",
-   "fail": "Requires a minimum number of errors before its statistics stabilize, so it is slow to start. Less reliable than DDM for sudden drift, where error spacing changes abruptly rather than progressively."
+   "fail": "Requires a minimum number of errors before its statistics stabilize, so it is slow to start. Less reliable than DDM for sudden drift, where error spacing changes abruptly rather than progressively.",
+   "ref": {
+    "label": "river drift.binary.EDDM",
+    "url": "https://riverml.xyz/latest/api/drift/binary/EDDM/"
+   }
   },
   {
    "c": "DR-C3",
@@ -289,7 +353,11 @@
    "met": "A scale that rings once weight crosses limit.",
    "mech": "Maintains a cumulative sum of deviations from the running mean, minus a tolerance term. Fires once that cumulative sum exceeds a threshold. Small consistent deviations accumulate even when no individual one looks alarming.",
    "thr": "Two parameters: delta (tolerated magnitude of change, prevents noise accumulation) and lambda (the alarm threshold). Both need tuning per system.",
-   "fail": "The two parameters directly trade detection delay against false alarms and have no universal defaults. Detects one-directional drift naturally; bidirectional monitoring requires running two instances."
+   "fail": "The two parameters directly trade detection delay against false alarms and have no universal defaults. Detects one-directional drift naturally; bidirectional monitoring requires running two instances.",
+   "ref": {
+    "label": "river drift.PageHinkley",
+    "url": "https://riverml.xyz/latest/api/drift/PageHinkley/"
+   }
   },
   {
    "c": "DR-C4",
@@ -304,7 +372,11 @@
    "met": "Window stretches until old half differs.",
    "mech": "Maintains a variable-length window of recent observations. Repeatedly tests every possible split point: if the means of the two sub-windows differ by more than a Hoeffding-bound threshold, the older portion is dropped and drift is declared. The window size adapts automatically, which is its main appeal.",
    "thr": "A single confidence parameter delta, with rigorous statistical guarantees from the Hoeffding bound rather than heuristic tuning.",
-   "fail": "Memory grows with window length, requiring compression schemes for long stable periods. Checking all split points is computationally heavier than the fixed-threshold detectors. Detects mean shifts specifically, so it can miss variance-only changes."
+   "fail": "Memory grows with window length, requiring compression schemes for long stable periods. Checking all split points is computationally heavier than the fixed-threshold detectors. Detects mean shifts specifically, so it can miss variance-only changes.",
+   "ref": {
+    "label": "river drift.ADWIN",
+    "url": "https://riverml.xyz/latest/api/drift/ADWIN/"
+   }
   },
   {
    "c": "DR-C5",
@@ -319,7 +391,11 @@
    "met": "KS test run continuously.",
    "mech": "Runs the KS test continuously between a small recent window and a larger reference window, rather than between two fixed batches. This makes DR-M1 usable in streaming form.",
    "thr": "Same p-value logic as DR-M1, with the same alpha-direction rule.",
-   "fail": "Both window sizes must be chosen and jointly determine sensitivity and detection delay. Repeated testing on overlapping windows inflates false positives substantially, since each new point triggers another test. Univariate."
+   "fail": "Both window sizes must be chosen and jointly determine sensitivity and detection delay. Repeated testing on overlapping windows inflates false positives substantially, since each new point triggers another test. Univariate.",
+   "ref": {
+    "label": "river drift.KSWIN",
+    "url": "https://riverml.xyz/latest/api/drift/KSWIN/"
+   }
   },
   {
    "c": "DR-C6",
@@ -334,7 +410,11 @@
    "met": "Quality chart with Hoeffding bound.",
    "mech": "Applies a Hoeffding-bound test to the moving average of the error rate, deriving its alarm threshold from a formal concentration inequality rather than DDM's fixed standard-deviation rule.",
    "thr": "Separate warning and drift confidence levels, both with statistical backing rather than convention.",
-   "fail": "Assumes independent observations, which is violated whenever errors are autocorrelated (common in time-ordered data). Slower to react than the weighted variant on gradual drift."
+   "fail": "Assumes independent observations, which is violated whenever errors are autocorrelated (common in time-ordered data). Slower to react than the weighted variant on gradual drift.",
+   "ref": {
+    "label": "river drift.binary.HDDM_A",
+    "url": "https://riverml.xyz/latest/api/drift/binary/HDDM-A/"
+   }
   },
   {
    "c": "DR-C7",
@@ -349,7 +429,11 @@
    "met": "HDDM_A paying attention to recent.",
    "mech": "Same Hoeffding logic as HDDM_A, but weights recent errors more heavily via exponential smoothing (the TS5 idea), making it more responsive to slow degradation.",
    "thr": "Adds a weighting parameter on top of HDDM_A's confidence levels.",
-   "fail": "The weighting parameter directly trades responsiveness against stability, the same tradeoff as TS5's alpha, with the same lack of an obvious default. More false alarms than HDDM_A on noisy streams."
+   "fail": "The weighting parameter directly trades responsiveness against stability, the same tradeoff as TS5's alpha, with the same lack of an obvious default. More false alarms than HDDM_A on noisy streams.",
+   "ref": {
+    "label": "river drift.binary.HDDM_W",
+    "url": "https://riverml.xyz/latest/api/drift/binary/HDDM-W/"
+   }
   },
   {
    "c": "DR-C8",
@@ -365,7 +449,11 @@
    "met": "This week vs semester average.",
    "mech": "Compares accuracy over a recent window against accuracy over the entire stream using a chi-square test of proportions. Divergence between recent and overall performance signals drift.",
    "thr": "Separate warning and drift significance levels on the chi-square p-value.",
-   "fail": "As the stream grows very long, the overall accuracy becomes so stable that recent windows struggle to move it, reducing sensitivity over time. Recent-window size must be chosen."
+   "fail": "As the stream grows very long, the overall accuracy becomes so stable that recent windows struggle to move it, reducing sensitivity over time. Recent-window size must be chosen.",
+   "ref": {
+    "label": "river on GitHub",
+    "url": "https://github.com/online-ml/river"
+   }
   },
   {
    "c": "DR-C9",
@@ -380,7 +468,11 @@
    "met": "Twitchy sibling of HDDM.",
    "mech": "A sliding-window Hoeffding variant tracking the maximum probability of correct prediction seen in the window, firing when current performance drops from that maximum by more than the bound allows.",
    "thr": "Window size plus a confidence parameter, deliberately tuned toward faster detection.",
-   "fail": "Explicitly trades false-positive rate for detection speed, so it fires more often on noise than its HDDM siblings. Only appropriate when a late detection costs more than a false alarm."
+   "fail": "Explicitly trades false-positive rate for detection speed, so it fires more often on noise than its HDDM siblings. Only appropriate when a late detection costs more than a false alarm.",
+   "ref": {
+    "label": "river on GitHub",
+    "url": "https://github.com/online-ml/river"
+   }
   },
   {
    "c": "DR-MV1",
@@ -396,7 +488,11 @@
    "met": "Shift visible only with correlation.",
    "mech": "Measures how far the current batch's mean sits from the reference mean, scaled by the reference covariance matrix. Because it accounts for correlation, it catches shifts that break the normal relationship between features even when each feature's marginal distribution looks unchanged.",
    "thr": "Squared Mahalanobis distance follows a chi-square distribution with degrees of freedom equal to feature count, giving a principled p-value rather than an arbitrary cutoff.",
-   "fail": "Requires inverting the covariance matrix, so it inherits every failure of LA10 and LA12: it breaks outright when features outnumber samples, and destabilizes badly under high correlation. Detects mean shifts specifically, missing changes in shape or variance at constant mean."
+   "fail": "Requires inverting the covariance matrix, so it inherits every failure of LA10 and LA12: it breaks outright when features outnumber samples, and destabilizes badly under high correlation. Detects mean shifts specifically, missing changes in shape or variance at constant mean.",
+   "ref": {
+    "label": "scipy.spatial.distance.mahalanobis",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.mahalanobis.html"
+   }
   },
   {
    "c": "DR-MV2",
@@ -413,7 +509,11 @@
    "met": "Data no longer fits old subspace.",
    "mech": "Fits PCA (model DR1) on the reference window, then projects new data through it and reconstructs. If new data no longer lives on the subspace the reference occupied, reconstruction error rises. Detects structural change, not just shifted means.",
    "thr": "Calibrated against the reference window's own reconstruction-error distribution, commonly a high percentile such as the 95th or 99th.",
-   "fail": "Only catches drift orthogonal to the retained components; drift entirely within the principal subspace reconstructs perfectly and goes undetected. Number of retained components materially changes sensitivity. Linear only, so curved manifold shifts are missed, which is exactly what DR-DL2 addresses."
+   "fail": "Only catches drift orthogonal to the retained components; drift entirely within the principal subspace reconstructs perfectly and goes undetected. Number of retained components materially changes sensitivity. Linear only, so curved manifold shifts are missed, which is exactly what DR-DL2 addresses.",
+   "ref": {
+    "label": "Decomposition in scikit-learn",
+    "url": "https://scikit-learn.org/stable/modules/decomposition.html"
+   }
   },
   {
    "c": "DR-CV1",
@@ -430,7 +530,11 @@
    "met": "If a classifier can tell old from new.",
    "mech": "Label reference rows 0 and current rows 1, then train a classifier to tell them apart. If the classifier succeeds meaningfully above chance, that separability is itself the drift signal. Its feature importances then directly identify which features drove the shift, which most statistical tests cannot do.",
    "thr": "AUC-ROC based: 0.5 means indistinguishable (no drift), and values meaningfully above roughly 0.6 to 0.7 indicate real separability. The exact bar depends on sample size and tolerance.",
-   "fail": "A weak classifier produces false reassurance, since failure to detect drift may just mean the model was underpowered. Overfitting inflates apparent drift, so proper cross-validation is mandatory. Timestamp-like features leak trivially and must be excluded, or the classifier separates on row order rather than genuine distribution change."
+   "fail": "A weak classifier produces false reassurance, since failure to detect drift may just mean the model was underpowered. Overfitting inflates apparent drift, so proper cross-validation is mandatory. Timestamp-like features leak trivially and must be excluded, or the classifier separates on row order rather than genuine distribution change.",
+   "ref": {
+    "label": "Evidently on GitHub",
+    "url": "https://github.com/evidentlyai/evidently"
+   }
   },
   {
    "c": "DR-DL1",
@@ -447,7 +551,11 @@
    "met": "Witness designing its own test.",
    "mech": "Rather than using a fixed RBF kernel, trains a small network (NN2) to learn the kernel that maximizes MMD's power to separate reference from current data. Combines DR-CV1's adversarial idea with DR-M10's statistical framework.",
    "thr": "Permutation testing on a held-out split, with the kernel trained on a separate portion to avoid the obvious circularity of testing on the data used to learn the discriminator.",
-   "fail": "Requires enough data to train the kernel network and retain a test split, so it is unusable on small windows. Adds all of deep learning's tuning burden to what was a statistical test. Overfits the kernel if the train/test split is not respected rigorously."
+   "fail": "Requires enough data to train the kernel network and retain a test split, so it is unusable on small windows. Adds all of deep learning's tuning burden to what was a statistical test. Overfits the kernel if the train/test split is not respected rigorously.",
+   "ref": {
+    "label": "Alibi Detect on GitHub",
+    "url": "https://github.com/SeldonIO/alibi-detect"
+   }
   },
   {
    "c": "DR-DL2",
@@ -466,7 +574,11 @@
    "met": "Deep curved camera.",
    "mech": "Identical logic to DR-MV2, but the reference manifold is learned by an autoencoder (DR5) rather than a linear PCA subspace. Captures curved manifolds that PCA's flat projection cannot represent, which is what makes it viable for image and audio data.",
    "thr": "Calibrated on the reference set's reconstruction-error distribution, same percentile approach as DR-MV2.",
-   "fail": "Autoencoders can generalize too well, reconstructing genuinely novel inputs accurately and therefore missing real drift. Requires substantial training data and compute. Bottleneck width materially changes sensitivity, with no principled way to set it."
+   "fail": "Autoencoders can generalize too well, reconstructing genuinely novel inputs accurately and therefore missing real drift. Requires substantial training data and compute. Bottleneck width materially changes sensitivity, with no principled way to set it.",
+   "ref": {
+    "label": "Alibi Detect on GitHub",
+    "url": "https://github.com/SeldonIO/alibi-detect"
+   }
   }
  ]
 }

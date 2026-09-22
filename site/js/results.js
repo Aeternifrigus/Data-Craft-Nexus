@@ -17,6 +17,14 @@ function tieNote(result, noun = 'models') {
   return '';
 }
 
+// Where to read more about a recommendation, outside this site.
+function refLinks(entry) {
+  const rows = [entry.ref, entry.docs].filter(Boolean);
+  if (!rows.length) return '';
+  return `<div class="mathline">read: ${rows.map(l =>
+    `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} &#8599;</a>`).join(' · ')}</div>`;
+}
+
 function chip(code, kind, codes) {
   const attr = kind === 'stage' ? 'data-stage' : kind === 'pipeline' ? 'data-pipeline' : kind === 'math' ? 'data-math' : 'data-code';
   const cls = codes ? ` ${codes.includes(code) ? 'hit' : 'miss'}` : '';
@@ -56,6 +64,7 @@ export function renderResults(T, sig, task) {
         <div class="mathline">math:
           ${m.math.map(x => chip(x, 'math')).join('')}
         </div>
+        ${refLinks(m)}
       </div>
     </article>`).join('');
 
@@ -91,6 +100,7 @@ export function renderResults(T, sig, task) {
         <div class="mathline">math:
           ${d.math.map(x => chip(x, 'math')).join('')}
         </div>
+        ${refLinks(d)}
       </div>
     </article>`).join('');
 
@@ -111,6 +121,7 @@ export function renderResults(T, sig, task) {
         <div class="mathline">stages:
           ${p.stages.map(s => chip(s, pipelineCodes.has(s) ? 'pipeline' : 'stage')).join('')}
         </div>
+        ${refLinks(p)}
         <div class="pipeline-diagram" id="diagram-${esc(p.c)}"></div>
       </div>
     </article>`).join('');

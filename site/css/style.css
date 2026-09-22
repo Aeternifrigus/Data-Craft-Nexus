@@ -179,7 +179,9 @@ select.opt{color:var(--ink);padding-right:28px}
 .chip:hover{border-color:var(--chrome);color:var(--chrome)}
 .chip.hit{border-color:var(--chrome);color:var(--chrome)}
 .chip.miss{border-color:var(--clay);color:var(--clay)}
-.mathline{display:flex;flex-wrap:wrap;gap:7px;align-items:center;font-size:11.5px;color:var(--dim)}
+.mathline{display:flex;flex-wrap:wrap;gap:7px;align-items:center;font-size:11.5px;color:var(--dim);margin-top:6px}
+.mathline a{color:var(--teal)}
+.d-text a{color:var(--teal)}
 
 #plot{width:100%;height:430px;margin-top:8px}
 

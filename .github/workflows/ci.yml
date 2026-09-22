@@ -35,3 +35,13 @@ jobs:
         run: pip install -r bench/requirements.txt
       - name: The Python profiler must agree with the JavaScript one
         run: cd bench && python -m pytest -q
+
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Every reference link must resolve
+        run: npm run check:links

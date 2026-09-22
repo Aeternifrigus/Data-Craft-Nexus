@@ -20,10 +20,37 @@ Every code is clickable, down to the formula underneath.
 
 ## How It Works
 
-1. **Drop a CSV** — modality, scale, and missingness are measured automatically
+1. **Drop a CSV** — modality, scale, quality and drift are measured automatically
 2. **Declare your intent** — what to predict, what kind of answer, whether order matters
 3. **Read the specimen** — get the full six-axis signature
-4. **Prescriptions** — models, drift checkers, and pipelines ranked by fit
+4. **Prescriptions** — models, drift checkers, and pipelines that fit, and what your data rules out
+
+### What is measured, and what is asked
+
+Three things cannot be read off a file: what you want to predict, what kind of answer you need, and whether row order carries meaning. Those are asked. Everything else is measured:
+
+| Axis | How it is decided |
+|---|---|
+| 1 supervision | from whether you named a target column |
+| 2 structure | asked: does row order matter |
+| 3 modality | measured over the feature columns, with the target left out |
+| 4 scale | measured: sparsity, and columns relative to rows |
+| 5 distribution | measured: class balance for a categorical target, and drift between the first and second half of the file (PSI, against the 0.25 cutoff in DR-M2) |
+| 6 quality | measured: missingness (A62) and noise (A64), meaning text in numeric columns or labels differing only by case or padding |
+
+A63 (missing not at random) is never reported. Whether a gap depends on the value that is missing cannot be decided from the file alone.
+
+### How the recommendation is made
+
+First, what cannot work is ruled out, with the reason shown on the page: a sequence model has no order to use on independent rows, a text model has nothing to read in a numeric table, a supervised model has no labels to learn from. A model that assumes independent rows still appears on ordered data, with a caution to split by time rather than at random.
+
+What is left is ranked by how many of its coordinates your data matches. **This leaves large ties, and the order inside a tie means nothing**: it is the order the models happen to sit in the taxonomy. The page says so rather than implying a ranking it cannot justify. Turning those ties into a real ranking is what the benchmark below is for.
+
+### Not done yet
+
+- Ranking inside a tie is arbitrary. The plan is to score the recommendations against public results for many real datasets (OpenML, TabRepo/TabArena), publish how often they were right, and learn the weights from that instead of hand-counting matches.
+- Image, audio, graph and spatial data cannot be detected from a CSV, so those models are reachable in the reference but never recommended from an upload.
+- Separability (A55/A56) and weak or self-supervised labelling (A13 to A15) are not measured yet.
 
 ---
 
@@ -34,6 +61,7 @@ Data Craft Nexus is built on a complete, interconnected taxonomy:
 | Component | Count | Description |
 |-----------|-------|-------------|
 | Data axes | 6 | Supervision, structure, modality, scale, distribution, quality |
+| Tasks | 8 | A number, a category, a future value, time until an event, groupings, anomalies, a simpler view, new examples |
 | Math formulas | 80+ | Across 15 domains |
 | Models | 60+ | Across 14 architecture families |
 | Drift checkers | 28 | Distributional, streaming, multivariate, adversarial, DL-native |
@@ -79,6 +107,8 @@ npm test             # Node 20+
 ```
 
 - `tests/csv.test.js`: delimiter detection, quoting, encodings, decimal commas, header clean-up.
+- `tests/profile.test.js`: what each axis measures, including PSI drift and class balance.
+- `tests/recommend.test.js`: what gets ruled out and why, and that every model except the reinforcement learning ones is reachable from some dataset.
 - `tests/html.test.js`: escaping of everything that goes into the page.
 - `tests/taxonomy.test.js`: every code a model, drift checker or pipeline points at must exist.
 - `tests/build.test.js`: the built page is self-contained, carries exactly the taxonomy in `site/`, and is up to date.
@@ -96,9 +126,10 @@ site/                  the source
   js/
     taxonomy.js        loads the taxonomy (embedded in dist/, fetched in site/)
     csv.js             CSV reading: delimiters, quoting, encodings, decimal commas
+    stats.js           PSI and other small statistics
     html.js            escaping
-    profile.js         measures axes 3, 4, 6 and derives axis 5 (no DOM)
-    recommend.js       ranks models, drift checkers, pipelines (no DOM)
+    profile.js         measures the axes (no DOM)
+    recommend.js       rules out and ranks models, drift checkers, pipelines (no DOM)
     results.js         renders the recommendations and the 3D plot
     drawer.js          the definition drawer
     library.js         "The reference" view

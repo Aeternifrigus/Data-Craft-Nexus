@@ -1,0 +1,2 @@
+# Run logs are noise; results are the point and are committed.
+*.log

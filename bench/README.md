@@ -81,44 +81,58 @@ site rules out, and appends a row per result so it can be stopped and resumed.
 `analyze.py` turns that into regret: how much worse than the best available
 model each strategy was.
 
-## What the first run found
+## What the runs found
 
-40 datasets, 760 model runs (20 classification, 20 regression). Committed in
-`results/`.
+Two runs of the same 40 datasets (20 classification, 20 regression), 760
+model runs each, committed in `results/`: `pilot.csv` before the taxonomy
+fixes, `after-fixes.csv` after them. Regret is how far a strategy was from
+the best of the 23 models run, in balanced accuracy and in R².
 
-| | classification | regression |
+| median regret | classification | regression |
 |---|---|---|
-| median regret, the site's first pick | 0.024 | 0.312 |
-| median regret, best of the four shown | 0.013 | 0.176 |
-| median regret, always boosting | 0.023 | 0.007 |
-| the first pick was the best model | 5% | 5% |
-| always boosting was the best model | 20% | 15% |
+| the site's first pick, before | 0.024 | 0.312 |
+| the site's first pick, after | 0.055 | 0.432 |
+| best of the four shown, before | 0.013 | 0.176 |
+| best of the four shown, after | **0.015** | 0.176 |
+| always use boosting | 0.023 | **0.007** |
+| a random eligible model | 0.060 | 0.240 |
 
-Regret is measured in balanced accuracy for classification and R² for
-regression, against the best of all 23 models run.
+The first run found three defects.
 
-Three defects, in the order they cost the most:
+1. **The ranking is wrong**, and it is the one still open. Counting matched
+   coordinates puts Linear Regression first on 17 of 20 regression datasets,
+   because its codes (A11, A21, A31) match a numeric table exactly. On
+   nonlinear data that costs 0.3 to 0.7 R². Coordinate matching rewards a
+   model for being *describable*, not for being *right*.
+2. **Task tags were incomplete**: AdaBoost, both SVMs and CatBoost were
+   tagged classification-only though each has a standard regressor. AdaBoost
+   beat every recommended model on nine regression datasets, by up to
+   0.56 R². Fixed.
+3. **The modality code meant two different things**: the target on
+   classifiers, the features everywhere else, so Logistic Regression was
+   ruled out on numeric tables and boosting on categorical ones. It now
+   always means the features a model consumes. Fixed.
 
-1. **The ranking is wrong for regression.** Counting matched coordinates puts
-   Linear Regression first on 17 of 20 regression datasets, because its codes
-   (A11, A21, A31) match a numeric table exactly. On nonlinear data that costs
-   0.3 to 0.7 R². Coordinate matching rewards a model for being *describable*,
-   not for being *right*.
-2. **Task tags are incomplete.** AdaBoost, both SVMs and the Perceptron are
-   tagged classification-only, though each has a standard regressor. AdaBoost
-   would have won 9 regression datasets, by up to 0.56 R².
-3. **The modality code means different things on different models.**
-   Logistic Regression is tagged A32 because its *target* is categorical;
-   Random Forest is tagged A38 because its *features* can be mixed. The
-   conflict rule reads both as features, so Logistic Regression is ruled out
-   on numeric tables and Gradient Boosting on categorical ones. That cost a
-   win on 5 datasets.
+Fixing 2 and 3 made the eligible field correct: **no ruled-out model beats
+the recommendations any more** (it happened on 17 of 40 datasets before), and
+the best of the four shown now beats boosting on 55% of classification
+datasets, up from 45%.
 
-None of this was visible from the taxonomy alone. It took real data.
+It also made the first pick *worse*, which is the useful part. With the pool
+corrected, six to eight models tie at the top and the order between them is
+the order they sit in the taxonomy: a plain Decision Tree now leads 12
+classification datasets. The first recommendation is close to a random draw
+from the tied models, and no amount of content fixing changes that. Only a
+ranking learned from results will.
+
+Both fixes are now pinned by tests, so neither can come back: the taxonomy
+must tag a model for every task its estimator can run, and a classifier must
+not be excluded from a numeric table.
 
 ## Next
 
-- fix the three defects above and re-run to see what the fixes are worth
-- rank by learned weights instead of counting matches, evaluated
-  leave-one-dataset-out
+- rank by weights learned from these results instead of counting matched
+  coordinates, evaluated leave-one-dataset-out so a dataset never scores its
+  own recommendation
 - run the full 229 datasets rather than 40
+- publish the per-dataset table on the site next to each recommendation

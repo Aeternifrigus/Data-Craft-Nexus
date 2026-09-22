@@ -1217,7 +1217,7 @@
    "p": "USL",
    "dom": "Neural",
    "task": [
-    "category"
+    "generate"
    ],
    "met": "A forger and detective in an arms race.",
    "data": [
@@ -1240,7 +1240,7 @@
    "p": "USL",
    "dom": "Neural",
    "task": [
-    "category",
+    "generate",
     "compress"
    ],
    "met": "Compressing a face into a cloud of possibility.",
@@ -1552,8 +1552,7 @@
    "p": "SL",
    "dom": "Survival",
    "task": [
-    "forecast",
-    "number"
+    "survival"
    ],
    "met": "An actuary betting on when the shoe drops.",
    "data": [
@@ -1577,7 +1576,7 @@
    "p": "SL",
    "dom": "Survival",
    "task": [
-    "forecast"
+    "survival"
    ],
    "met": "A survivorship scoreboard.",
    "data": [

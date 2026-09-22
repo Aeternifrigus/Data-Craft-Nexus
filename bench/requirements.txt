@@ -1,0 +1,6 @@
+# The benchmark. Node is needed too: the agreement test runs the site's own
+# JavaScript profiler and compares it with the Python port.
+pytest>=8
+numpy>=1.26
+pandas>=2.1
+scikit-learn>=1.4

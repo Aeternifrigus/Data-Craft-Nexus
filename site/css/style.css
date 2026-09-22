@@ -171,6 +171,26 @@ select.opt{color:var(--ink);padding-right:28px}
 .rec-body{font-size:13.5px;color:var(--ink);line-height:1.8;max-width:70ch;margin-bottom:12px}
 .rec-body.warn{color:var(--clay)}
 .rec-body.caution{color:var(--amber)}
+.rec-body.evidence{color:var(--sage)}
+
+/* evidence tables */
+.ev-h{
+  font-family:'Instrument Serif',serif;font-size:21px;font-weight:400;
+  color:var(--ink);margin:40px 0 10px;
+}
+.ev-table{
+  width:100%;border-collapse:collapse;font-size:12.5px;margin:14px 0 8px;
+  display:block;overflow-x:auto;white-space:nowrap;
+}
+.ev-table th,.ev-table td{
+  text-align:left;padding:9px 14px 9px 0;border-bottom:1px solid var(--rule);
+  vertical-align:top;
+}
+.ev-table th{color:var(--dim);font-weight:400;font-size:11px;letter-spacing:.04em}
+.ev-table td{color:var(--ink)}
+.ev-table tbody tr:hover{background:rgba(127,255,0,.03)}
+.ev-sub{display:block;font-size:10.5px;color:var(--dim);margin-top:3px}
+.ev-sig .chip{font-size:10px;padding:2px 6px;margin-right:3px}
 .matchline{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
 .chip{
   font-size:11px;padding:3px 9px;border:1px solid var(--rule);color:var(--dim);

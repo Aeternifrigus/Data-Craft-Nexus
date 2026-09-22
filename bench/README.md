@@ -76,7 +76,13 @@ python -m dcn.run --limit 20 --budget 60 --out results/pilot.csv   # fit everyth
 python -m dcn.analyze --results results/pilot.csv                  # how good is the advice
 python -m dcn.compare --before results/pilot.csv \
                       --after results/after-fixes.csv              # what did a change do
+python -m dcn.evidence --results results/after-fixes.csv           # publish it to the site
 ```
+
+`evidence.py` writes `site/taxonomy/evidence.json`, which is what the site's
+**The evidence** tab and the "Measured." line under each recommendation read.
+A test in `tests/evidence.test.js` recomputes the published headline from
+`results/per_dataset.csv`, so the page and the run cannot drift apart.
 
 `run.py` fits every runnable model on every dataset, including the ones the
 site rules out, and appends a row per result so it can be stopped and resumed.

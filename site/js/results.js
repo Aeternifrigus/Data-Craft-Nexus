@@ -4,6 +4,7 @@
 import { esc } from './html.js';
 import { matchCodes } from './profile.js';
 import { paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
+import { evidenceFor, evidenceSentence } from './evidence.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
@@ -60,6 +61,8 @@ export function renderResults(T, sig, task) {
         </div>
         <p class="rec-body">${esc(m.mech)}</p>
         ${m.caution ? `<p class="rec-body caution">Caution. ${esc(m.caution)}</p>` : ''}
+        ${(() => { const e = evidenceFor(T, m.c, task); return e
+          ? `<p class="rec-body evidence">Measured. ${esc(evidenceSentence(e))}</p>` : ''; })()}
         <p class="rec-body warn">${esc(m.fail)}</p>
         <div class="mathline">math:
           ${m.math.map(x => chip(x, 'math')).join('')}

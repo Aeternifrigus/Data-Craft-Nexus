@@ -5,10 +5,12 @@ import { esc } from './html.js';
 import { matchCodes } from './profile.js';
 import { paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
 import { evidenceFor, evidenceSentence } from './evidence.js';
+import { rankingProvenance } from './ranking.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
 function tieNote(result, noun = 'models') {
+  if (result.tied <= 1) return '';
   if (result.tied > result.items.length) {
     return ` ${result.tied} ${noun} match the data equally well, so the order below is arbitrary: the coordinates can't separate them.`;
   }
@@ -37,9 +39,14 @@ export function renderResults(T, sig, task) {
   const models = rankModels(T, sig, task);
   const taskLabel = T.TASKS.find(t => t.id === task).label.toLowerCase();
 
+  const provenance = rankingProvenance(T, task);
+  const orderedBy = models.rankedBy === 'evidence' && provenance
+    ? ` Ordered by what each model was worth on ${provenance.datasets} benchmark datasets, not by how many coordinates it matches.`
+    : ' Ordered by coordinates matched: the benchmark has not covered this task, so there is nothing measured to rank them by.';
+
   const note = document.getElementById('model-note');
   if (models.items.length) {
-    note.textContent = `${models.candidates} of the ${paradigmLabel(paradigmOf(sig))} models can produce ${taskLabel} for data shaped like yours.${tieNote(models)}`;
+    note.textContent = `${models.candidates} of the ${paradigmLabel(paradigmOf(sig))} models can produce ${taskLabel} for data shaped like yours.${orderedBy}${tieNote(models)}`;
   } else if (models.ruledOut.length) {
     note.textContent = `No model fits. Every model that could produce ${taskLabel} is ruled out by your data: ${models.ruledOut.slice(0, 3).map(m => `${m.n} ${m.why}`).join('; ')}.`;
   } else {
@@ -50,7 +57,9 @@ export function renderResults(T, sig, task) {
     <article class="rec">
       <div>
         <div class="rec-code" data-model="${esc(m.c)}">${esc(m.c)}</div>
-        <div class="rec-rank">${m.score} of ${m.of} coordinates</div>
+        <div class="rec-rank">${m.evidenceScore == null
+          ? `${m.score} of ${m.of} coordinates`
+          : `evidence ${m.evidenceScore.toFixed(2)}<span class="rec-rank-sub">${m.score} of ${m.of} coordinates</span>`}</div>
       </div>
       <div>
         <div class="rec-name">${esc(m.n)}</div>

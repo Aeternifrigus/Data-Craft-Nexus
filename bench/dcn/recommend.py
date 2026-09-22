@@ -11,6 +11,8 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+from .ranking import has_learned_ranking, learned_score, load_ranking, ranking_features
+
 STRUCTURE = ["A21", "A22", "A23", "A24", "A25", "A26"]
 MODALITY = ["A31", "A32", "A33", "A34", "A35", "A36", "A37", "A38"]
 MIXED_OK = ["A31", "A32", "A33", "A38"]
@@ -87,8 +89,21 @@ class Ranking:
     ruled_out: list[dict]
 
 
-def rank_models(taxonomy: dict, sig: dict, task: str, limit: int = 4) -> Ranking:
+_RANKING_CACHE: dict = {}
+
+
+def _ranking() -> dict | None:
+    if "value" not in _RANKING_CACHE:
+        _RANKING_CACHE["value"] = load_ranking()
+    return _RANKING_CACHE["value"]
+
+
+def rank_models(taxonomy: dict, sig: dict, task: str, limit: int = 4, ranking: dict | None = None) -> Ranking:
     codes = match_codes(sig)
+    ranking = ranking if ranking is not None else _ranking()
+    learned = has_learned_ranking(ranking, task)
+    features = ranking_features(sig) if learned else {}
+
     usable, ruled_out = [], []
     for model in taxonomy["MODELS"]:
         if task not in model["task"]:
@@ -99,15 +114,33 @@ def rank_models(taxonomy: dict, sig: dict, task: str, limit: int = 4) -> Ranking
             continue
         hits = [d for d in model["data"] if d in codes]
         usable.append({**model, "hits": hits, "score": len(hits), "of": len(model["data"]),
-                       "caution": caution(model, sig)})
+                       "caution": caution(model, sig),
+                       "evidence_score": learned_score(ranking, model, task, features) if learned else None})
 
-    usable.sort(key=lambda m: -m["score"])
-    top = usable[0]["score"] if usable else 0
+    def sort_key(m):
+        # Models the benchmark ran come first, ordered by what they were worth;
+        # everything else falls back to the coordinate count.
+        if learned:
+            return (0 if m["evidence_score"] is not None else 1,
+                    -(m["evidence_score"] if m["evidence_score"] is not None else 0),
+                    -m["score"])
+        return (0, 0, -m["score"])
+
+    usable.sort(key=sort_key)
+    top = usable[0] if usable else None
+    if top is None:
+        tied = 0
+    elif learned and top["evidence_score"] is not None:
+        tied = sum(1 for m in usable
+                   if m["evidence_score"] is not None and abs(m["evidence_score"] - top["evidence_score"]) < 1e-9)
+    else:
+        tied = sum(1 for m in usable if m["evidence_score"] is None and m["score"] == top["score"])
+
     return Ranking(
         items=usable[:limit],
         candidates=len(usable),
-        tied=sum(1 for m in usable if m["score"] == top),
-        top_score=top,
+        tied=tied,
+        top_score=top["score"] if top else 0,
         ruled_out=ruled_out,
     )
 

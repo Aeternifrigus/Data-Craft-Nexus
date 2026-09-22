@@ -114,11 +114,19 @@ test('models with a regressor are offered for a numeric target', () => {
   }
 });
 
-test('ties are counted so the page can admit the order is arbitrary', () => {
+test('a benchmarked task is ordered by evidence, and ties disappear', () => {
   const r = rankModels(T, LABELLED_NUMERIC_IID, 'number');
-  assert.ok(r.tied > 1);
-  assert.ok(r.candidates >= r.tied);
-  assert.equal(r.items[0].of, 3);
+  assert.equal(r.rankedBy, 'evidence');
+  assert.equal(r.tied, 1, 'measured scores separate models that coordinates could not');
+  assert.ok(r.items[0].evidenceScore > r.items[1].evidenceScore);
+  assert.equal(r.items[0].of, 3, 'the coordinate count is still reported');
+});
+
+test('a task the benchmark never covered falls back to coordinates, and says so', () => {
+  const r = rankModels(T, sig(['A11', 'A22', 'A31', 'A41', 'A54', 'A61']), 'forecast');
+  assert.equal(r.rankedBy, 'coordinates');
+  assert.ok(r.items.every(m => m.evidenceScore == null));
+  assert.ok(r.tied >= 1);
 });
 
 test('a pipeline earns no points from a wildcard code', () => {

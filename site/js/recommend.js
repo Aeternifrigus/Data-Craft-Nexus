@@ -14,6 +14,7 @@
 // for.
 
 import { matchCodes } from './profile.js';
+import { hasLearnedRanking, learnedScore, rankingFeatures } from './ranking.js';
 
 const STRUCTURE = ['A21', 'A22', 'A23', 'A24', 'A25', 'A26'];
 const MODALITY = ['A31', 'A32', 'A33', 'A34', 'A35', 'A36', 'A37', 'A38'];
@@ -73,27 +74,51 @@ export function caution(model, sig) {
   return null;
 }
 
-function scored(list, codes, limit) {
+function scored(list, codes, limit, T, sig, task) {
+  // The learned order when the benchmark covered this task, coordinates
+  // otherwise. Coordinates stay on every card either way: they say what the
+  // data has in common with the model, which is worth reading even when it is
+  // not what decides the order.
+  const learned = T && sig && task && hasLearnedRanking(T, task);
+  const features = learned ? rankingFeatures(sig) : null;
+
   const ranked = list
     .map(x => {
       const own = x.data || x.fits;
       const hits = own.filter(d => codes.includes(d));
-      return { ...x, hits, score: hits.length, of: own.length };
+      const evidence = learned ? learnedScore(T, x, task, features) : null;
+      return { ...x, hits, score: hits.length, of: own.length, evidenceScore: evidence };
     })
-    .sort((a, b) => b.score - a.score);
-  const top = ranked.length ? ranked[0].score : 0;
+    .sort((a, b) => {
+      if (learned) {
+        // A model the benchmark never ran sits below every model it did,
+        // rather than being given a number it has not earned.
+        const left = a.evidenceScore, right = b.evidenceScore;
+        if (left != null && right == null) return -1;
+        if (left == null && right != null) return 1;
+        if (left != null && right != null && Math.abs(left - right) > 1e-9) return right - left;
+      }
+      return b.score - a.score;
+    });
+
+  const top = ranked.length ? ranked[0] : null;
+  const tied = top == null ? 0 : ranked.filter(x => (learned && top.evidenceScore != null)
+    ? x.evidenceScore != null && Math.abs(x.evidenceScore - top.evidenceScore) < 1e-9
+    : x.evidenceScore == null && x.score === top.score).length;
+
   return {
     items: ranked.slice(0, limit),
     candidates: ranked.length,
-    tied: ranked.filter(x => x.score === top).length,
-    topScore: top,
+    tied,
+    topScore: top ? top.score : 0,
+    rankedBy: learned ? 'evidence' : 'coordinates',
   };
 }
 
 export function rankModels(T, sig, task, limit = 4) {
   const codes = matchCodes(sig);
   const usable = T.MODELS.filter(m => m.task.includes(task) && !conflict(m, sig));
-  const out = scored(usable, codes, limit);
+  const out = scored(usable, codes, limit, T, sig, task);
   out.items = out.items.map(m => ({ ...m, caution: caution(m, sig) }));
   out.ruledOut = T.MODELS.filter(m => m.task.includes(task) && conflict(m, sig))
     .map(m => ({ c: m.c, n: m.n, why: conflict(m, sig) }));
@@ -103,7 +128,7 @@ export function rankModels(T, sig, task, limit = 4) {
 export function rankDrifts(T, sig, limit = 4) {
   const codes = matchCodes(sig);
   const usable = T.DRIFTS.filter(d => d.fits.some(f => codes.includes(f)));
-  return scored(usable, codes, limit);
+  return scored(usable, codes, limit);   // no benchmark for drift checkers yet
 }
 
 export function rankPipelines(T, sig, task, limit = 3) {

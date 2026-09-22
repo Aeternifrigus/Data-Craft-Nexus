@@ -18,6 +18,7 @@ import pandas as pd
 
 from .analyze import BASELINE, METRIC, per_dataset
 from .models import BY_CODE, NOT_RUNNABLE
+from .ranking import load_ranking
 from .recommend import load_taxonomy
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -47,6 +48,29 @@ def model_lines(results: pd.DataFrame, table: pd.DataFrame) -> dict:
             "median_seconds": round(float(group.seconds.median()), 2),
             "failed": int((results[(results.model == model) & (results.task == task)].status != "ok").sum()),
         }
+    return out
+
+
+def ranking_evidence(lodo_path: Path) -> dict | None:
+    """How the learned order did against the alternatives, leave-one-dataset-out."""
+    if not lodo_path.exists():
+        return None
+    table = pd.read_csv(lodo_path)
+    ranking = load_ranking() or {}
+    out = {"chosen": ranking.get("chosen"), "trained_on": ranking.get("trained_on"), "tasks": {}}
+    for task, group in table.groupby("task"):
+        out["tasks"][task] = {"datasets": int(len(group)), "metric": METRIC[task], "strategies": {}}
+        for key, label in [("current", "counting matched coordinates"), ("prior", "learned from the benchmark"),
+                           ("prior_fit", "learned, with dataset interactions"), ("boosting", "always use boosting")]:
+            if key not in group:
+                continue
+            regret = (group.best - group[key]).dropna()
+            out["tasks"][task]["strategies"][key] = {
+                "label": label,
+                "median_regret": round(float(regret.median()), 4),
+                "was_best": round(float((regret <= 1e-9).mean()), 3),
+                "within_one_point": round(float((regret <= 0.01).mean()), 3),
+            }
     return out
 
 
@@ -97,6 +121,7 @@ def build(results_path: Path, run_label: str) -> dict:
         "not_runnable": {code: why for code, why in NOT_RUNNABLE.items()},
         "runnable": sorted(BY_CODE),
         "headline": headline,
+        "ranking": ranking_evidence(results_path.parent / "ranking-lodo.csv"),
         "models": model_lines(results, table),
         "datasets": datasets,
     }

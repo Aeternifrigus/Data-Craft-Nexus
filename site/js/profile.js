@@ -155,6 +155,9 @@ export function signature(profile, decl) {
     measured: { a3, a4, a6 },
     rows: profile.n,
     features: profile.columns.filter(c => c.name !== target).length,
+    // How it will run, from the intake questions. Decides which drift
+    // checkers and pipelines are usable at all.
+    ops: { mode: decl.mode ?? null, labels: decl.labels ?? null },
   };
 }
 

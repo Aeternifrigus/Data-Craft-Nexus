@@ -16,8 +16,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from .analyze import BASELINE, METRIC, per_dataset
-from .models import BY_CODE, NOT_RUNNABLE
+from .analyze import BASELINE as BASELINE_CODE, METRIC, per_dataset
+from .models import BASELINE
+from .meta import FEATURES
+from .models import BY_CODE, NOT_RUNNABLE  # noqa: F401
 from .ranking import load_ranking
 from .recommend import load_taxonomy
 
@@ -33,7 +35,7 @@ def model_lines(results: pd.DataFrame, table: pd.DataFrame) -> dict:
 
     out: dict[str, dict] = {}
     for (model, task), group in ok.groupby(["model", "task"]):
-        if model == BASELINE:
+        if model == BASELINE_CODE:
             continue
         datasets = int(group.dataset.nunique())
         # Regret: how far below the best available model this one landed.
@@ -74,11 +76,17 @@ def ranking_evidence(lodo_path: Path) -> dict | None:
     return out
 
 
+def load_meta(path: Path) -> pd.DataFrame | None:
+    return pd.read_csv(path) if path.exists() else None
+
+
 def build(results_path: Path, run_label: str) -> dict:
     results = pd.read_csv(results_path)
+    meta = load_meta(results_path.parent / "meta.csv")
     table = per_dataset(results)
     taxonomy = load_taxonomy()
     names = {m["c"]: m["n"] for m in taxonomy["MODELS"]}
+    names[BASELINE_CODE] = BASELINE.name   # the baseline is not one of the taxonomy models
 
     headline = {}
     for task, group in table.groupby("task"):
@@ -95,12 +103,26 @@ def build(results_path: Path, run_label: str) -> dict:
             "top4_beats_boosting": round(float((group.regret_top4 < group.regret_boosting - 1e-9).mean()), 3),
         }
 
+    # Every model's score on every dataset, so the page can answer questions
+    # the summary did not anticipate: what won on datasets like yours, how a
+    # model did on the ones closest to what you uploaded.
+    scores = {}
+    for (dataset, task), group in results[results.status == "ok"].groupby(["dataset", "task"]):
+        scores[f"{dataset}|{task}"] = {row.model: round(float(row.score), 4) for row in group.itertuples()}
+
+    meta_by_name = {}
+    if meta is not None:
+        for row in meta.itertuples():
+            meta_by_name[f"{row.dataset}|{row.task}"] = {f: float(getattr(row, f)) for f in FEATURES}
+
     datasets = [{
         "dataset": row.dataset,
         "task": row.task,
         "rows": int(row.rows),
         "features": int(row.features),
         "signature": row.signature,
+        "meta": meta_by_name.get(f"{row.dataset}|{row.task}"),
+        "scores": scores.get(f"{row.dataset}|{row.task}", {}),
         "best": {"model": row.best_model, "name": names.get(row.best_model, row.best_model),
                  "score": round(float(row.best), 4)},
         "first": {"model": row.first_model, "name": names.get(row.first_model, row.first_model),
@@ -120,6 +142,12 @@ def build(results_path: Path, run_label: str) -> dict:
         "model_runs": int(len(results)),
         "not_runnable": {code: why for code, why in NOT_RUNNABLE.items()},
         "runnable": sorted(BY_CODE),
+        "meta_features": FEATURES,
+        # Mean and spread of each feature across the benchmark, so a distance
+        # between datasets can be computed in the page without shipping pandas.
+        "meta_scale": ({f: {"mean": round(float(meta[f].mean()), 4),
+                            "std": round(float(meta[f].std() or 1.0), 4)} for f in FEATURES}
+                       if meta is not None else None),
         "headline": headline,
         "ranking": ranking_evidence(results_path.parent / "ranking-lodo.csv"),
         "models": model_lines(results, table),

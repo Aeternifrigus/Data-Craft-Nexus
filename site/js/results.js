@@ -6,6 +6,7 @@ import { matchCodes } from './profile.js';
 import { paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
 import { evidenceFor, evidenceSentence } from './evidence.js';
 import { rankingProvenance } from './ranking.js';
+import { metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
@@ -34,9 +35,14 @@ function chip(code, kind, codes) {
   return `<span class="chip${cls}" ${attr}="${esc(code)}">${esc(code)}</span>`;
 }
 
-export function renderResults(T, sig, task) {
+export function renderResults(T, sig, task, profile) {
   const codes = matchCodes(sig);
   const models = rankModels(T, sig, task);
+
+  // Where this dataset sits among the benchmark datasets, measured the same way.
+  const meta = profile ? metaFeatures(profile, sig.target ?? null) : null;
+  if (meta && sig.drift) meta.drift_psi = Math.min(sig.drift.psi, 5);
+  const neighbours = meta ? nearestDatasets(T, meta, task) : [];
   const taskLabel = T.TASKS.find(t => t.id === task).label.toLowerCase();
 
   const provenance = rankingProvenance(T, task);
@@ -72,6 +78,9 @@ export function renderResults(T, sig, task) {
         ${m.caution ? `<p class="rec-body caution">Caution. ${esc(m.caution)}</p>` : ''}
         ${(() => { const e = evidenceFor(T, m.c, task); return e
           ? `<p class="rec-body evidence">Measured. ${esc(evidenceSentence(e))}</p>` : ''; })()}
+        ${(() => { const n = neighbours.length ? performanceOn(neighbours, m.c) : null; return n
+          ? `<p class="rec-body evidence">Nearby. On the ${n.datasets} benchmark datasets closest to yours it was best
+             ${n.wins} ${n.wins === 1 ? 'time' : 'times'}, typically ${n.medianGap.toFixed(3)} below the winner.</p>` : ''; })()}
         <p class="rec-body warn">${esc(m.fail)}</p>
         <div class="mathline">math:
           ${m.math.map(x => chip(x, 'math')).join('')}
@@ -149,41 +158,100 @@ export function renderResults(T, sig, task) {
     }
   });
 
-  plotSpace(T, sig);
+  renderNeighbours(T, neighbours, task);
+  plotSpace(T, sig, meta, neighbours);
 }
 
-function plotSpace(T, sig) {
-  const { x: xi, y: yi, z: zi } = plotCoords(sig);
+// The benchmark datasets as a map, with this one placed on it.
+//
+// The plot used to position a dataset by axes 1 to 3, where the first two are
+// the same for every labelled table with independent rows: three different
+// uploads could land on the same point, scattered among ten invented
+// reference datasets. It now uses measured properties that actually differ,
+// and the reference points are the 40 datasets the recommendations were
+// tested on.
+function plotSpace(T, sig, meta, neighbours) {
+  const ev = T.EVIDENCE;
+  const points = (ev?.datasets ?? []).filter(d => d.meta);
+  const nearest = new Set(neighbours.map(d => d.dataset));
 
-  const ref = {
-    type: 'scatter3d', mode: 'markers', name: 'reference',
-    x: T.REFERENCE.map(r => r.x), y: T.REFERENCE.map(r => r.y), z: T.REFERENCE.map(r => r.z),
-    text: T.REFERENCE.map(r => r.t), hoverinfo: 'text',
-    marker: { size: 6, color: '#7FFF00', opacity: .5 }
-  };
-  const you = {
-    type: 'scatter3d', mode: 'markers+text', name: 'your data',
-    x: [xi], y: [yi], z: [zi], text: ['your specimen'], textposition: 'top center',
-    textfont: { color: '#E0A458', family: 'JetBrains Mono', size: 11 },
+  if (!points.length || !meta) {
+    document.getElementById('plot').innerHTML =
+      '<p class="sect-note">No benchmark datasets are recorded in this copy, so there is nothing to compare against.</p>';
+    return;
+  }
+
+  const axes = { x: 'log_rows', y: 'log_features', z: 'numeric_share' };
+  const trace = (list, name, color, size, symbol) => ({
+    type: 'scatter3d', mode: 'markers', name,
+    x: list.map(d => d.meta[axes.x]), y: list.map(d => d.meta[axes.y]), z: list.map(d => d.meta[axes.z]),
+    text: list.map(d => `${d.dataset}<br>${d.rows} rows x ${d.features} columns<br>` +
+      `won by ${d.best.name} (${d.best.score})`),
     hoverinfo: 'text',
-    marker: { size: 13, color: '#E0A458', symbol: 'diamond',
-      line: { color: '#0D1626', width: 2 } }
-  };
-
-  const ax = t => ({
-    title: { text: t, font: { color: '#7C879B', size: 10, family: 'JetBrains Mono' } },
-    gridcolor: '#25344E', zerolinecolor: '#25344E', showbackground: false,
-    tickfont: { color: '#7C879B', size: 9, family: 'JetBrains Mono' }
+    marker: { size, color, opacity: name === 'other datasets' ? 0.45 : 0.9, symbol },
   });
 
-  Plotly.newPlot('plot', [ref, you], {
+  const others = points.filter(d => !nearest.has(d.dataset));
+  const near = points.filter(d => nearest.has(d.dataset));
+  const you = {
+    type: 'scatter3d', mode: 'markers+text', name: 'your data',
+    x: [meta[axes.x]], y: [meta[axes.y]], z: [meta[axes.z]],
+    text: ['your data'], textposition: 'top center',
+    textfont: { color: '#E0A458', family: 'JetBrains Mono', size: 11 },
+    hovertext: [`your data<br>${sig.rows} rows x ${sig.features} columns`], hoverinfo: 'text',
+    marker: { size: 13, color: '#E0A458', symbol: 'diamond', line: { color: '#0D1626', width: 2 } },
+  };
+
+  const axis = (title) => ({
+    title: { text: title, font: { color: '#7C879B', size: 10, family: 'JetBrains Mono' } },
+    gridcolor: '#25344E', zerolinecolor: '#25344E', showbackground: false,
+    tickfont: { color: '#7C879B', size: 9, family: 'JetBrains Mono' },
+  });
+
+  Plotly.newPlot('plot', [
+    trace(others, 'other datasets', '#5CBF00', 5, 'circle'),
+    trace(near, 'closest to yours', '#7FFF00', 9, 'circle'),
+    you,
+  ], {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-    margin: { l: 0, r: 0, t: 0, b: 0 },
-    showlegend: false,
+    margin: { l: 0, r: 0, t: 0, b: 0 }, showlegend: false,
     scene: {
-      xaxis: { ...ax('1 · supervision'), tickmode: 'array', tickvals: [0, 1, 2, 3], ticktext: ['labeled', 'unlabeled', 'weak', 'semi'] },
-      yaxis: { ...ax('2 · structure'), tickmode: 'array', tickvals: [0, 1, 3, 5], ticktext: ['i.i.d.', 'sequential', 'graph', 'set'] },
-      zaxis: { ...ax('3 · modality'), tickmode: 'array', tickvals: [0, 2, 3, 4, 5, 6, 7], ticktext: ['numeric', 'ordinal', 'text', 'image', 'audio', 'graph', 'mixed'] }
-    }
+      xaxis: { ...axis('rows (log)') },
+      yaxis: { ...axis('columns (log)') },
+      zaxis: { ...axis('share of numeric columns'), range: [-0.05, 1.05] },
+    },
   }, { displayModeBar: false, responsive: true });
 }
+
+// The neighbours in words, under the plot: what won on datasets like this one.
+function renderNeighbours(T, neighbours, task) {
+  const el = document.getElementById('neighbours');
+  if (!el) return;
+  if (!neighbours.length) {
+    el.innerHTML = `<p class="sect-note">The benchmark only covers classification and regression, so there are no
+      comparable datasets to show for this task yet.</p>`;
+    return;
+  }
+
+  const winner = winnerAmong(neighbours);
+  const names = Object.fromEntries(T.MODELS.map(m => [m.c, m.n]));
+  const summary = winner
+    ? `On the ${winner.of} benchmark datasets closest to yours, ${esc(names[winner.model] ?? winner.model)} won
+       ${winner.wins} of them.`
+    : '';
+
+  el.innerHTML = `<p class="sect-note">${summary} Closeness is measured on the same properties for both: size, shape,
+      how much of the table is numeric, how much is missing or noisy, and how uneven the target is.</p>
+    <table class="ev-table">
+      <thead><tr><th>dataset</th><th>shape</th><th>won by</th><th>score</th><th>distance</th></tr></thead>
+      <tbody>${neighbours.map(d => `<tr>
+        <td>${esc(d.dataset)}<span class="ev-sub">${esc(d.task)}</span></td>
+        <td>${d.rows} × ${d.features}</td>
+        <td><span class="rec-code" data-model="${esc(d.best.model)}">${esc(d.best.model)}</span> ${esc(d.best.name)}</td>
+        <td>${d.best.score.toFixed(3)}</td>
+        <td>${d.distance.toFixed(2)}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+

@@ -91,6 +91,29 @@ test('every model except the reinforcement learning ones can be recommended some
   assert.deepEqual(unreachable, []);
 });
 
+test('a model is judged on the features it eats, not on its target', () => {
+  // The modality code used to mean the target on classifiers (Logistic
+  // Regression was A32 because its output is a class), so the conflict rule
+  // ruled it out on numeric tables. The benchmark caught it: it would have
+  // won on three datasets it was never offered for.
+  const logistic = T.MODELS.find(m => m.n === 'Logistic Regression');
+  const boosting = T.MODELS.find(m => m.n === 'Gradient Boosting (GBM)');
+  const tree = T.MODELS.find(m => m.n === 'Decision Tree');
+  assert.equal(conflict(logistic, LABELLED_NUMERIC_IID), null, 'logistic regression eats numbers');
+  assert.equal(conflict(boosting, MIXED_TABLE), null, 'boosting handles a mixed table');
+  assert.equal(conflict(tree, MIXED_TABLE), null, 'so does a decision tree');
+  assert.equal(conflict(boosting, sig(['A11', 'A21', 'A32', 'A41', 'A51', 'A61'])), null,
+    'and a table of categories');
+});
+
+test('models with a regressor are offered for a numeric target', () => {
+  // AdaBoost and the SVMs were tagged classification-only.
+  const numeric = rankModels(T, LABELLED_NUMERIC_IID, 'number', 99).items.map(m => m.n);
+  for (const name of ['AdaBoost', 'SVM (linear)', 'Kernel SVM (RBF/Poly)']) {
+    assert.ok(numeric.includes(name), `${name} should be available for a number`);
+  }
+});
+
 test('ties are counted so the page can admit the order is arbitrary', () => {
   const r = rankModels(T, LABELLED_NUMERIC_IID, 'number');
   assert.ok(r.tied > 1);

@@ -151,10 +151,27 @@ export function rankDrifts(T, sig, limit = 4) {
   return out;
 }
 
+// Which pipelines belong to which part of the work.
+export const PIPELINE_STAGES = {
+  data: { label: 'getting data in', domains: ['ETL', 'Feature', 'Labeling'] },
+  train: { label: 'training and evaluating', domains: ['Training', 'Evaluation'] },
+  ship: { label: 'shipping and watching', domains: ['Deployment', 'Inference', 'Monitoring', 'Retraining', 'ABTesting'] },
+  llm: { label: 'work with language models', domains: ['RAG', 'FineTuning'] },
+};
+
+export function pipelineConflict(pipeline, ops = {}) {
+  const operating = operatingConflict(pipeline, ops);
+  if (operating) return operating;
+  const stage = PIPELINE_STAGES[ops?.stage];
+  if (!stage) return null;                       // "everything", or unanswered
+  if (stage.domains.includes(pipeline.p)) return null;
+  return `belongs to a different part of the work than ${stage.label}`;
+}
+
 export function rankPipelines(T, sig, task, limit = 3) {
   const codes = matchCodes(sig);
   const ranked = T.PIPELINES
-    .filter(p => !operatingConflict(p, sig.ops))
+    .filter(p => !pipelineConflict(p, sig.ops))
     .map(p => {
       // Codes like "A3x" mean "any modality": they fit everything, so they
       // say nothing about this dataset and don't earn a point.
@@ -170,8 +187,8 @@ export function rankPipelines(T, sig, task, limit = 3) {
     candidates: ranked.length,
     tied: ranked.filter(x => x.score === top).length,
     topScore: top,
-    ruledOut: T.PIPELINES.filter(p => operatingConflict(p, sig.ops))
-      .map(p => ({ c: p.c, n: p.n, why: operatingConflict(p, sig.ops) })),
+    ruledOut: T.PIPELINES.filter(p => pipelineConflict(p, sig.ops))
+      .map(p => ({ c: p.c, n: p.n, why: pipelineConflict(p, sig.ops) })),
   };
 }
 

@@ -38,6 +38,14 @@ Three things cannot be read off a file: what you want to predict, what kind of a
 | 5 distribution | measured: class balance for a categorical target, and drift between the first and second half of the file (PSI, against the 0.25 cutoff in DR-M2) |
 | 6 quality | measured: missingness (A62) and noise (A64), meaning text in numeric columns or labels differing only by case or padding |
 
+Three further questions decide which drift checkers and pipelines can be used at all, because those depend on how the thing will run rather than on what the data looks like:
+
+- **How does new data arrive?** A detector that compares two windows has nothing to compare in a stream; a streaming detector has no running error rate in a batch job.
+- **Do the true answers arrive later?** Everything that watches the error rate needs labels to come back. Without them you can only watch the data itself move.
+- **Which part are you building?** Filters the pipelines to the part of the work you are in, or shows all of them.
+
+Whatever those answers exclude is listed with its reason, the same way models are.
+
 A63 (missing not at random) is never reported. Whether a gap depends on the value that is missing cannot be decided from the file alone.
 
 ### How the recommendation is made

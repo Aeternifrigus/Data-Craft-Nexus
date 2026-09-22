@@ -84,20 +84,28 @@
 
     <div class="qrow">
       <div>
-        <h4>Where will it run?</h4>
-        <p class="why">Decides which drift checkers and pipelines can be used at all. A detector that compares two
-          batches has nothing to compare in a stream, and the reverse.</p>
+        <h4>How does new data arrive?</h4>
+        <p class="why">Decides which drift checkers can run at all. A detector that compares two batches has nothing
+          to compare in a stream, and a streaming detector has no running error rate in a batch job.</p>
       </div>
       <div><div class="opts" id="q-mode"></div></div>
     </div>
 
     <div class="qrow">
       <div>
-        <h4>When do you find out you were wrong?</h4>
-        <p class="why">Detectors that watch the error rate need labels to arrive while you serve. Without labels you
-          can only watch the data itself move.</p>
+        <h4>Do the true answers arrive later?</h4>
+        <p class="why">Detectors that watch the error rate need labels to come back. Without them you can only watch
+          the data itself move, not whether the model got worse.</p>
       </div>
       <div><div class="opts" id="q-labels"></div></div>
+    </div>
+
+    <div class="qrow">
+      <div>
+        <h4>Which part are you building?</h4>
+        <p class="why">Filters the pipelines. Leave it on everything to see them all.</p>
+      </div>
+      <div><div class="opts" id="q-stage"></div></div>
     </div>
 
     <div class="runrow">
@@ -127,12 +135,14 @@
       <h2 class="sect-h">Drift checkers that fit</h2>
       <p class="sect-note" id="drift-note"></p>
       <div id="drifts"></div>
+      <div id="drift-ruled"></div>
     </section>
 
     <section class="sect">
       <h2 class="sect-h">Pipelines that fit</h2>
       <p class="sect-note" id="pipeline-note"></p>
       <div id="pipelines"></div>
+      <div id="pipeline-ruled"></div>
     </section>
   </div>
 

@@ -145,27 +145,74 @@ def rank_models(taxonomy: dict, sig: dict, task: str, limit: int = 4, ranking: d
     )
 
 
+# How the thing will run decides which drift checkers and pipelines can be
+# used at all: mirrors operatingConflict() in site/js/recommend.js.
+PIPELINE_STAGES = {
+    "data": {"label": "getting data in", "domains": ["ETL", "Feature", "Labeling"]},
+    "train": {"label": "training and evaluating", "domains": ["Training", "Evaluation"]},
+    "ship": {"label": "shipping and watching",
+             "domains": ["Deployment", "Inference", "Monitoring", "Retraining", "ABTesting"]},
+    "llm": {"label": "work with language models", "domains": ["RAG", "FineTuning"]},
+}
+
+
+def operating_conflict(entry: dict, ops: dict | None) -> str | None:
+    needs = entry.get("needs")
+    if not needs or not ops:
+        return None
+    mode, labels = ops.get("mode"), ops.get("labels")
+    if needs.get("modes") and mode and mode not in needs["modes"]:
+        shape = "a stream" if mode == "streaming" else "batch scoring"
+        return f"{needs.get('note') or 'is built for the other shape'}, so it does not fit {shape}"
+    if needs.get("labels") and labels and labels not in needs["labels"]:
+        never = "never arrive" if labels == "none" else "arrive later"
+        return needs.get("note") or f"needs labels, and yours {never}"
+    return None
+
+
+def pipeline_conflict(pipeline: dict, ops: dict | None) -> str | None:
+    operating = operating_conflict(pipeline, ops)
+    if operating:
+        return operating
+    stage = PIPELINE_STAGES.get((ops or {}).get("stage"))
+    if not stage:
+        return None
+    if pipeline["p"] in stage["domains"]:
+        return None
+    return f"belongs to a different part of the work than {stage['label']}"
+
+
 def rank_drifts(taxonomy: dict, sig: dict, limit: int = 4) -> Ranking:
     codes = match_codes(sig)
-    usable = []
+    ops = sig.get("ops")
+    usable, ruled_out = [], []
     for checker in taxonomy["DRIFTS"]:
         hits = [f for f in checker["fits"] if f in codes]
         if not hits:
             continue
+        why = operating_conflict(checker, ops)
+        if why:
+            ruled_out.append({"c": checker["c"], "n": checker["n"], "why": why})
+            continue
         usable.append({**checker, "hits": hits, "score": len(hits), "of": len(checker["fits"])})
     usable.sort(key=lambda d: -d["score"])
     top = usable[0]["score"] if usable else 0
-    return Ranking(usable[:limit], len(usable), sum(1 for d in usable if d["score"] == top), top, [])
+    return Ranking(usable[:limit], len(usable), sum(1 for d in usable if d["score"] == top), top, ruled_out)
 
 
 def rank_pipelines(taxonomy: dict, sig: dict, task: str, limit: int = 3) -> Ranking:
     codes = match_codes(sig)
-    ranked = []
+    ops = sig.get("ops")
+    ranked, ruled_out = [], []
     for pipeline in taxonomy["PIPELINES"]:
+        why = pipeline_conflict(pipeline, ops)
+        if why:
+            ruled_out.append({"c": pipeline["c"], "n": pipeline["n"], "why": why})
+            continue
         specific = [d for d in pipeline["data"] if "x" not in d]
         hits = [d for d in specific if d in codes]
         task_hit = "any" in pipeline["task"] or task in pipeline["task"]
         ranked.append({**pipeline, "hits": hits, "of": len(specific), "score": len(hits) + (1 if task_hit else 0)})
     ranked.sort(key=lambda p: -p["score"])
     top = ranked[0]["score"] if ranked else 0
-    return Ranking(ranked[:limit], len(ranked), sum(1 for p in ranked if p["score"] == top), top, [])
+    return Ranking(ranked[:limit], len(ranked), sum(1 for p in ranked if p["score"] == top), top, ruled_out)

@@ -125,6 +125,8 @@ export function renderResults(T, sig, task, profile) {
       </div>
     </article>`).join('');
 
+  renderRuledOut('drift-ruled', drifts.ruledOut, 'drift checkers');
+
   const pipelines = rankPipelines(T, sig, task);
   document.getElementById('pipeline-note').textContent =
     'Pipelines ranked by fit to your data signature and task.' + tieNote(pipelines, 'pipelines');
@@ -146,6 +148,8 @@ export function renderResults(T, sig, task, profile) {
         <div class="pipeline-diagram" id="diagram-${esc(p.c)}"></div>
       </div>
     </article>`).join('');
+
+  renderRuledOut('pipeline-ruled', pipelines.ruledOut, 'pipelines');
 
   pipelines.items.forEach(p => {
     const el = document.getElementById('diagram-' + p.c);
@@ -221,6 +225,22 @@ function plotSpace(T, sig, meta, neighbours) {
       zaxis: { ...axis('share of numeric columns'), range: [-0.05, 1.05] },
     },
   }, { displayModeBar: false, responsive: true });
+}
+
+// What the answers about how it will run excluded, and why. Saying "these
+// eleven cannot work here because labels never arrive" teaches more than
+// quietly showing four that can.
+function renderRuledOut(id, ruledOut, noun) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!ruledOut || !ruledOut.length) { el.innerHTML = ''; return; }
+  const shown = ruledOut.slice(0, 6);
+  const rest = ruledOut.length - shown.length;
+  el.innerHTML = `<p class="sect-note" style="margin-top:22px">Ruled out by how it will run
+      (${ruledOut.length} ${noun}):</p>
+    <ul class="ruled">${shown.map(d =>
+      `<li><span class="rec-code" data-${noun.startsWith('drift') ? 'drift' : 'pipeline'}="${esc(d.c)}">${esc(d.c)}</span>
+        ${esc(d.n)}: ${esc(d.why)}</li>`).join('')}${rest ? `<li>and ${rest} more</li>` : ''}</ul>`;
 }
 
 // The neighbours in words, under the plot: what won on datasets like this one.

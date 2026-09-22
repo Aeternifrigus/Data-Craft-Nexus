@@ -291,3 +291,15 @@ movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN2,MLP 
 movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN3,XGBoost,True,,4,,,60,timeout,over 60s,0
 movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN3,XGBoost,True,,4,,,60,timeout,over 60s,0
 movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN3,XGBoost,True,,4,,,60,timeout,over 60s,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN3,XGBoost,True,,4,,,60,timeout,over 60s,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN3,XGBoost,True,,4,,,60,timeout,over 60s,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN3,XGBoost,True,,4,,,60,timeout,over 60s,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN4,LightGBM,True,,2,,,60,timeout,over 60s,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN4,LightGBM,True,,2,,,60,timeout,over 60s,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN4,LightGBM,True,,2,,,60,timeout,over 60s,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN4,LightGBM,True,,2,,,60,timeout,over 60s,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN4,LightGBM,True,,2,,,60,timeout,over 60s,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN4,LightGBM,True,,2,,,60,timeout,over 60s,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,,,60,timeout,over 60s,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,,,60,timeout,over 60s,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,,,60,timeout,over 60s,1

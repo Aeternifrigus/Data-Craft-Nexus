@@ -14,7 +14,7 @@ import { buildEvidence } from './evidence.js';
 // default because the data cannot imply them.
 const state = {
   T: null, rows: [], cols: [], profile: null,
-  decl: { target: null, task: null, order: null, mode: 'batch', labels: 'delayed' },
+  decl: { target: null, task: null, order: null, mode: 'batch', labels: 'delayed', stage: null },
 };
 
 const OPERATING = {
@@ -26,6 +26,15 @@ const OPERATING = {
     ['immediate', 'Straight away'],
     ['delayed', 'Later, days or weeks'],
     ['none', 'Never'],
+  ],
+  // Which part of the work you are building, which decides which pipelines
+  // are worth showing. Empty means all of them.
+  stage: [
+    ['', 'Everything'],
+    ['data', 'Getting data in'],
+    ['train', 'Training and evaluating'],
+    ['ship', 'Shipping and watching'],
+    ['llm', 'Language model work'],
   ],
 };
 
@@ -116,7 +125,7 @@ function buildDeclarations() {
     box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
       box.querySelectorAll('button').forEach(o => o.classList.remove('sel'));
       b.classList.add('sel');
-      decl[key] = b.dataset.value;
+      decl[key] = b.dataset.value || null;
     }));
   }
 

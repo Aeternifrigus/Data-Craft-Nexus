@@ -419,20 +419,28 @@ footer .sig{font-size:27px}
 
     <div class="qrow">
       <div>
-        <h4>Where will it run?</h4>
-        <p class="why">Decides which drift checkers and pipelines can be used at all. A detector that compares two
-          batches has nothing to compare in a stream, and the reverse.</p>
+        <h4>How does new data arrive?</h4>
+        <p class="why">Decides which drift checkers can run at all. A detector that compares two batches has nothing
+          to compare in a stream, and a streaming detector has no running error rate in a batch job.</p>
       </div>
       <div><div class="opts" id="q-mode"></div></div>
     </div>
 
     <div class="qrow">
       <div>
-        <h4>When do you find out you were wrong?</h4>
-        <p class="why">Detectors that watch the error rate need labels to arrive while you serve. Without labels you
-          can only watch the data itself move.</p>
+        <h4>Do the true answers arrive later?</h4>
+        <p class="why">Detectors that watch the error rate need labels to come back. Without them you can only watch
+          the data itself move, not whether the model got worse.</p>
       </div>
       <div><div class="opts" id="q-labels"></div></div>
+    </div>
+
+    <div class="qrow">
+      <div>
+        <h4>Which part are you building?</h4>
+        <p class="why">Filters the pipelines. Leave it on everything to see them all.</p>
+      </div>
+      <div><div class="opts" id="q-stage"></div></div>
     </div>
 
     <div class="runrow">
@@ -462,12 +470,14 @@ footer .sig{font-size:27px}
       <h2 class="sect-h">Drift checkers that fit</h2>
       <p class="sect-note" id="drift-note"></p>
       <div id="drifts"></div>
+      <div id="drift-ruled"></div>
     </section>
 
     <section class="sect">
       <h2 class="sect-h">Pipelines that fit</h2>
       <p class="sect-note" id="pipeline-note"></p>
       <div id="pipelines"></div>
+      <div id="pipeline-ruled"></div>
     </section>
   </div>
 
@@ -881,7 +891,7 @@ footer .sig{font-size:27px}
     return { ...worst, scope, code: worst.psi > PSI_SHIFT ? "A54" : "A53" };
   }
   function signature(profile, decl) {
-    var _a, _b;
+    var _a, _b, _c;
     const target = decl.target === "__none__" ? null : decl.target;
     const { a3, a4, a6 } = measuredAxes(profile, target);
     const balance = classBalance(profile, target);
@@ -899,7 +909,9 @@ footer .sig{font-size:27px}
       features: profile.columns.filter((c) => c.name !== target).length,
       // How it will run, from the intake questions. Decides which drift
       // checkers and pipelines are usable at all.
-      ops: { mode: (_a = decl.mode) != null ? _a : null, labels: (_b = decl.labels) != null ? _b : null }
+      // How it will run, and which part of the work is being built: the answers
+      // that decide which drift checkers and pipelines can be used at all.
+      ops: { mode: (_a = decl.mode) != null ? _a : null, labels: (_b = decl.labels) != null ? _b : null, stage: (_c = decl.stage) != null ? _c : null }
     };
   }
   function matchCodes(sig) {
@@ -1043,9 +1055,23 @@ footer .sig{font-size:27px}
     out.ruledOut = matching.filter((d) => operatingConflict(d, sig.ops)).map((d) => ({ c: d.c, n: d.n, why: operatingConflict(d, sig.ops) }));
     return out;
   }
+  var PIPELINE_STAGES = {
+    data: { label: "getting data in", domains: ["ETL", "Feature", "Labeling"] },
+    train: { label: "training and evaluating", domains: ["Training", "Evaluation"] },
+    ship: { label: "shipping and watching", domains: ["Deployment", "Inference", "Monitoring", "Retraining", "ABTesting"] },
+    llm: { label: "work with language models", domains: ["RAG", "FineTuning"] }
+  };
+  function pipelineConflict(pipeline, ops = {}) {
+    const operating = operatingConflict(pipeline, ops);
+    if (operating) return operating;
+    const stage = PIPELINE_STAGES[ops == null ? void 0 : ops.stage];
+    if (!stage) return null;
+    if (stage.domains.includes(pipeline.p)) return null;
+    return `belongs to a different part of the work than ${stage.label}`;
+  }
   function rankPipelines(T, sig, task, limit = 3) {
     const codes = matchCodes(sig);
-    const ranked = T.PIPELINES.filter((p) => !operatingConflict(p, sig.ops)).map((p) => {
+    const ranked = T.PIPELINES.filter((p) => !pipelineConflict(p, sig.ops)).map((p) => {
       const specific = p.data.filter((d) => !d.includes("x"));
       const hits = specific.filter((d) => codes.includes(d));
       const taskHit = p.task.includes("any") || p.task.includes(task);
@@ -1057,7 +1083,7 @@ footer .sig{font-size:27px}
       candidates: ranked.length,
       tied: ranked.filter((x) => x.score === top).length,
       topScore: top,
-      ruledOut: T.PIPELINES.filter((p) => operatingConflict(p, sig.ops)).map((p) => ({ c: p.c, n: p.n, why: operatingConflict(p, sig.ops) }))
+      ruledOut: T.PIPELINES.filter((p) => pipelineConflict(p, sig.ops)).map((p) => ({ c: p.c, n: p.n, why: pipelineConflict(p, sig.ops) }))
     };
   }
 
@@ -1379,6 +1405,7 @@ footer .sig{font-size:27px}
       </div>
     </article>`;
     }).join("");
+    renderRuledOut("drift-ruled", drifts.ruledOut, "drift checkers");
     const pipelines = rankPipelines(T, sig, task);
     document.getElementById("pipeline-note").textContent = "Pipelines ranked by fit to your data signature and task." + tieNote(pipelines, "pipelines");
     const pipelineCodes = new Set(T.PIPELINES.map((p) => p.c));
@@ -1401,6 +1428,7 @@ footer .sig{font-size:27px}
       </div>
     </article>`;
     }).join("");
+    renderRuledOut("pipeline-ruled", pipelines.ruledOut, "pipelines");
     pipelines.items.forEach((p) => {
       const el = document.getElementById("diagram-" + p.c);
       if (el && p.flowchart) {
@@ -1473,6 +1501,20 @@ footer .sig{font-size:27px}
         zaxis: { ...axis("share of numeric columns"), range: [-0.05, 1.05] }
       }
     }, { displayModeBar: false, responsive: true });
+  }
+  function renderRuledOut(id, ruledOut, noun) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!ruledOut || !ruledOut.length) {
+      el.innerHTML = "";
+      return;
+    }
+    const shown = ruledOut.slice(0, 6);
+    const rest = ruledOut.length - shown.length;
+    el.innerHTML = `<p class="sect-note" style="margin-top:22px">Ruled out by how it will run
+      (${ruledOut.length} ${noun}):</p>
+    <ul class="ruled">${shown.map((d) => `<li><span class="rec-code" data-${noun.startsWith("drift") ? "drift" : "pipeline"}="${esc(d.c)}">${esc(d.c)}</span>
+        ${esc(d.n)}: ${esc(d.why)}</li>`).join("")}${rest ? `<li>and ${rest} more</li>` : ""}</ul>`;
   }
   function renderNeighbours(T, neighbours, task) {
     var _a;
@@ -1709,7 +1751,7 @@ footer .sig{font-size:27px}
     rows: [],
     cols: [],
     profile: null,
-    decl: { target: null, task: null, order: null, mode: "batch", labels: "delayed" }
+    decl: { target: null, task: null, order: null, mode: "batch", labels: "delayed", stage: null }
   };
   var OPERATING = {
     mode: [
@@ -1720,6 +1762,15 @@ footer .sig{font-size:27px}
       ["immediate", "Straight away"],
       ["delayed", "Later, days or weeks"],
       ["none", "Never"]
+    ],
+    // Which part of the work you are building, which decides which pipelines
+    // are worth showing. Empty means all of them.
+    stage: [
+      ["", "Everything"],
+      ["data", "Getting data in"],
+      ["train", "Training and evaluating"],
+      ["ship", "Shipping and watching"],
+      ["llm", "Language model work"]
     ]
   };
   function buildReadout(T) {
@@ -1801,7 +1852,7 @@ footer .sig{font-size:27px}
       box.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
         box.querySelectorAll("button").forEach((o) => o.classList.remove("sel"));
         b.classList.add("sel");
-        decl[key] = b.dataset.value;
+        decl[key] = b.dataset.value || null;
       }));
     }
     const od = document.getElementById("q-order");

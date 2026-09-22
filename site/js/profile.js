@@ -157,7 +157,9 @@ export function signature(profile, decl) {
     features: profile.columns.filter(c => c.name !== target).length,
     // How it will run, from the intake questions. Decides which drift
     // checkers and pipelines are usable at all.
-    ops: { mode: decl.mode ?? null, labels: decl.labels ?? null },
+    // How it will run, and which part of the work is being built: the answers
+    // that decide which drift checkers and pipelines can be used at all.
+    ops: { mode: decl.mode ?? null, labels: decl.labels ?? null, stage: decl.stage ?? null },
   };
 }
 

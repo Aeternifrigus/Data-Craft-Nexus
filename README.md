@@ -46,9 +46,33 @@ First, what cannot work is ruled out, with the reason shown on the page: a seque
 
 What is left is ranked by how many of its coordinates your data matches. **This leaves large ties, and the order inside a tie means nothing**: it is the order the models happen to sit in the taxonomy. The page says so rather than implying a ranking it cannot justify. Turning those ties into a real ranking is what the benchmark below is for.
 
+### What it was worth on real data
+
+The instrument now publishes its own scoreboard, in **The evidence** tab: 40
+real datasets from [PMLB](https://github.com/EpistasisLab/pmlb), every
+runnable model fitted on every one of them, five-fold cross-validated, 760
+model runs. Each recommendation also carries a line saying how that model did.
+
+| median regret | classification | regression |
+|---|---|---|
+| the first model shown | 0.055 | 0.432 |
+| best of the four shown | 0.015 | 0.176 |
+| always use boosting | 0.023 | 0.007 |
+| a model picked at random from the eligible ones | 0.060 | 0.240 |
+
+Regret is how far below the best model that ran a choice landed, in balanced
+accuracy and in R². The four models shown contain the best available choice
+15% of the time on classification and beat reaching for boosting on 55% of
+those datasets. On regression boosting wins outright. The single model shown
+first is the weakest part, for the reason in the next section.
+
+The numbers on the page are generated from `bench/results/`, and a test
+recomputes them from that data on every run, so the page cannot quietly
+disagree with the run behind it.
+
 ### Not done yet
 
-- Ranking inside a tie is arbitrary. The plan is to score the recommendations against public results for many real datasets (OpenML, TabRepo/TabArena), publish how often they were right, and learn the weights from that instead of hand-counting matches.
+- **Ranking inside a tie is arbitrary, and it is measurably expensive.** Six to eight models routinely tie on coordinates, and the order between them is the order they sit in the taxonomy. On one dataset that put a plain Decision Tree first where Random Forest had scored 0.44 R², a swing of half an R² decided by list position. The next step is to learn the ranking from the benchmark results, evaluated leave-one-dataset-out.
 - Image, audio, graph and spatial data cannot be detected from a CSV, so those models are reachable in the reference but never recommended from an upload.
 - Separability (A55/A56) and weak or self-supervised labelling (A13 to A15) are not measured yet.
 

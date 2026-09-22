@@ -1,0 +1,1286 @@
+{
+ "run": "40 PMLB datasets, 760 model runs",
+ "source": "PMLB (Penn Machine Learning Benchmarks)",
+ "source_url": "https://github.com/EpistasisLab/pmlb",
+ "how": "Every runnable model was fitted on every dataset, five-fold cross-validated, including the models the instrument rules out. Regret is how far a choice landed below the best model that ran.",
+ "model_runs": 760,
+ "not_runnable": {
+  "EN5": "CatBoost is not installed here; it would need its own build",
+  "NN3": "a convolutional network needs images, which a CSV cannot hold",
+  "NN8": "ResNet needs images",
+  "NN9": "U-Net needs images",
+  "NN10": "a Siamese network needs pairs, not rows",
+  "NN4": "an RNN needs sequences",
+  "NN5": "an LSTM needs sequences",
+  "NN6": "a GRU needs sequences",
+  "NN7": "a Transformer needs sequences",
+  "PR3": "a hidden Markov model needs sequences",
+  "PR4": "a Bayesian network needs a specified graph structure",
+  "PR5": "a conditional random field needs sequences",
+  "GR1": "a graph neural network needs a graph",
+  "GR2": "a graph convolutional network needs a graph",
+  "GR3": "a graph attention network needs a graph",
+  "NLP1": "Word2Vec needs a text corpus",
+  "NLP2": "BERT needs a text corpus",
+  "NLP3": "GPT-style models need a text corpus",
+  "DR5": "an autoencoder is trained on unlabelled data, not scored on a target"
+ },
+ "runnable": [
+  "DR4",
+  "EN1",
+  "EN2",
+  "EN3",
+  "EN4",
+  "EN6",
+  "EN7",
+  "IB1",
+  "LM1",
+  "LM2",
+  "LM3",
+  "LM4",
+  "LM5",
+  "LM6",
+  "LM7",
+  "NN1",
+  "NN2",
+  "PR1",
+  "SV1",
+  "SV2",
+  "TR1",
+  "TR2",
+  "TR3"
+ ],
+ "headline": {
+  "classification": {
+   "datasets": 20,
+   "metric": "balanced accuracy",
+   "first": 0.0548,
+   "top4": 0.0152,
+   "boosting": 0.023,
+   "random_eligible": 0.0599,
+   "first_was_best": 0.05,
+   "top4_was_best": 0.15,
+   "boosting_was_best": 0.2,
+   "top4_beats_boosting": 0.55
+  },
+  "regression": {
+   "datasets": 20,
+   "metric": "R\u00b2",
+   "first": 0.4321,
+   "top4": 0.1758,
+   "boosting": 0.0069,
+   "random_eligible": 0.2404,
+   "first_was_best": 0.05,
+   "top4_was_best": 0.05,
+   "boosting_was_best": 0.15,
+   "top4_beats_boosting": 0.2
+  }
+ },
+ "models": {
+  "DR4": {
+   "name": "LDA (Linear Discriminant Analysis)",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.07,
+     "median_seconds": 0.1,
+     "failed": 0
+    }
+   }
+  },
+  "EN1": {
+   "name": "AdaBoost",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.1638,
+     "median_seconds": 0.61,
+     "failed": 0
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.121,
+     "median_seconds": 0.49,
+     "failed": 0
+    }
+   }
+  },
+  "EN2": {
+   "name": "Gradient Boosting (GBM)",
+   "tasks": {
+    "classification": {
+     "datasets": 18,
+     "was_best": 2,
+     "recommended_first": 0,
+     "median_regret": 0.0182,
+     "median_seconds": 2.11,
+     "failed": 2
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 8,
+     "recommended_first": 0,
+     "median_regret": 0.002,
+     "median_seconds": 0.72,
+     "failed": 0
+    }
+   }
+  },
+  "EN3": {
+   "name": "XGBoost",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.018,
+     "median_seconds": 0.67,
+     "failed": 0
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.0294,
+     "median_seconds": 0.49,
+     "failed": 0
+    }
+   }
+  },
+  "EN4": {
+   "name": "LightGBM",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 1,
+     "recommended_first": 0,
+     "median_regret": 0.0163,
+     "median_seconds": 0.61,
+     "failed": 0
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 1,
+     "recommended_first": 0,
+     "median_regret": 0.0063,
+     "median_seconds": 0.17,
+     "failed": 0
+    }
+   }
+  },
+  "EN6": {
+   "name": "Stacking",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 2,
+     "recommended_first": 0,
+     "median_regret": 0.0295,
+     "median_seconds": 1.1,
+     "failed": 0
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.1064,
+     "median_seconds": 0.32,
+     "failed": 0
+    }
+   }
+  },
+  "EN7": {
+   "name": "Voting Ensemble",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.0319,
+     "median_seconds": 0.21,
+     "failed": 0
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.1567,
+     "median_seconds": 0.12,
+     "failed": 0
+    }
+   }
+  },
+  "IB1": {
+   "name": "k-Nearest Neighbors",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.071,
+     "median_seconds": 0.09,
+     "failed": 0
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.3122,
+     "median_seconds": 0.06,
+     "failed": 0
+    }
+   }
+  },
+  "LM1": {
+   "name": "Linear Regression",
+   "tasks": {
+    "regression": {
+     "datasets": 20,
+     "was_best": 1,
+     "recommended_first": 17,
+     "median_regret": 0.3391,
+     "median_seconds": 0.05,
+     "failed": 0
+    }
+   }
+  },
+  "LM2": {
+   "name": "Logistic Regression",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 3,
+     "recommended_first": 8,
+     "median_regret": 0.0579,
+     "median_seconds": 0.13,
+     "failed": 0
+    }
+   }
+  },
+  "LM3": {
+   "name": "Ridge Regression",
+   "tasks": {
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.339,
+     "median_seconds": 0.05,
+     "failed": 0
+    }
+   }
+  },
+  "LM4": {
+   "name": "Lasso Regression",
+   "tasks": {
+    "regression": {
+     "datasets": 20,
+     "was_best": 1,
+     "recommended_first": 1,
+     "median_regret": 0.9184,
+     "median_seconds": 0.05,
+     "failed": 0
+    }
+   }
+  },
+  "LM5": {
+   "name": "Elastic Net",
+   "tasks": {
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.8744,
+     "median_seconds": 0.05,
+     "failed": 0
+    }
+   }
+  },
+  "LM6": {
+   "name": "Polynomial Regression",
+   "tasks": {
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.2386,
+     "median_seconds": 0.07,
+     "failed": 0
+    }
+   }
+  },
+  "LM7": {
+   "name": "Bayesian Linear Regression",
+   "tasks": {
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.3391,
+     "median_seconds": 0.06,
+     "failed": 0
+    }
+   }
+  },
+  "NN1": {
+   "name": "Perceptron",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 1,
+     "recommended_first": 0,
+     "median_regret": 0.0829,
+     "median_seconds": 0.11,
+     "failed": 0
+    }
+   }
+  },
+  "NN2": {
+   "name": "MLP (Feedforward)",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 2,
+     "recommended_first": 0,
+     "median_regret": 0.0147,
+     "median_seconds": 4.26,
+     "failed": 0
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 2,
+     "recommended_first": 0,
+     "median_regret": 0.1331,
+     "median_seconds": 1.88,
+     "failed": 0
+    }
+   }
+  },
+  "PR1": {
+   "name": "Naive Bayes",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 1,
+     "recommended_first": 0,
+     "median_regret": 0.1367,
+     "median_seconds": 0.09,
+     "failed": 0
+    }
+   }
+  },
+  "SV1": {
+   "name": "SVM (linear)",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.0645,
+     "median_seconds": 0.12,
+     "failed": 0
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.3668,
+     "median_seconds": 0.07,
+     "failed": 0
+    }
+   }
+  },
+  "SV2": {
+   "name": "Kernel SVM (RBF/Poly)",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 1,
+     "recommended_first": 0,
+     "median_regret": 0.0362,
+     "median_seconds": 0.21,
+     "failed": 0
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.3065,
+     "median_seconds": 0.1,
+     "failed": 0
+    }
+   }
+  },
+  "TR1": {
+   "name": "Decision Tree",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 12,
+     "median_regret": 0.0566,
+     "median_seconds": 0.11,
+     "failed": 0
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 2,
+     "median_regret": 0.2209,
+     "median_seconds": 0.08,
+     "failed": 0
+    }
+   }
+  },
+  "TR2": {
+   "name": "Random Forest",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 1,
+     "recommended_first": 0,
+     "median_regret": 0.018,
+     "median_seconds": 2.03,
+     "failed": 0
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 0,
+     "recommended_first": 0,
+     "median_regret": 0.0359,
+     "median_seconds": 1.89,
+     "failed": 0
+    }
+   }
+  },
+  "TR3": {
+   "name": "Extra Trees",
+   "tasks": {
+    "classification": {
+     "datasets": 20,
+     "was_best": 3,
+     "recommended_first": 0,
+     "median_regret": 0.0117,
+     "median_seconds": 1.8,
+     "failed": 0
+    },
+    "regression": {
+     "datasets": 20,
+     "was_best": 4,
+     "recommended_first": 0,
+     "median_regret": 0.0083,
+     "median_seconds": 1.46,
+     "failed": 0
+    }
+   }
+  }
+ },
+ "datasets": [
+  {
+   "dataset": "1199_BNG_echoMonths",
+   "task": "regression",
+   "rows": 5000,
+   "features": 9,
+   "signature": "A11 A21 A38 A41 A53 A61",
+   "best": {
+    "model": "EN2",
+    "name": "Gradient Boosting (GBM)",
+    "score": 0.4402
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": -0.0751
+   },
+   "top4": 0.437,
+   "boosting": 0.4312,
+   "eligible": 19
+  },
+  {
+   "dataset": "225_puma8NH",
+   "task": "regression",
+   "rows": 5000,
+   "features": 8,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "NN2",
+    "name": "MLP (Feedforward)",
+    "score": 0.6704
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.3758
+   },
+   "top4": 0.4259,
+   "boosting": 0.6609,
+   "eligible": 19
+  },
+  {
+   "dataset": "229_pwLinear",
+   "task": "regression",
+   "rows": 200,
+   "features": 10,
+   "signature": "A11 A21 A32 A41 A53 A61",
+   "best": {
+    "model": "EN2",
+    "name": "Gradient Boosting (GBM)",
+    "score": 0.8509
+   },
+   "first": {
+    "model": "LM4",
+    "name": "Lasso Regression",
+    "score": 0.2328
+   },
+   "top4": 0.8328,
+   "boosting": 0.8478,
+   "eligible": 14
+  },
+  {
+   "dataset": "556_analcatdata_apnea2",
+   "task": "regression",
+   "rows": 475,
+   "features": 3,
+   "signature": "A11 A21 A38 A41 A54 A61",
+   "best": {
+    "model": "EN2",
+    "name": "Gradient Boosting (GBM)",
+    "score": 0.9135
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.8785
+   },
+   "top4": 0.909,
+   "boosting": 0.7435,
+   "eligible": 19
+  },
+  {
+   "dataset": "581_fri_c3_500_25",
+   "task": "regression",
+   "rows": 500,
+   "features": 25,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "EN2",
+    "name": "Gradient Boosting (GBM)",
+    "score": 0.8929
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.2169
+   },
+   "top4": 0.2181,
+   "boosting": 0.88,
+   "eligible": 19
+  },
+  {
+   "dataset": "589_fri_c2_1000_25",
+   "task": "regression",
+   "rows": 1000,
+   "features": 25,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "EN2",
+    "name": "Gradient Boosting (GBM)",
+    "score": 0.9219
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.2687
+   },
+   "top4": 0.2688,
+   "boosting": 0.9203,
+   "eligible": 19
+  },
+  {
+   "dataset": "595_fri_c0_1000_10",
+   "task": "regression",
+   "rows": 1000,
+   "features": 10,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "NN2",
+    "name": "MLP (Feedforward)",
+    "score": 0.9198
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.7068
+   },
+   "top4": 0.8661,
+   "boosting": 0.8983,
+   "eligible": 19
+  },
+  {
+   "dataset": "596_fri_c2_250_5",
+   "task": "regression",
+   "rows": 250,
+   "features": 5,
+   "signature": "A11 A21 A31 A41 A54 A61",
+   "best": {
+    "model": "TR3",
+    "name": "Extra Trees",
+    "score": 0.8959
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.2533
+   },
+   "top4": 0.2751,
+   "boosting": 0.8593,
+   "eligible": 19
+  },
+  {
+   "dataset": "598_fri_c0_1000_25",
+   "task": "regression",
+   "rows": 1000,
+   "features": 25,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "EN2",
+    "name": "Gradient Boosting (GBM)",
+    "score": 0.8986
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.6912
+   },
+   "top4": 0.8041,
+   "boosting": 0.8918,
+   "eligible": 19
+  },
+  {
+   "dataset": "606_fri_c2_1000_10",
+   "task": "regression",
+   "rows": 1000,
+   "features": 10,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "BASE-HGB",
+    "name": "BASE-HGB",
+    "score": 0.9359
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.3052
+   },
+   "top4": 0.3053,
+   "boosting": 0.9359,
+   "eligible": 19
+  },
+  {
+   "dataset": "620_fri_c1_1000_25",
+   "task": "regression",
+   "rows": 1000,
+   "features": 25,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "BASE-HGB",
+    "name": "BASE-HGB",
+    "score": 0.9237
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.2416
+   },
+   "top4": 0.2459,
+   "boosting": 0.9237,
+   "eligible": 19
+  },
+  {
+   "dataset": "627_fri_c2_500_10",
+   "task": "regression",
+   "rows": 500,
+   "features": 10,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "EN2",
+    "name": "Gradient Boosting (GBM)",
+    "score": 0.9104
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.2403
+   },
+   "top4": 0.2415,
+   "boosting": 0.8972,
+   "eligible": 19
+  },
+  {
+   "dataset": "635_fri_c0_250_10",
+   "task": "regression",
+   "rows": 250,
+   "features": 10,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "BASE-HGB",
+    "name": "BASE-HGB",
+    "score": 0.8396
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.6321
+   },
+   "top4": 0.8071,
+   "boosting": 0.8396,
+   "eligible": 19
+  },
+  {
+   "dataset": "641_fri_c1_500_10",
+   "task": "regression",
+   "rows": 500,
+   "features": 10,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "TR3",
+    "name": "Extra Trees",
+    "score": 0.9122
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.2343
+   },
+   "top4": 0.2388,
+   "boosting": 0.9086,
+   "eligible": 19
+  },
+  {
+   "dataset": "645_fri_c3_500_50",
+   "task": "regression",
+   "rows": 500,
+   "features": 50,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "EN2",
+    "name": "Gradient Boosting (GBM)",
+    "score": 0.8578
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.2186
+   },
+   "top4": 0.2191,
+   "boosting": 0.8509,
+   "eligible": 19
+  },
+  {
+   "dataset": "653_fri_c0_250_25",
+   "task": "regression",
+   "rows": 250,
+   "features": 25,
+   "signature": "A11 A21 A31 A41 A54 A61",
+   "best": {
+    "model": "EN4",
+    "name": "LightGBM",
+    "score": 0.8134
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.6934
+   },
+   "top4": 0.6984,
+   "boosting": 0.8131,
+   "eligible": 19
+  },
+  {
+   "dataset": "695_chatfield_4",
+   "task": "regression",
+   "rows": 235,
+   "features": 12,
+   "signature": "A11 A21 A31 A41 A54 A61",
+   "best": {
+    "model": "LM4",
+    "name": "Lasso Regression",
+    "score": 0.8548
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.8437
+   },
+   "top4": 0.8472,
+   "boosting": 0.8116,
+   "eligible": 19
+  },
+  {
+   "dataset": "agaricus_lepiota",
+   "task": "classification",
+   "rows": 5000,
+   "features": 22,
+   "signature": "A11 A21 A38 A41 A51 A61",
+   "best": {
+    "model": "TR2",
+    "name": "Random Forest",
+    "score": 1.0
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.9996
+   },
+   "top4": 1.0,
+   "boosting": 1.0,
+   "eligible": 17
+  },
+  {
+   "dataset": "allhypo",
+   "task": "classification",
+   "rows": 3770,
+   "features": 29,
+   "signature": "A11 A21 A38 A41 A52 A61",
+   "best": {
+    "model": "EN2",
+    "name": "Gradient Boosting (GBM)",
+    "score": 0.8921
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.8118
+   },
+   "top4": 0.8118,
+   "boosting": 0.8555,
+   "eligible": 17
+  },
+  {
+   "dataset": "banana",
+   "task": "classification",
+   "rows": 5000,
+   "features": 2,
+   "signature": "A11 A21 A31 A41 A51 A61",
+   "best": {
+    "model": "SV2",
+    "name": "Kernel SVM (RBF/Poly)",
+    "score": 0.8996
+   },
+   "first": {
+    "model": "LM2",
+    "name": "Logistic Regression",
+    "score": 0.5229
+   },
+   "top4": 0.8916,
+   "boosting": 0.8963,
+   "eligible": 17
+  },
+  {
+   "dataset": "biomed",
+   "task": "classification",
+   "rows": 209,
+   "features": 8,
+   "signature": "A11 A21 A38 A41 A51 A61",
+   "best": {
+    "model": "EN2",
+    "name": "Gradient Boosting (GBM)",
+    "score": 0.9074
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.8754
+   },
+   "top4": 0.8904,
+   "boosting": 0.8821,
+   "eligible": 17
+  },
+  {
+   "dataset": "breast_cancer",
+   "task": "classification",
+   "rows": 286,
+   "features": 9,
+   "signature": "A11 A21 A38 A41 A51 A61",
+   "best": {
+    "model": "NN2",
+    "name": "MLP (Feedforward)",
+    "score": 0.6403
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.6236
+   },
+   "top4": 0.6297,
+   "boosting": 0.5792,
+   "eligible": 17
+  },
+  {
+   "dataset": "breast_cancer_wisconsin_diagnostic",
+   "task": "classification",
+   "rows": 569,
+   "features": 30,
+   "signature": "A11 A21 A31 A41 A51 A61",
+   "best": {
+    "model": "LM2",
+    "name": "Logistic Regression",
+    "score": 0.9747
+   },
+   "first": {
+    "model": "LM2",
+    "name": "Logistic Regression",
+    "score": 0.9747
+   },
+   "top4": 0.9747,
+   "boosting": 0.9647,
+   "eligible": 17
+  },
+  {
+   "dataset": "cars",
+   "task": "classification",
+   "rows": 392,
+   "features": 8,
+   "signature": "A11 A21 A38 A41 A51 A61",
+   "best": {
+    "model": "BASE-HGB",
+    "name": "BASE-HGB",
+    "score": 0.9757
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.8523
+   },
+   "top4": 0.8778,
+   "boosting": 0.9757,
+   "eligible": 17
+  },
+  {
+   "dataset": "collins",
+   "task": "classification",
+   "rows": 485,
+   "features": 23,
+   "signature": "A11 A21 A38 A41 A51 A61",
+   "best": {
+    "model": "PR1",
+    "name": "Naive Bayes",
+    "score": 1.0
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.9897
+   },
+   "top4": 0.991,
+   "boosting": 0.9679,
+   "eligible": 17
+  },
+  {
+   "dataset": "credit_approval_australia",
+   "task": "classification",
+   "rows": 690,
+   "features": 15,
+   "signature": "A11 A21 A38 A41 A51 A62",
+   "best": {
+    "model": "LM2",
+    "name": "Logistic Regression",
+    "score": 0.8777
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.8182
+   },
+   "top4": 0.8733,
+   "boosting": 0.857,
+   "eligible": 17
+  },
+  {
+   "dataset": "heart_disease_va_long_beach",
+   "task": "classification",
+   "rows": 200,
+   "features": 13,
+   "signature": "A11 A21 A38 A41 A51 A62",
+   "best": {
+    "model": "LM2",
+    "name": "Logistic Regression",
+    "score": 0.6003
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.5881
+   },
+   "top4": 0.5881,
+   "boosting": 0.5737,
+   "eligible": 17
+  },
+  {
+   "dataset": "letter",
+   "task": "classification",
+   "rows": 5000,
+   "features": 16,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "TR3",
+    "name": "Extra Trees",
+    "score": 0.93
+   },
+   "first": {
+    "model": "LM2",
+    "name": "Logistic Regression",
+    "score": 0.7578
+   },
+   "top4": 0.8654,
+   "boosting": 0.9147,
+   "eligible": 16
+  },
+  {
+   "dataset": "mfeat_zernike",
+   "task": "classification",
+   "rows": 2000,
+   "features": 47,
+   "signature": "A11 A21 A31 A41 A51 A61",
+   "best": {
+    "model": "EN6",
+    "name": "Stacking",
+    "score": 0.8855
+   },
+   "first": {
+    "model": "LM2",
+    "name": "Logistic Regression",
+    "score": 0.816
+   },
+   "top4": 0.816,
+   "boosting": 0.792,
+   "eligible": 16
+  },
+  {
+   "dataset": "movement_libras",
+   "task": "classification",
+   "rows": 360,
+   "features": 90,
+   "signature": "A11 A21 A31 A42 A51 A61",
+   "best": {
+    "model": "TR3",
+    "name": "Extra Trees",
+    "score": 0.854
+   },
+   "first": {
+    "model": "LM2",
+    "name": "Logistic Regression",
+    "score": 0.7493
+   },
+   "top4": 0.7793,
+   "boosting": 0.7613,
+   "eligible": 17
+  },
+  {
+   "dataset": "nikuradse_1",
+   "task": "regression",
+   "rows": 362,
+   "features": 2,
+   "signature": "A11 A21 A31 A41 A54 A61",
+   "best": {
+    "model": "TR3",
+    "name": "Extra Trees",
+    "score": 0.9988
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.6498
+   },
+   "top4": 0.8798,
+   "boosting": 0.9941,
+   "eligible": 19
+  },
+  {
+   "dataset": "parity5+5",
+   "task": "classification",
+   "rows": 1124,
+   "features": 10,
+   "signature": "A11 A21 A32 A41 A51 A61",
+   "best": {
+    "model": "NN2",
+    "name": "MLP (Feedforward)",
+    "score": 1.0
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.7093
+   },
+   "top4": 0.7461,
+   "boosting": 0.9654,
+   "eligible": 13
+  },
+  {
+   "dataset": "satimage",
+   "task": "classification",
+   "rows": 5000,
+   "features": 36,
+   "signature": "A11 A21 A31 A41 A51 A61",
+   "best": {
+    "model": "BASE-HGB",
+    "name": "BASE-HGB",
+    "score": 0.9007
+   },
+   "first": {
+    "model": "LM2",
+    "name": "Logistic Regression",
+    "score": 0.8089
+   },
+   "top4": 0.8873,
+   "boosting": 0.9007,
+   "eligible": 17
+  },
+  {
+   "dataset": "schizo",
+   "task": "classification",
+   "rows": 340,
+   "features": 14,
+   "signature": "A11 A21 A38 A41 A51 A61",
+   "best": {
+    "model": "NN1",
+    "name": "Perceptron",
+    "score": 0.4607
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.3621
+   },
+   "top4": 0.3827,
+   "boosting": 0.3667,
+   "eligible": 17
+  },
+  {
+   "dataset": "spambase",
+   "task": "classification",
+   "rows": 4601,
+   "features": 57,
+   "signature": "A11 A21 A31 A43 A51 A61",
+   "best": {
+    "model": "EN4",
+    "name": "LightGBM",
+    "score": 0.9568
+   },
+   "first": {
+    "model": "LM2",
+    "name": "Logistic Regression",
+    "score": 0.9169
+   },
+   "top4": 0.9169,
+   "boosting": 0.9537,
+   "eligible": 17
+  },
+  {
+   "dataset": "splice",
+   "task": "classification",
+   "rows": 3188,
+   "features": 60,
+   "signature": "A11 A21 A32 A41 A51 A61",
+   "best": {
+    "model": "BASE-HGB",
+    "name": "BASE-HGB",
+    "score": 0.9657
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.9279
+   },
+   "top4": 0.9634,
+   "boosting": 0.9657,
+   "eligible": 13
+  },
+  {
+   "dataset": "strogatz_glider2",
+   "task": "regression",
+   "rows": 400,
+   "features": 2,
+   "signature": "A11 A21 A31 A41 A54 A61",
+   "best": {
+    "model": "TR3",
+    "name": "Extra Trees",
+    "score": 0.9796
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 0.6504
+   },
+   "top4": 0.7469,
+   "boosting": 0.8817,
+   "eligible": 19
+  },
+  {
+   "dataset": "strogatz_vdp2",
+   "task": "regression",
+   "rows": 400,
+   "features": 2,
+   "signature": "A11 A21 A31 A41 A53 A61",
+   "best": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 1.0
+   },
+   "first": {
+    "model": "LM1",
+    "name": "Linear Regression",
+    "score": 1.0
+   },
+   "top4": 1.0,
+   "boosting": 0.9981,
+   "eligible": 19
+  },
+  {
+   "dataset": "tic_tac_toe",
+   "task": "classification",
+   "rows": 958,
+   "features": 9,
+   "signature": "A11 A21 A32 A41 A51 A61",
+   "best": {
+    "model": "TR3",
+    "name": "Extra Trees",
+    "score": 0.9895
+   },
+   "first": {
+    "model": "TR1",
+    "name": "Decision Tree",
+    "score": 0.9395
+   },
+   "top4": 0.9895,
+   "boosting": 0.9849,
+   "eligible": 13
+  },
+  {
+   "dataset": "yeast",
+   "task": "classification",
+   "rows": 1479,
+   "features": 8,
+   "signature": "A11 A21 A31 A41 A51 A61",
+   "best": {
+    "model": "EN6",
+    "name": "Stacking",
+    "score": 0.5403
+   },
+   "first": {
+    "model": "LM2",
+    "name": "Logistic Regression",
+    "score": 0.507
+   },
+   "top4": 0.507,
+   "boosting": 0.4779,
+   "eligible": 17
+  }
+ ]
+}

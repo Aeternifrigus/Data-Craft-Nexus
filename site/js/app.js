@@ -7,6 +7,7 @@ import { profileData, signature, measuredAxes } from './profile.js';
 import { renderResults } from './results.js';
 import { initDrawer } from './drawer.js';
 import { buildLibrary, initLibrarySearch } from './library.js';
+import { buildEvidence } from './evidence.js';
 
 const state = { T: null, rows: [], cols: [], profile: null, decl: { target: null, task: null, order: null } };
 
@@ -176,6 +177,7 @@ async function main() {
   initDrawer(state.T);
   buildLibrary(state.T);
   initLibrarySearch();
+  buildEvidence(state.T);
 }
 
 main();

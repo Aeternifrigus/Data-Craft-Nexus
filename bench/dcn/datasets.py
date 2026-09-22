@@ -134,8 +134,10 @@ def candidates(task: str | None = None, min_rows: int = 200, max_rows: int = 200
     df = df[(df.n_instances >= min_rows) & (df.n_instances <= max_rows) & (df.n_features <= max_features)]
     if task:
         df = df[df.task == task]
-    # GAMETES datasets are simulated genetics, not collected data.
+    # GAMETES datasets are simulated genetics, not collected data, and the
+    # deprecated entries duplicate datasets already in the list.
     df = df[~df.dataset.str.startswith("GAMETES")]
+    df = df[~df.dataset.str.startswith("_deprecated")]
     return df.sort_values("n_instances").reset_index(drop=True)
 
 

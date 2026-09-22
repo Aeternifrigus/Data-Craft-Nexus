@@ -72,8 +72,10 @@ boosting" baseline every recommendation will be measured against.
 ## Running it
 
 ```bash
-python -m dcn.run --limit 20 --budget 60 --out results/pilot.csv
-python -m dcn.analyze --results results/pilot.csv
+python -m dcn.run --limit 20 --budget 60 --out results/pilot.csv   # fit everything
+python -m dcn.analyze --results results/pilot.csv                  # how good is the advice
+python -m dcn.compare --before results/pilot.csv \
+                      --after results/after-fixes.csv              # what did a change do
 ```
 
 `run.py` fits every runnable model on every dataset, including the ones the
@@ -128,6 +130,21 @@ ranking learned from results will.
 Both fixes are now pinned by tests, so neither can come back: the taxonomy
 must tag a model for every task its estimator can run, and a classifier must
 not be excluded from a numeric table.
+
+`results/delta.csv` has the two runs side by side, one row per dataset. The
+first recommendation changed on 20 of 20 classification datasets and got
+worse on 12 of them, while the four shown stayed level and the ruled-out
+winners went from 17 datasets to none. A correct pool, an arbitrary order.
+
+## What is in results/
+
+| file | one row per | what it holds |
+|---|---|---|
+| `pilot.csv` | dataset and model, before the fixes | signature, eligibility, rank, score, seconds, status |
+| `after-fixes.csv` | dataset and model, after the fixes | the same columns |
+| `per_dataset.csv` | dataset | best model and score, the first pick, best of four, boosting, and the regret of each |
+| `delta.csv` | dataset | both runs side by side and the change |
+| `summary.json` | run | the aggregate table above, plus which models were ruled out and why |
 
 ## Next
 

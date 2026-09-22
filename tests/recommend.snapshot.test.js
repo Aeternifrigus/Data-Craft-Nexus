@@ -19,16 +19,19 @@ function buildSnapshot() {
   for (const file of fixtureNames()) {
     const { head, body } = parseCSV(readFixture(file));
     const profile = profileData(head, body);
-    const entry = { rows: profile.n, columns: profile.feat, measured: [profile.a3, profile.a4, profile.a6], runs: {} };
+    const entry = { rows: profile.n, columns: profile.feat, runs: {} };
     for (const target of [...head, '__none__']) {
       for (const task of T.TASKS.map(t => t.id)) {
         for (const order of ['A21', 'A22']) {
-          const sig = signature(profile, body, { target, task, order });
+          const sig = signature(profile, { target, task, order });
+          const models = rankModels(T, sig, task);
           entry.runs[`${target} | ${task} | ${order}`] = {
-            signature: sig.join(' '),
-            models: rankModels(T, sig, task).map(m => `${m.c} (${m.score})`).join(', '),
-            drift: rankDrifts(T, sig).map(d => d.c).join(', '),
-            pipelines: rankPipelines(T, sig, task).map(p => p.c).join(', '),
+            signature: sig.codes.join(' ') + (sig.flags.length ? ` (+${sig.flags.join(' ')})` : ''),
+            models: models.items.map(m => `${m.c} (${m.score}/${m.of})`).join(', ') || 'none',
+            tied: `${models.tied} of ${models.candidates}`,
+            ruledOut: models.ruledOut.length,
+            drift: rankDrifts(T, sig).items.map(d => d.c).join(', '),
+            pipelines: rankPipelines(T, sig, task).items.map(p => p.c).join(', '),
           };
         }
       }

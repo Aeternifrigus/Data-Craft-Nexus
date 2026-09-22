@@ -13,6 +13,10 @@
    "label": "A future value"
   },
   {
+   "id": "survival",
+   "label": "Time until an event"
+  },
+  {
    "id": "group",
    "label": "Natural groupings"
   },
@@ -23,6 +27,10 @@
   {
    "id": "compress",
    "label": "A simpler view"
+  },
+  {
+   "id": "generate",
+   "label": "New examples like these"
   }
  ],
  "reference": [

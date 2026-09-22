@@ -1,13 +1,28 @@
-// Measures axes 3 (modality), 4 (scale) and 6 (quality) from the data,
-// and derives axis 5 (distribution) from the data plus the user's answers.
-// Pure functions: no DOM access.
+// Measures the data axes. Pure functions: no DOM access.
+//
+// Axis 3 (modality), 4 (scale) and 6 (quality) are measured from the feature
+// columns, which means the target column is left out: it is what you predict,
+// not something you feed the model.
+//
+// Axis 5 is measured too. For a categorical target it reports class balance.
+// Otherwise it reports whether the file drifts from its first half to its
+// second, using the PSI cutoff the taxonomy records in DR-M2. Whichever of the
+// two isn't the headline is reported alongside as an extra code.
+//
+// A63 (missing not at random) is never reported: whether a gap depends on the
+// value that is missing cannot be decided from the file alone.
+
+import { psiNumeric, psiCategorical, PSI_SHIFT, toNumbers } from './stats.js';
+
+const MISSING_WORDS = new Set(['', 'na', 'n/a', 'null', 'nan', 'none', '-']);
+const isMissing = (v) => v == null || MISSING_WORDS.has(String(v).trim().toLowerCase());
 
 export function profileData(head, body) {
   const n = body.length;
   const columns = head.map((name, i) => {
     const raw = body.map(r => r[i] === undefined ? '' : r[i]);
-    const nonEmpty = raw.filter(v => v !== '' && v.toLowerCase() !== 'na' && v.toLowerCase() !== 'null' && v.toLowerCase() !== 'nan');
-    const nums = nonEmpty.filter(v => v !== '' && !isNaN(Number(v)));
+    const nonEmpty = raw.filter(v => !isMissing(v));
+    const nums = nonEmpty.filter(v => !isNaN(Number(v)) && v !== '');
     const numeric = nonEmpty.length > 0 && nums.length / nonEmpty.length > 0.9;
     const uniq = new Set(nonEmpty).size;
     const dateLike = !numeric && nonEmpty.length > 0 &&
@@ -16,16 +31,44 @@ export function profileData(head, body) {
     const avgLen = nonEmpty.length ? nonEmpty.reduce((s, v) => s + v.length, 0) / nonEmpty.length : 0;
     const textLike = !numeric && !dateLike && nonEmpty.length > 0 &&
       (avgLen > 25 || uniq / nonEmpty.length > 0.7) && uniq > Math.min(20, nonEmpty.length * 0.5);
-    return { name, numeric, dateLike, textLike, uniq,
-      missing: (n - nonEmpty.length) / n,
-      zeroRate: nums.length ? zeros / nums.length : 0 };
+
+    // Values that look wrong rather than absent: text in a numeric column, or
+    // labels that differ only by case or padding ("Gdynia" and "gdynia ").
+    let dirty = 0;
+    const numericShare = nonEmpty.length ? nums.length / nonEmpty.length : 0;
+    if (numericShare > 0.5) {
+      // A column of numbers with a few unparseable entries ("n/d", "approx 5").
+      dirty = nonEmpty.length - nums.length;
+    } else if (!dateLike && !textLike) {
+      const canon = new Map();
+      for (const v of nonEmpty) {
+        const key = v.trim().toLowerCase();
+        if (!canon.has(key)) canon.set(key, new Set());
+        canon.get(key).add(v);
+      }
+      for (const [, variants] of canon) if (variants.size > 1) dirty += variants.size - 1;
+    }
+
+    return {
+      name, index: i, numeric, dateLike, textLike, uniq, values: raw,
+      missing: n ? (n - nonEmpty.length) / n : 0,
+      dirtyRate: nonEmpty.length ? dirty / nonEmpty.length : 0,
+      zeroRate: nums.length ? zeros / nums.length : 0,
+    };
   });
 
-  const feat = columns.length;
-  const numericCols = columns.filter(c => c.numeric && !c.dateLike).length;
-  const catCols = columns.filter(c => !c.numeric && !c.dateLike && !c.textLike).length;
-  const textCols = columns.filter(c => c.textLike).length;
-  const dateCols = columns.filter(c => c.dateLike);
+  return { n, feat: columns.length, columns, dateCols: columns.filter(c => c.dateLike) };
+}
+
+// Axes 3, 4 and 6 over the feature columns (everything except the target).
+export function measuredAxes(profile, target) {
+  const features = profile.columns.filter(c => c.name !== target);
+  const cols = features.length ? features : profile.columns;
+  const n = profile.n;
+
+  const numericCols = cols.filter(c => c.numeric && !c.dateLike).length;
+  const catCols = cols.filter(c => !c.numeric && !c.dateLike && !c.textLike).length;
+  const textCols = cols.filter(c => c.textLike).length;
 
   const kinds = [numericCols > 0, catCols > 0, textCols > 0].filter(Boolean).length;
   let a3 = 'A38';
@@ -35,39 +78,84 @@ export function profileData(head, body) {
     else if (textCols > 0) a3 = 'A34';
   }
 
-  const sparsity = columns.reduce((s, c) => s + Math.max(c.missing, c.zeroRate), 0) / feat;
-  let a4;
-  if (sparsity > 0.5) a4 = 'A43';
-  else if (feat > n / 10) a4 = 'A42';
-  else a4 = 'A41';
+  const feat = cols.length;
+  const sparsity = cols.reduce((s, c) => s + Math.max(c.missing, c.zeroRate), 0) / feat;
+  // High-dimensional means many features relative to rows. A small table with
+  // a handful of columns is not high-dimensional, however few rows it has.
+  const highDim = feat > n / 2 || (feat >= 20 && feat > n / 10);
+  const a4 = sparsity > 0.5 ? 'A43' : (highDim ? 'A42' : 'A41');
 
-  const miss = columns.reduce((s, c) => s + c.missing, 0) / feat;
-  let a6 = 'A61';
-  if (miss > 0.25) a6 = 'A64';
-  else if (miss > 0.001) a6 = 'A62';
+  const miss = cols.reduce((s, c) => s + c.missing, 0) / feat;
+  const noise = cols.reduce((s, c) => s + c.dirtyRate, 0) / feat;
+  const a6 = noise > 0.01 ? 'A64' : (miss > 0.001 ? 'A62' : 'A61');
 
-  return { n, feat, columns, numericCols, catCols, dateCols, miss, sparsity, a3, a4, a6 };
+  return { a3, a4, a6, feat, numericCols, catCols, textCols, sparsity, miss, noise, highDim };
 }
 
-// Axis 5. `decl` holds the user's answers: {target, task, order}.
-export function axis5(profile, rows, decl) {
-  if (decl.order === 'A22') return 'A54';
-  if (!decl.target || decl.target === '__none__') return 'A53';
-  const col = profile.columns.find(c => c.name === decl.target);
-  if (!col) return 'A53';
-  if (!col.numeric && col.uniq > 1 && col.uniq <= 20) {
-    const idx = profile.columns.indexOf(col);
-    const counts = {};
-    rows.forEach(r => { const v = r[idx]; if (v !== '') counts[v] = (counts[v] || 0) + 1; });
-    const vals = Object.values(counts).sort((a, b) => b - a);
-    if (vals.length > 1 && vals[0] / vals.reduce((a, b) => a + b, 0) > 0.75) return 'A52';
-    return 'A51';
-  }
-  return 'A53';
+// Class balance for a categorical target, or null when it doesn't apply.
+export function classBalance(profile, target) {
+  const col = profile.columns.find(c => c.name === target);
+  // Dates and near-unique columns are not class labels, however few rows there are.
+  if (!col || col.numeric || col.dateLike || col.textLike) return null;
+  if (col.uniq <= 1 || col.uniq > 20 || col.uniq > profile.n / 2) return null;
+  const counts = new Map();
+  for (const v of col.values) if (!isMissing(v)) counts.set(v, (counts.get(v) || 0) + 1);
+  const vals = [...counts.values()].sort((a, b) => b - a);
+  const total = vals.reduce((a, b) => a + b, 0);
+  if (vals.length < 2 || total === 0) return null;
+  const share = vals[0] / total;
+  return { code: share > 0.75 ? 'A52' : 'A51', majorityShare: share, levels: vals.length };
 }
 
-// The six-code signature, in axis order.
-export function signature(profile, rows, decl) {
-  const a5 = axis5(profile, rows, decl);
-  return [decl.target === '__none__' ? 'A12' : 'A11', decl.order, profile.a3, profile.a4, a5, profile.a6];
+// Does the file drift from its first half to its second? Measured per feature
+// column with PSI; the worst column decides.
+export function measureDrift(profile, target) {
+  const half = Math.floor(profile.n / 2);
+  if (half < 20) return null;
+
+  const scan = (cols) => {
+    let worst = null;
+    for (const col of cols) {
+      const first = col.values.slice(0, half), second = col.values.slice(half);
+      const psi = col.numeric ? psiNumeric(first, second) : psiCategorical(first, second);
+      if (psi == null || !Number.isFinite(psi)) continue;
+      if (!worst || psi > worst.psi) worst = { psi, column: col.name };
+    }
+    return worst;
+  };
+
+  const usable = profile.columns.filter(c => !c.dateLike && !c.textLike);
+  // Features first. With nothing but a date and a target, the target's own
+  // drift is still worth reporting: that is label drift.
+  let worst = scan(usable.filter(c => c.name !== target));
+  let scope = 'features';
+  if (!worst) { worst = scan(usable.filter(c => c.name === target)); scope = 'target'; }
+  if (!worst) return null;
+  return { ...worst, scope, code: worst.psi > PSI_SHIFT ? 'A54' : 'A53' };
+}
+
+// The six codes, plus any measured code that didn't fit in a slot.
+// `decl` holds the user's answers: {target, task, order}.
+export function signature(profile, decl) {
+  const target = decl.target === '__none__' ? null : decl.target;
+  const { a3, a4, a6 } = measuredAxes(profile, target);
+  const balance = classBalance(profile, target);
+  const drift = measureDrift(profile, target);
+
+  const a5 = balance ? balance.code : (drift ? drift.code : 'A53');
+  const flags = [];
+  if (balance && drift) flags.push(drift.code);
+
+  return {
+    codes: [target ? 'A11' : 'A12', decl.order, a3, a4, a5, a6],
+    flags,
+    balance,
+    drift,
+    measured: { a3, a4, a6 },
+  };
+}
+
+// Everything the ranking matches against: the six codes plus the extra ones.
+export function matchCodes(sig) {
+  return [...sig.codes, ...sig.flags];
 }

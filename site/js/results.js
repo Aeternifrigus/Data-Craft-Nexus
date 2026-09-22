@@ -2,45 +2,83 @@
 // Plotly and mermaid are loaded as globals by index.html.
 
 import { esc } from './html.js';
+import { matchCodes } from './profile.js';
 import { paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
 
+// A tie means the data can't separate those models. Say so rather than
+// letting the order on the page look like a verdict.
+function tieNote(result, noun = 'models') {
+  if (result.tied > result.items.length) {
+    return ` ${result.tied} ${noun} match the data equally well, so the order below is arbitrary: the coordinates can't separate them.`;
+  }
+  if (result.tied > 1) {
+    return ` The top ${result.tied} match the data equally well, so the order between them is arbitrary.`;
+  }
+  return '';
+}
+
+function chip(code, kind, codes) {
+  const attr = kind === 'stage' ? 'data-stage' : kind === 'pipeline' ? 'data-pipeline' : kind === 'math' ? 'data-math' : 'data-code';
+  const cls = codes ? ` ${codes.includes(code) ? 'hit' : 'miss'}` : '';
+  return `<span class="chip${cls}" ${attr}="${esc(code)}">${esc(code)}</span>`;
+}
+
 export function renderResults(T, sig, task) {
-  const paradigm = paradigmOf(sig);
-  const scored = rankModels(T, sig, task);
+  const codes = matchCodes(sig);
+  const models = rankModels(T, sig, task);
+  const taskLabel = T.TASKS.find(t => t.id === task).label.toLowerCase();
 
-  document.getElementById('model-note').textContent = scored.length
-    ? `Filtered to ${paradigmLabel(paradigm)} models that can produce ${T.TASKS.find(t => t.id === task).label.toLowerCase()}.`
-    : 'No model matches.';
+  const note = document.getElementById('model-note');
+  if (models.items.length) {
+    note.textContent = `${models.candidates} of the ${paradigmLabel(paradigmOf(sig))} models can produce ${taskLabel} for data shaped like yours.${tieNote(models)}`;
+  } else if (models.ruledOut.length) {
+    note.textContent = `No model fits. Every model that could produce ${taskLabel} is ruled out by your data: ${models.ruledOut.slice(0, 3).map(m => `${m.n} ${m.why}`).join('; ')}.`;
+  } else {
+    note.textContent = `No model in the taxonomy produces ${taskLabel}.`;
+  }
 
-  document.getElementById('models').innerHTML = scored.map((m, i) => `
+  document.getElementById('models').innerHTML = models.items.map(m => `
     <article class="rec">
       <div>
         <div class="rec-code" data-model="${esc(m.c)}">${esc(m.c)}</div>
-        <div class="rec-rank">${m.score} of 3 axes</div>
+        <div class="rec-rank">${m.score} of ${m.of} coordinates</div>
       </div>
       <div>
         <div class="rec-name">${esc(m.n)}</div>
         <div class="rec-meta">${esc(T.MODEL_DOMAINS[m.dom]?.name || m.dom)} · ${paradigmLabel(m.p)}</div>
         <p class="rec-metaphor">${esc(m.met)}</p>
         <div class="matchline">
-          ${m.data.map(d => `<span class="chip ${sig.includes(d) ? 'hit' : 'miss'}" data-code="${esc(d)}">${esc(d)} ${T.CODES[d] ? esc(T.CODES[d].name.toLowerCase()) : ''}</span>`).join('')}
+          ${m.data.map(d => `<span class="chip ${codes.includes(d) ? 'hit' : 'miss'}" data-code="${esc(d)}">${esc(d)} ${T.CODES[d] ? esc(T.CODES[d].name.toLowerCase()) : ''}</span>`).join('')}
         </div>
         <p class="rec-body">${esc(m.mech)}</p>
+        ${m.caution ? `<p class="rec-body caution">Caution. ${esc(m.caution)}</p>` : ''}
         <p class="rec-body warn">${esc(m.fail)}</p>
         <div class="mathline">math:
-          ${m.math.map(x => `<span class="chip" data-math="${esc(x)}">${esc(x)}</span>`).join('')}
+          ${m.math.map(x => chip(x, 'math')).join('')}
         </div>
       </div>
     </article>`).join('');
 
-  const dscored = rankDrifts(T, sig);
+  // What the data ruled out, and why. This is the part a reader learns from.
+  const ruled = document.getElementById('ruled-out');
+  if (models.ruledOut.length) {
+    const shown = models.ruledOut.slice(0, 8);
+    const rest = models.ruledOut.length - shown.length;
+    ruled.innerHTML = `<p class="sect-note" style="margin-bottom:12px">Ruled out for this data:</p>` +
+      `<ul class="ruled">${shown.map(m =>
+        `<li><span class="rec-code" data-model="${esc(m.c)}">${esc(m.c)}</span> ${esc(m.n)}: ${esc(m.why)}</li>`).join('')}` +
+      (rest ? `<li>and ${rest} more</li>` : '') + `</ul>`;
+  } else {
+    ruled.innerHTML = '';
+  }
 
-  document.getElementById('drift-note').textContent =
-    `Matched against your modality and scale. ${sig[4] === 'A54'
-      ? 'Your data is non-stationary: drift is expected.'
-      : 'Ranked by coordinate fit.'}`;
+  const drifts = rankDrifts(T, sig);
+  const driftMsg = sig.drift
+    ? `Worst shift between the first and second half of your file: PSI ${sig.drift.psi.toFixed(2)} on ${sig.drift.column}${sig.drift.scope === 'target' ? ' (the target itself)' : ''}, ${sig.drift.psi > 0.25 ? 'above' : 'below'} the 0.25 cutoff in DR-M2.`
+    : 'Drift across the file could not be measured: too few rows, or no column steady enough to compare. These are matched on modality and scale only.';
+  document.getElementById('drift-note').textContent = driftMsg + tieNote(drifts, 'drift checkers');
 
-  document.getElementById('drifts').innerHTML = dscored.map(d => `
+  document.getElementById('drifts').innerHTML = drifts.items.map(d => `
     <article class="rec">
       <div><div class="rec-code" data-drift="${esc(d.c)}">${esc(d.c)}</div></div>
       <div>
@@ -51,17 +89,17 @@ export function renderResults(T, sig, task) {
         <p class="rec-body"><span style="color:var(--sage)">Threshold.</span> ${esc(d.thr)}</p>
         <p class="rec-body warn">${esc(d.fail)}</p>
         <div class="mathline">math:
-          ${d.math.map(x => `<span class="chip" data-math="${esc(x)}">${esc(x)}</span>`).join('')}
+          ${d.math.map(x => chip(x, 'math')).join('')}
         </div>
       </div>
     </article>`).join('');
 
-  const pscored = rankPipelines(T, sig, task);
-
+  const pipelines = rankPipelines(T, sig, task);
   document.getElementById('pipeline-note').textContent =
-    'Pipelines ranked by fit to your data signature and task.';
+    'Pipelines ranked by fit to your data signature and task.' + tieNote(pipelines, 'pipelines');
 
-  document.getElementById('pipelines').innerHTML = pscored.map(p => `
+  const pipelineCodes = new Set(T.PIPELINES.map(p => p.c));
+  document.getElementById('pipelines').innerHTML = pipelines.items.map(p => `
     <article class="rec">
       <div><div class="rec-code" data-pipeline="${esc(p.c)}">${esc(p.c)}</div></div>
       <div>
@@ -71,13 +109,13 @@ export function renderResults(T, sig, task) {
         <p class="rec-body">${esc(p.mech)}</p>
         <p class="rec-body warn">${esc(p.fail)}</p>
         <div class="mathline">stages:
-          ${p.stages.map(s => `<span class="chip" data-stage="${esc(s)}">${esc(s)}</span>`).join('')}
+          ${p.stages.map(s => chip(s, pipelineCodes.has(s) ? 'pipeline' : 'stage')).join('')}
         </div>
         <div class="pipeline-diagram" id="diagram-${esc(p.c)}"></div>
       </div>
     </article>`).join('');
 
-  pscored.forEach(p => {
+  pipelines.items.forEach(p => {
     const el = document.getElementById('diagram-' + p.c);
     if (el && p.flowchart) {
       mermaid.render('mermaid-' + p.c, p.flowchart).then(({ svg }) => {

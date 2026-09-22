@@ -3,7 +3,7 @@
 import { loadTaxonomy, loadSample } from './taxonomy.js';
 import { parseCSV, decodeBytes, delimiterName, MAX_ROWS } from './csv.js';
 import { esc } from './html.js';
-import { profileData, signature } from './profile.js';
+import { profileData, signature, measuredAxes } from './profile.js';
 import { renderResults } from './results.js';
 import { initDrawer } from './drawer.js';
 import { buildLibrary, initLibrarySearch } from './library.js';
@@ -50,15 +50,20 @@ function ingest(text, encoding) {
   state.cols = head; state.rows = body;
   state.profile = profileData(head, body);
   const { profile } = state;
-  setSlot(3, profile.a3);
-  setSlot(4, profile.a4);
-  setSlot(6, profile.a6);
+  showMeasuredAxes(null);
   drop.innerHTML = `<p><b>${profile.n.toLocaleString()} rows · ${profile.feat} columns</b> read</p>
     <p style="margin-top:7px;font-size:12px">${esc(readNote(parsed, encoding))}</p>
     <p style="margin-top:4px;font-size:12px">Axes 3, 4 and 6 measured. Three more need your intent.</p>`;
   buildDeclarations();
   document.getElementById('declare').classList.add('on');
   document.getElementById('declare').scrollIntoView({ block: 'start' });
+}
+
+// Axes 3, 4 and 6 leave the target column out, so they are measured again
+// whenever the target changes.
+function showMeasuredAxes(target) {
+  const { a3, a4, a6 } = measuredAxes(state.profile, target);
+  setSlot(3, a3); setSlot(4, a4); setSlot(6, a6);
 }
 
 function buildDeclarations() {
@@ -73,6 +78,7 @@ function buildDeclarations() {
   sel.addEventListener('change', () => {
     decl.target = sel.value || null;
     setSlot(1, decl.target === '__none__' ? 'A12' : 'A11', true);
+    showMeasuredAxes(decl.target === '__none__' ? null : decl.target);
     checkReady();
   });
   t.appendChild(sel);
@@ -129,12 +135,21 @@ function initIntake() {
   });
 
   document.getElementById('run').addEventListener('click', () => {
-    const sig = signature(state.profile, state.rows, state.decl);
-    setSlot(5, sig[4], true);
+    const sig = signature(state.profile, state.decl);
+    setSlot(5, sig.codes[4], sig.balance != null);
+    showFlags(sig);
     renderResults(state.T, sig, state.decl.task);
     document.getElementById('results').classList.add('on');
     document.getElementById('results').scrollIntoView({ block: 'start' });
   });
+}
+
+// A measured code that didn't fit in a slot (class balance and drift both
+// live on axis 5) is shown under it rather than dropped.
+function showFlags(sig) {
+  const slot = document.getElementById('val-5');
+  const extra = sig.flags.map(f => `${f} ${state.T.CODES[f]?.name ?? ''}`.trim()).join(', ');
+  slot.textContent = state.T.CODES[sig.codes[4]]?.name + (extra ? ` · ${extra}` : '');
 }
 
 function initNav() {

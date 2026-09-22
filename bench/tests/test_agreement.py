@@ -14,6 +14,9 @@ import pytest
 
 from dcn.csvread import parse_csv
 from dcn.profile import class_balance, measure_drift, measured_axes, profile_data, signature
+from dcn.recommend import caution, load_taxonomy, rank_drifts, rank_models, rank_pipelines
+
+TAXONOMY = load_taxonomy()
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = (
@@ -87,3 +90,20 @@ def test_parsing_and_profile_match_javascript(path: Path, js_results):
             assert close(drift["psi"], exp["drift"]["psi"]), key
 
         assert " ".join(signature(profile, target, "A21")["codes"]) == exp["signature"], key
+
+        # The ranking has to match too, or the benchmark would score advice
+        # the site never gave.
+        for run_key, expected in exp["rankings"].items():
+            order, task = run_key.split("|")
+            sig = signature(profile, target, order)
+            flags = f" +{' '.join(sig['flags'])}" if sig["flags"] else ""
+            assert " ".join(sig["codes"]) + flags == expected["signature"], (key, run_key)
+
+            models = rank_models(TAXONOMY, sig, task)
+            got = [f"{m['c']}:{m['score']}/{m['of']}" + ("!" if caution(m, sig) else "") for m in models.items]
+            assert got == expected["models"], (key, run_key)
+            assert models.tied == expected["tied"], (key, run_key)
+            assert models.candidates == expected["candidates"], (key, run_key)
+            assert [f"{m['c']}:{m['why']}" for m in models.ruled_out] == expected["ruledOut"], (key, run_key)
+            assert [d["c"] for d in rank_drifts(TAXONOMY, sig).items] == expected["drifts"], (key, run_key)
+            assert [f"{p['c']}:{p['score']}" for p in rank_pipelines(TAXONOMY, sig, task).items] == expected["pipelines"], (key, run_key)

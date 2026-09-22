@@ -12,7 +12,8 @@
 // A63 (missing not at random) is never reported: whether a gap depends on the
 // value that is missing cannot be decided from the file alone.
 
-import { psiNumeric, psiCategorical, PSI_SHIFT, toNumbers } from './stats.js';
+import { psiNumeric, psiCategorical, PSI_SHIFT } from './stats.js';
+import { countDateLike } from './dates.js';
 
 const MISSING_WORDS = new Set(['', 'na', 'n/a', 'null', 'nan', 'none', '-']);
 const isMissing = (v) => v == null || MISSING_WORDS.has(String(v).trim().toLowerCase());
@@ -26,7 +27,7 @@ export function profileData(head, body) {
     const numeric = nonEmpty.length > 0 && nums.length / nonEmpty.length > 0.9;
     const uniq = new Set(nonEmpty).size;
     const dateLike = !numeric && nonEmpty.length > 0 &&
-      nonEmpty.slice(0, 40).filter(v => !isNaN(Date.parse(v))).length / Math.min(40, nonEmpty.length) > 0.8;
+      countDateLike(nonEmpty.slice(0, 40)) / Math.min(40, nonEmpty.length) > 0.8;
     const zeros = nums.filter(v => Number(v) === 0).length;
     const avgLen = nonEmpty.length ? nonEmpty.reduce((s, v) => s + v.length, 0) / nonEmpty.length : 0;
     const textLike = !numeric && !dateLike && nonEmpty.length > 0 &&

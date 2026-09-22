@@ -58,6 +58,24 @@ def test_registry_codes_exist_in_the_taxonomy():
     assert [c for c in NOT_RUNNABLE if c not in known] == []
 
 
+def test_the_taxonomy_offers_every_model_for_the_tasks_it_can_actually_do():
+    """A model with a working regressor must be offered for "a number".
+
+    The benchmark found AdaBoost and both SVMs tagged classification-only,
+    so the site never offered them for a numeric target. AdaBoost went on to
+    beat every recommended model on nine regression datasets.
+    """
+    task_code = {"classification": "category", "regression": "number"}
+    by_code = {m["c"]: m for m in TAXONOMY}
+    missing = []
+    for code, spec in BY_CODE.items():
+        tagged = by_code[code]["task"]
+        for task in spec.tasks:
+            if task_code[task] not in tagged:
+                missing.append(f'{code} {spec.name}: runs {task} but is not tagged "{task_code[task]}"')
+    assert missing == []
+
+
 def test_both_tasks_have_a_reasonable_field_of_candidates():
     assert len(runnable_codes("classification")) >= 10
     assert len(runnable_codes("regression")) >= 10

@@ -99,7 +99,7 @@
    "data": [
     "A11",
     "A21",
-    "A32"
+    "A31"
    ],
    "math": [
     "LA1",
@@ -269,7 +269,7 @@
    "data": [
     "A11",
     "A21",
-    "A32"
+    "A38"
    ],
    "math": [
     "IT1",
@@ -374,13 +374,14 @@
    "p": "SL",
    "dom": "Ensemble",
    "task": [
-    "category"
+    "category",
+    "number"
    ],
    "met": "A classroom where the teacher re-tests failures.",
    "data": [
     "A11",
     "A21",
-    "A32"
+    "A38"
    ],
    "math": [
     "CA8",
@@ -408,7 +409,7 @@
    "data": [
     "A11",
     "A21",
-    "A31"
+    "A38"
    ],
    "math": [
     "CA2",
@@ -488,13 +489,14 @@
    "p": "SL",
    "dom": "Ensemble",
    "task": [
-    "category"
+    "category",
+    "number"
    ],
    "met": "The specialist bureaucrat for categorical paperwork.",
    "data": [
     "A11",
     "A21",
-    "A32"
+    "A38"
    ],
    "math": [
     "CA3",
@@ -570,7 +572,8 @@
    "p": "SL",
    "dom": "SVM",
    "task": [
-    "category"
+    "category",
+    "number"
    ],
    "met": "Drawing the widest highway between neighborhoods.",
    "data": [
@@ -598,7 +601,8 @@
    "p": "SL",
    "dom": "SVM",
    "task": [
-    "category"
+    "category",
+    "number"
    ],
    "met": "Warping the map into higher dimensions.",
    "data": [
@@ -660,7 +664,7 @@
    "data": [
     "A11",
     "A21",
-    "A32"
+    "A31"
    ],
    "math": [
     "PS1",

@@ -1,0 +1,293 @@
+dataset,task,rows,features,subsampled,signature,flags,model,model_name,eligible,ruled_out_why,recommended_rank,score,score_std,seconds,status,detail,seed
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,LM2,Logistic Regression,True,,10,0.6002612330198538,0.02088084404133689,0.15,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,LM2,Logistic Regression,True,,10,0.5793521421107628,0.05248615303184427,0.13,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,LM2,Logistic Regression,True,,10,0.5796969696969697,0.0631045599879787,0.14,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,TR1,Decision Tree,True,,13,0.5880982236154649,0.052964157212492535,0.13,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,TR1,Decision Tree,True,,13,0.558662486938349,0.04631583380855551,0.12,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,TR1,Decision Tree,True,,13,0.5396133751306165,0.1262167070081308,0.12,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,TR2,Random Forest,True,,3,0.5803761755485893,0.03255852420736302,2.38,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,TR2,Random Forest,True,,3,0.5869278996865204,0.04395298340989258,2.59,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,TR2,Random Forest,True,,3,0.5680668756530826,0.06503894650933995,2.52,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,TR3,Extra Trees,True,,1,0.5869278996865204,0.05905438430959926,1.9,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,TR3,Extra Trees,True,,1,0.5733646812957158,0.061991817769059196,1.97,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,TR3,Extra Trees,True,,1,0.6071577847439917,0.08608592886999596,1.97,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN1,AdaBoost,True,,15,0.5746185997910136,0.03514992783775563,0.6,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN1,AdaBoost,True,,15,0.558861024033438,0.07493337992214234,0.56,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN1,AdaBoost,True,,15,0.5603761755485894,0.043302477071237154,0.63,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN2,Gradient Boosting (GBM),True,,7,0.5883281086729363,0.06091288671409216,0.74,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN2,Gradient Boosting (GBM),True,,7,0.5486311389759665,0.07725145761080957,0.68,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN2,Gradient Boosting (GBM),True,,7,0.5002612330198538,0.04760287837544233,0.71,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN6,Stacking,True,,6,0.570491118077325,0.05559898307995339,2.58,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN6,Stacking,True,,6,0.5123092998955068,0.02373253548220431,0.68,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN6,Stacking,True,,6,0.55,0.05163977794943222,0.68,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN7,Voting Ensemble,True,,8,0.5992371995820271,0.04920716636584541,0.2,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN7,Voting Ensemble,True,,8,0.5478369905956113,0.03361287773822715,0.24,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN7,Voting Ensemble,True,,8,0.5829153605015673,0.07844271087071729,0.23,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,SV1,SVM (linear),True,,12,0.5900313479623825,0.06198338921221418,0.13,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,SV1,SVM (linear),True,,12,0.5469278996865204,0.07193737286307311,0.15,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,SV1,SVM (linear),True,,12,0.6006060606060607,0.074069681534899,0.12,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.5633333333333332,0.04760952285695232,0.12,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.5356426332288401,0.012906472138745476,0.13,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.5524242424242425,0.07708890792142475,0.12,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,PR1,Naive Bayes,True,,16,0.5937722048066876,0.11128021044141209,0.11,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,PR1,Naive Bayes,True,,16,0.6319226750261233,0.10959990673242591,0.12,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,PR1,Naive Bayes,True,,16,0.5733124346917451,0.06375076922429213,0.13,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,IB1,k-Nearest Neighbors,True,,14,0.5860188087774295,0.027630316054508046,0.14,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,IB1,k-Nearest Neighbors,True,,14,0.5868129571577848,0.0784205938484401,0.12,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,IB1,k-Nearest Neighbors,True,,14,0.6047335423197493,0.052224348446942036,0.14,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.5900313479623824,0.042917834733742465,0.13,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.5551097178683386,0.0925787496399051,0.12,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.593939393939394,0.06753565871026083,0.13,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,NN1,Perceptron,True,,17,0.5616509926854754,0.08814411195745232,0.12,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,NN1,Perceptron,True,,17,0.5165517241379309,0.10701476592897419,0.12,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,NN1,Perceptron,True,,17,0.6108986415882969,0.11262683779255216,0.12,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,NN2,MLP (Feedforward),True,,5,0.5856739811912226,0.05527209101731816,2.52,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,NN2,MLP (Feedforward),True,,5,0.5804075235109718,0.08022153932057029,2.58,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,NN2,MLP (Feedforward),True,,5,0.5720062695924766,0.07471395458145093,2.47,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN3,XGBoost,True,,4,0.5735945663531871,0.038943661130803185,0.31,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN3,XGBoost,True,,4,0.5311703239289447,0.04536215643425019,0.23,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN3,XGBoost,True,,4,0.570146290491118,0.033980375060407055,0.24,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN4,LightGBM,True,,2,0.5668129571577847,0.021083881238415533,0.2,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN4,LightGBM,True,,2,0.5351828631138976,0.06441950420993506,0.2,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,EN4,LightGBM,True,,2,0.5535945663531872,0.03879221366257358,0.25,ok,,2
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,0.5737095088819226,0.025354505523090237,0.59,ok,,0
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,0.541055381400209,0.05887542185582186,0.52,ok,,1
+heart_disease_va_long_beach,classification,200,13,False,A11 A21 A38 A41 A51 A62,A54,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,0.5277220480668756,0.03240392504407631,0.55,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,LM2,Logistic Regression,True,,10,0.8437037037037036,0.07114196861358799,0.11,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,LM2,Logistic Regression,True,,10,0.8465242165242165,0.03949396224475521,0.12,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,LM2,Logistic Regression,True,,10,0.8367521367521368,0.05742080252056591,0.11,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,TR1,Decision Tree,True,,13,0.8754131054131055,0.05189657130482835,0.12,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,TR1,Decision Tree,True,,13,0.8421082621082621,0.02441008616112648,0.11,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,TR1,Decision Tree,True,,13,0.8452136752136752,0.04325379357183654,0.1,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,TR2,Random Forest,True,,3,0.8703703703703705,0.09075207790098828,2.36,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,TR2,Random Forest,True,,3,0.8917094017094016,0.04203031464851688,2.26,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,TR2,Random Forest,True,,3,0.8887464387464388,0.04304389816241654,2.35,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,TR3,Extra Trees,True,,1,0.888888888888889,0.06571334849249447,1.86,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,TR3,Extra Trees,True,,1,0.8925925925925926,0.042552315900281724,1.89,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,TR3,Extra Trees,True,,1,0.8850427350427351,0.04484243601572205,1.91,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN1,AdaBoost,True,,15,0.8903703703703704,0.06314135947000324,0.51,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN1,AdaBoost,True,,15,0.9118518518518519,0.03180875637567982,0.53,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN1,AdaBoost,True,,15,0.8754131054131055,0.039773508329514325,0.57,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN2,Gradient Boosting (GBM),True,,7,0.9074074074074074,0.04789105148220627,0.74,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN2,Gradient Boosting (GBM),True,,7,0.8974928774928774,0.025040385072333467,0.72,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN2,Gradient Boosting (GBM),True,,7,0.8974928774928775,0.02799304418318706,0.76,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN6,Stacking,True,,6,0.8570370370370372,0.07512586603560358,0.69,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN6,Stacking,True,,6,0.8660968660968662,0.03218389784997346,0.65,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN6,Stacking,True,,6,0.8546723646723647,0.038615330384659294,0.53,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN7,Voting Ensemble,True,,8,0.868148148148148,0.07134221705383413,0.2,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN7,Voting Ensemble,True,,8,0.8754131054131052,0.02742120471754996,0.19,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN7,Voting Ensemble,True,,8,0.8687464387464386,0.041088863915511045,0.19,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,SV1,SVM (linear),True,,12,0.8296296296296296,0.05916659421545442,0.1,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,SV1,SVM (linear),True,,12,0.8428205128205128,0.02640575355695315,0.1,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,SV1,SVM (linear),True,,12,0.8366096866096868,0.05422034920102963,0.11,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.8414814814814815,0.04059908031420661,0.13,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.8517094017094017,0.03590399252743445,0.13,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.8487464387464387,0.05874740590724287,0.12,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,PR1,Naive Bayes,True,,16,0.8555555555555555,0.04631851318774369,0.1,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,PR1,Naive Bayes,True,,16,0.8383760683760684,0.051365206401783506,0.1,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,PR1,Naive Bayes,True,,16,0.8419373219373218,0.06785135803565448,0.09,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,IB1,k-Nearest Neighbors,True,,14,0.8088888888888889,0.04557813351974863,0.11,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,IB1,k-Nearest Neighbors,True,,14,0.7924501424501424,0.04384299742983966,0.1,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,IB1,k-Nearest Neighbors,True,,14,0.790968660968661,0.04606033226284732,0.1,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.8103703703703704,0.056286548863741855,0.1,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.8028205128205128,0.01998619664738928,0.11,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.796011396011396,0.0690573843276437,0.11,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,NN1,Perceptron,True,,17,0.8274358974358975,0.06601967690510702,0.1,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,NN1,Perceptron,True,,17,0.8262678062678063,0.0727636443140678,0.1,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,NN1,Perceptron,True,,17,0.8321652421652421,0.030496096991604254,0.1,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,NN2,MLP (Feedforward),True,,5,0.8731908831908832,0.06638876013192999,2.43,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,NN2,MLP (Feedforward),True,,5,0.8976353276353276,0.03322548115452495,2.36,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,NN2,MLP (Feedforward),True,,5,0.8766096866096866,0.08135429277895356,2.21,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN3,XGBoost,True,,4,0.8800000000000001,0.07534465845897134,0.25,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN3,XGBoost,True,,4,0.8863817663817665,0.03060067793771316,0.24,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN3,XGBoost,True,,4,0.8767521367521368,0.035286070576513756,0.22,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN4,LightGBM,True,,2,0.8962962962962961,0.0758671859500407,0.18,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN4,LightGBM,True,,2,0.9174928774928774,0.03363879809485979,0.18,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,EN4,LightGBM,True,,2,0.8909686609686611,0.05150061055046555,0.18,ok,,2
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,0.8820797720797721,0.0632451938555294,0.48,ok,,0
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,0.9080056980056981,0.041512464557023177,0.53,ok,,1
+biomed,classification,209,8,False,A11 A21 A38 A41 A51 A61,A54,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,0.8814814814814815,0.04517911313178343,0.5,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,LM2,Logistic Regression,True,,10,0.6325358680057389,0.033346424171577724,0.15,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,LM2,Logistic Regression,True,,10,0.630157819225251,0.04695211223069594,0.13,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,LM2,Logistic Regression,True,,10,0.6257711621233859,0.05761093133132229,0.13,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,TR1,Decision Tree,True,,13,0.6235868005738882,0.05022674647103026,0.11,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,TR1,Decision Tree,True,,13,0.5754878048780487,0.059616049733581165,0.12,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,TR1,Decision Tree,True,,13,0.5754268292682927,0.044577538205808294,0.13,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,TR2,Random Forest,True,,3,0.6297274031563844,0.016117433554334485,2.47,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,TR2,Random Forest,True,,3,0.6595086083213773,0.05054788397059323,2.47,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,TR2,Random Forest,True,,3,0.6236872309899569,0.030268798166475167,2.48,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,TR3,Extra Trees,True,,1,0.6241140602582496,0.02027901234310048,2.12,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,TR3,Extra Trees,True,,1,0.6428299856527977,0.045121317394895555,2.0,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,TR3,Extra Trees,True,,1,0.615573888091822,0.04054355478070282,1.95,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN1,AdaBoost,True,,15,0.6276829268292683,0.03449581205751087,0.58,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN1,AdaBoost,True,,15,0.6143974175035869,0.05712168530340484,0.57,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN1,AdaBoost,True,,15,0.6420086083213774,0.05627252374862899,0.55,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN2,Gradient Boosting (GBM),True,,7,0.6029017216642754,0.04022386379427789,0.71,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN2,Gradient Boosting (GBM),True,,7,0.6172274031563845,0.08086665268316866,0.66,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN2,Gradient Boosting (GBM),True,,7,0.5902187948350072,0.03587955266072894,0.74,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN6,Stacking,True,,6,0.5683572453371591,0.03578460281749267,0.82,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN6,Stacking,True,,6,0.5674139167862268,0.025856419150794268,1.05,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN6,Stacking,True,,6,0.5809433285509327,0.008003112629302167,0.98,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN7,Voting Ensemble,True,,8,0.6099497847919656,0.018717379167755777,0.24,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN7,Voting Ensemble,True,,8,0.6149497847919656,0.07565214656095715,0.23,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN7,Voting Ensemble,True,,8,0.5921197991391678,0.03907246365120212,0.2,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,SV1,SVM (linear),True,,12,0.6241535150645624,0.02775226628354664,0.12,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,SV1,SVM (linear),True,,12,0.5967503586800573,0.04150667940811482,0.12,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,SV1,SVM (linear),True,,12,0.620771162123386,0.038407993135161134,0.12,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,SV2,Kernel SVM (RBF/Poly),True,,9,0.6202941176470589,0.03164533671238368,0.14,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,SV2,Kernel SVM (RBF/Poly),True,,9,0.6095337159253946,0.06360828396003687,0.14,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,SV2,Kernel SVM (RBF/Poly),True,,9,0.6044727403156385,0.019899557300363756,0.13,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,PR1,Naive Bayes,True,,16,0.624361549497848,0.052643086752682575,0.11,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,PR1,Naive Bayes,True,,16,0.5894942611190818,0.015947075893504054,0.12,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,PR1,Naive Bayes,True,,16,0.5641535150645625,0.05271544293188589,0.12,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,IB1,k-Nearest Neighbors,True,,14,0.5917503586800573,0.03686920272009907,0.13,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,IB1,k-Nearest Neighbors,True,,14,0.5891893830703013,0.04834446424107179,0.15,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,IB1,k-Nearest Neighbors,True,,14,0.6012984218077475,0.03645779196306662,0.12,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,DR4,LDA (Linear Discriminant Analysis),True,,11,0.6309182209469154,0.031836475030096345,0.13,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,DR4,LDA (Linear Discriminant Analysis),True,,11,0.6177797704447632,0.044672583268124844,0.14,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,DR4,LDA (Linear Discriminant Analysis),True,,11,0.6150968436154949,0.04398107221088676,0.13,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,NN1,Perceptron,True,,17,0.5645552367288378,0.09819017516839268,0.12,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,NN1,Perceptron,True,,17,0.5911764705882352,0.08021651065282559,0.12,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,NN1,Perceptron,True,,17,0.5675609756097562,0.07732044242023875,0.13,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,NN2,MLP (Feedforward),True,,5,0.6402654232424677,0.03340427139838864,3.82,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,NN2,MLP (Feedforward),True,,5,0.6179268292682927,0.07402196418664474,4.05,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,NN2,MLP (Feedforward),True,,5,0.6004878048780489,0.04265370308780644,3.95,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN3,XGBoost,True,,4,0.6015530846484936,0.034042408332973735,1.39,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN3,XGBoost,True,,4,0.6173134863701578,0.08078304783175583,0.29,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN3,XGBoost,True,,4,0.6323385939741751,0.05239602329690231,0.34,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN4,LightGBM,True,,2,0.6128407460545194,0.04577344987776854,0.26,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN4,LightGBM,True,,2,0.6010150645624103,0.06823690800798694,0.24,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,EN4,LightGBM,True,,2,0.602657819225251,0.05573888022578838,0.24,ok,,2
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,0.5791893830703012,0.06805335004535706,0.7,ok,,0
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,0.5866893830703013,0.05007517675524343,0.69,ok,,1
+breast_cancer,classification,286,9,False,A11 A21 A38 A41 A51 A61,A53,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,0.622596843615495,0.054805109722236664,0.68,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,LM2,Logistic Regression,True,,10,0.4086324786324786,0.034809679469807044,0.14,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,LM2,Logistic Regression,True,,10,0.41239316239316237,0.020210106115941606,0.14,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,LM2,Logistic Regression,True,,10,0.4224145299145299,0.047325775001288324,0.14,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,TR1,Decision Tree,True,,13,0.3621367521367521,0.02609153727987855,0.12,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,TR1,Decision Tree,True,,13,0.35925213675213674,0.011896088070820028,0.12,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,TR1,Decision Tree,True,,13,0.3400427350427351,0.038956654117014405,0.12,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,TR2,Random Forest,True,,3,0.3775641025641026,0.03124213685864319,2.65,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,TR2,Random Forest,True,,3,0.3963034188034188,0.037292758977583405,2.83,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,TR2,Random Forest,True,,3,0.387991452991453,0.039458679173479255,2.69,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,TR3,Extra Trees,True,,1,0.38269230769230766,0.03603574038969588,2.09,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,TR3,Extra Trees,True,,1,0.3866025641025641,0.02909088963475331,2.25,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,TR3,Extra Trees,True,,1,0.4022863247863248,0.05290166780243101,2.25,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN1,AdaBoost,True,,15,0.366025641025641,0.05510629492380503,0.62,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN1,AdaBoost,True,,15,0.40061965811965816,0.0645755484763939,0.61,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN1,AdaBoost,True,,15,0.38980769230769236,0.026746094454306715,0.59,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN2,Gradient Boosting (GBM),True,,7,0.4025427350427351,0.0345438482084246,2.67,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN2,Gradient Boosting (GBM),True,,7,0.39034188034188033,0.016343095071614595,2.59,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN2,Gradient Boosting (GBM),True,,7,0.31688034188034186,0.056415314782270014,2.57,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN6,Stacking,True,,6,0.36940170940170935,0.020809552502280487,1.09,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN6,Stacking,True,,6,0.37273504273504277,0.023196351301696987,1.01,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN6,Stacking,True,,6,0.398974358974359,0.04692833093746183,1.0,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN7,Voting Ensemble,True,,8,0.39416666666666667,0.05710234118396712,0.29,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN7,Voting Ensemble,True,,8,0.4045299145299145,0.0362143620743812,0.25,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN7,Voting Ensemble,True,,8,0.39743589743589747,0.04739280594534287,0.26,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,SV1,SVM (linear),True,,12,0.3905982905982906,0.020737727153408693,0.14,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,SV1,SVM (linear),True,,12,0.4028205128205128,0.018101910353561852,0.15,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,SV1,SVM (linear),True,,12,0.4025641025641026,0.03938770910213877,0.12,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.36619658119658116,0.018425395928886874,0.15,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.38576923076923075,0.025567772856453747,0.14,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.3876068376068376,0.042816588864343585,0.14,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,PR1,Naive Bayes,True,,16,0.42594017094017095,0.06683432785364044,0.11,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,PR1,Naive Bayes,True,,16,0.41876068376068376,0.04724018299421794,0.12,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,PR1,Naive Bayes,True,,16,0.4297008547008547,0.04168780966964995,0.11,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,IB1,k-Nearest Neighbors,True,,14,0.37239316239316245,0.03659643274445479,0.16,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,IB1,k-Nearest Neighbors,True,,14,0.39715811965811965,0.03570458474219025,0.12,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,IB1,k-Nearest Neighbors,True,,14,0.3557692307692308,0.06257864509188052,0.12,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.39226495726495725,0.02589419178010901,0.11,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.40559829059829056,0.014447604974615023,0.11,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.41839743589743594,0.030052824411281764,0.12,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,NN1,Perceptron,True,,17,0.4606837606837607,0.06758817559322378,0.12,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,NN1,Perceptron,True,,17,0.37604700854700857,0.06972760809643185,0.11,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,NN1,Perceptron,True,,17,0.38741452991452996,0.06456451780662967,0.12,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,NN2,MLP (Feedforward),True,,5,0.35365384615384615,0.058137582077776875,3.99,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,NN2,MLP (Feedforward),True,,5,0.39089743589743586,0.0334893483457979,4.11,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,NN2,MLP (Feedforward),True,,5,0.35438034188034184,0.017386388567345226,4.0,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN3,XGBoost,True,,4,0.36376068376068377,0.08343838983839436,0.83,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN3,XGBoost,True,,4,0.3681196581196581,0.024835145700735684,0.95,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN3,XGBoost,True,,4,0.3869871794871795,0.05348706749366166,0.89,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN4,LightGBM,True,,2,0.4015598290598291,0.05608864874796339,0.44,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN4,LightGBM,True,,2,0.37897435897435894,0.01374039620378352,0.53,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,EN4,LightGBM,True,,2,0.37506410256410255,0.05400894534447592,0.56,ok,,2
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,0.36670940170940175,0.0695775384682664,1.59,ok,,0
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,0.365491452991453,0.031479950588655825,1.43,ok,,1
+schizo,classification,340,14,False,A11 A21 A38 A41 A51 A61,A54,BASE-HGB,Histogram Gradient Boosting (baseline),False,,,0.39587606837606837,0.05532791956701951,1.48,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,LM2,Logistic Regression,True,,10,0.7493333333333335,0.02370185177950821,0.43,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,LM2,Logistic Regression,True,,10,0.76,0.04125799585804211,0.44,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,LM2,Logistic Regression,True,,10,0.7353333333333334,0.026465910988372355,0.43,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,TR1,Decision Tree,True,,13,0.688,0.06101365967278691,0.18,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,TR1,Decision Tree,True,,13,0.6426666666666667,0.039799497484264784,0.19,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,TR1,Decision Tree,True,,13,0.6753333333333333,0.058026813725303855,0.19,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,TR2,Random Forest,True,,3,0.8273333333333334,0.027438820836342286,3.03,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,TR2,Random Forest,True,,3,0.8226666666666667,0.05567365225630127,2.89,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,TR2,Random Forest,True,,3,0.794,0.055513762057509436,2.95,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,TR3,Extra Trees,True,,1,0.8539999999999999,0.03511251755270321,2.5,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,TR3,Extra Trees,True,,1,0.8326666666666668,0.044442222166663825,2.27,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,TR3,Extra Trees,True,,1,0.8593333333333334,0.03832028763519973,2.26,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN1,AdaBoost,True,,15,0.31333333333333335,0.0753362831280888,1.3,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN1,AdaBoost,True,,15,0.2906666666666667,0.0886791971095815,1.18,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN1,AdaBoost,True,,15,0.26333333333333336,0.0689283041363351,1.22,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN2,Gradient Boosting (GBM),True,,7,0.698,0.03885013942488925,50.09,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN2,Gradient Boosting (GBM),True,,7,0.6906666666666667,0.07835531606442253,51.17,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN2,Gradient Boosting (GBM),True,,7,0.6993333333333333,0.054299580518125924,51.57,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN6,Stacking,True,,6,0.8006666666666666,0.04620726253643591,3.74,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN6,Stacking,True,,6,0.796,0.03460250472629588,3.79,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN6,Stacking,True,,6,0.7833333333333334,0.05545769158156112,3.69,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN7,Voting Ensemble,True,,8,0.7906666666666667,0.028859814429217753,1.05,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN7,Voting Ensemble,True,,8,0.7859999999999999,0.035987652203375395,1.03,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN7,Voting Ensemble,True,,8,0.7773333333333334,0.03094080369565948,1.01,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,SV1,SVM (linear),True,,12,0.7173333333333333,0.012719189352225933,0.5,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,SV1,SVM (linear),True,,12,0.72,0.05497474167490208,0.47,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,SV1,SVM (linear),True,,12,0.7106666666666668,0.045087569117095834,0.54,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.808,0.037273761995984964,0.19,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.7926666666666666,0.05195724738239662,0.19,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.7953333333333333,0.019955506062794337,0.18,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,PR1,Naive Bayes,True,,16,0.6046666666666667,0.02315167380558042,0.12,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,PR1,Naive Bayes,True,,16,0.624,0.07050295502081216,0.11,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,PR1,Naive Bayes,True,,16,0.61,0.0616080802781222,0.11,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,IB1,k-Nearest Neighbors,True,,14,0.7206666666666667,0.03586394041683404,0.56,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,IB1,k-Nearest Neighbors,True,,14,0.7686666666666667,0.03166491223210112,0.56,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,IB1,k-Nearest Neighbors,True,,14,0.73,0.038930136855083855,0.64,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.648,0.033770467045103864,3.81,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.6293333333333334,0.048184829332247124,3.1,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.6273333333333333,0.060530983801686235,5.0,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN1,Perceptron,True,,17,0.53,0.04642796092394705,0.23,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN1,Perceptron,True,,17,0.5086666666666666,0.0561980624418869,0.2,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN1,Perceptron,True,,17,0.542,0.03550273854851825,0.22,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN2,Gradient Boosting (GBM),True,,7,0.6993333333333333,0.054299580518125924,54.18,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN6,Stacking,True,,6,0.8006666666666666,0.04620726253643591,8.02,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN6,Stacking,True,,6,0.796,0.03460250472629588,3.82,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN6,Stacking,True,,6,0.7833333333333334,0.05545769158156112,3.76,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN7,Voting Ensemble,True,,8,0.7906666666666667,0.028859814429217753,0.66,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN7,Voting Ensemble,True,,8,0.7859999999999999,0.035987652203375395,0.6,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN7,Voting Ensemble,True,,8,0.7773333333333334,0.03094080369565948,1.02,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,SV1,SVM (linear),True,,12,0.7173333333333333,0.012719189352225933,0.71,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,SV1,SVM (linear),True,,12,0.72,0.05497474167490208,0.57,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,SV1,SVM (linear),True,,12,0.7106666666666668,0.045087569117095834,0.72,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.808,0.037273761995984964,0.25,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.7926666666666666,0.05195724738239662,0.27,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,SV2,Kernel SVM (RBF/Poly),True,,9,0.7953333333333333,0.019955506062794337,0.22,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,PR1,Naive Bayes,True,,16,0.6046666666666667,0.02315167380558042,0.21,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,PR1,Naive Bayes,True,,16,0.624,0.07050295502081216,0.16,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN2,MLP (Feedforward),True,,5,0.8493333333333336,0.040846596485441033,43.99,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,PR1,Naive Bayes,True,,16,0.61,0.0616080802781222,0.12,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,IB1,k-Nearest Neighbors,True,,14,0.7206666666666667,0.03586394041683404,0.31,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,IB1,k-Nearest Neighbors,True,,14,0.7686666666666667,0.03166491223210112,0.29,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,IB1,k-Nearest Neighbors,True,,14,0.73,0.038930136855083855,0.39,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.648,0.033770467045103864,0.43,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.6293333333333334,0.048184829332247124,0.66,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,DR4,LDA (Linear Discriminant Analysis),True,,11,0.6273333333333333,0.060530983801686235,1.46,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN1,Perceptron,True,,17,0.53,0.04642796092394705,0.28,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN1,Perceptron,True,,17,0.5086666666666666,0.0561980624418869,0.29,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN1,Perceptron,True,,17,0.542,0.03550273854851825,0.25,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN2,MLP (Feedforward),True,,5,0.8606666666666667,0.04100948399794582,45.17,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN2,MLP (Feedforward),True,,5,0.8493333333333336,0.040846596485441033,46.57,ok,,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN2,MLP (Feedforward),True,,5,0.8520000000000001,0.05791181034795728,39.36,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN2,MLP (Feedforward),True,,5,0.8606666666666667,0.04100948399794582,44.86,ok,,1
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,NN2,MLP (Feedforward),True,,5,0.8520000000000001,0.05791181034795728,38.74,ok,,2
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN3,XGBoost,True,,4,,,60,timeout,over 60s,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN3,XGBoost,True,,4,,,60,timeout,over 60s,0
+movement_libras,classification,360,90,False,A11 A21 A31 A42 A51 A61,A54,EN3,XGBoost,True,,4,,,60,timeout,over 60s,1

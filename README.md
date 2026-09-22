@@ -56,6 +56,12 @@ The weights are a prior per model, fitted in `bench/dcn/learn.py` and judged lea
 
 A model the benchmark never ran is shown below the ones it did, with no score attached, and a task the benchmark never covered (forecasting, grouping, anomalies) still falls back to coordinates. The page says which of the two it used.
 
+### Datasets like yours
+
+The plot used to place a dataset by axes 1 to 3, and the first two are the same for every labelled table with independent rows, so three different uploads could land on the same point among ten invented reference datasets. It now shows the 40 datasets the recommendations were tested on, positioned by measured properties (size, shape, how much of the table is numeric), with your data placed among them and its closest neighbours highlighted.
+
+Underneath, those neighbours are listed with what actually won on each, and every recommendation carries a second line: how often that model was the best choice on the datasets closest to yours, and how far below the winner it typically landed. Closeness is measured on the same eight properties for an upload and for a benchmark dataset, scaled by how much each varies across the benchmark.
+
 ### What it was worth on real data
 
 The instrument now publishes its own scoreboard, in **The evidence** tab: 40

@@ -82,6 +82,24 @@
       <div><div class="opts" id="q-order"></div></div>
     </div>
 
+    <div class="qrow">
+      <div>
+        <h4>Where will it run?</h4>
+        <p class="why">Decides which drift checkers and pipelines can be used at all. A detector that compares two
+          batches has nothing to compare in a stream, and the reverse.</p>
+      </div>
+      <div><div class="opts" id="q-mode"></div></div>
+    </div>
+
+    <div class="qrow">
+      <div>
+        <h4>When do you find out you were wrong?</h4>
+        <p class="why">Detectors that watch the error rate need labels to arrive while you serve. Without labels you
+          can only watch the data itself move.</p>
+      </div>
+      <div><div class="opts" id="q-labels"></div></div>
+    </div>
+
     <div class="runrow">
       <button class="run" id="run" disabled>Read the specimen</button>
     </div>
@@ -91,10 +109,11 @@
     <section class="sect">
       <h2 class="sect-h">Where your data sits</h2>
       <p class="sect-note">
-        Your specimen plotted against reference datasets in the first three axes. Nearby points
-        are datasets that share your structure, so they tend to share your model options too.
+        Your data placed among the 40 datasets the recommendations were tested on, by size, shape and how much of
+        the table is numeric. The brighter points are the ones closest to yours, and what won on them is listed below.
       </p>
       <div id="plot"></div>
+      <div id="neighbours"></div>
     </section>
 
     <section class="sect">

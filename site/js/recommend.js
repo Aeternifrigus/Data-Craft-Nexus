@@ -62,6 +62,22 @@ export function conflict(model, sig) {
   return null;
 }
 
+// How the thing will run decides which drift checkers and pipelines can be
+// used at all. A detector that watches the error stream is useless if labels
+// never arrive, and one that compares two batches is useless in a stream.
+// `ops` comes from the two questions on the intake: {mode, labels}.
+export function operatingConflict(entry, ops) {
+  const needs = entry.needs;
+  if (!needs || !ops) return null;
+  if (needs.modes && ops.mode && !needs.modes.includes(ops.mode)) {
+    return `${needs.note || 'is built for the other shape'}, so it does not fit ${ops.mode === 'streaming' ? 'a stream' : 'batch scoring'}`;
+  }
+  if (needs.labels && ops.labels && !needs.labels.includes(ops.labels)) {
+    return needs.note || `needs labels, and yours ${ops.labels === 'none' ? 'never arrive' : 'arrive later'}`;
+  }
+  return null;
+}
+
 // Usable, but with a caveat worth printing on the card.
 export function caution(model, sig) {
   const [, structure] = sig.codes;
@@ -127,13 +143,18 @@ export function rankModels(T, sig, task, limit = 4) {
 
 export function rankDrifts(T, sig, limit = 4) {
   const codes = matchCodes(sig);
-  const usable = T.DRIFTS.filter(d => d.fits.some(f => codes.includes(f)));
-  return scored(usable, codes, limit);   // no benchmark for drift checkers yet
+  const matching = T.DRIFTS.filter(d => d.fits.some(f => codes.includes(f)));
+  const usable = matching.filter(d => !operatingConflict(d, sig.ops));
+  const out = scored(usable, codes, limit);   // no benchmark for drift checkers yet
+  out.ruledOut = matching.filter(d => operatingConflict(d, sig.ops))
+    .map(d => ({ c: d.c, n: d.n, why: operatingConflict(d, sig.ops) }));
+  return out;
 }
 
 export function rankPipelines(T, sig, task, limit = 3) {
   const codes = matchCodes(sig);
   const ranked = T.PIPELINES
+    .filter(p => !operatingConflict(p, sig.ops))
     .map(p => {
       // Codes like "A3x" mean "any modality": they fit everything, so they
       // say nothing about this dataset and don't earn a point.
@@ -144,7 +165,14 @@ export function rankPipelines(T, sig, task, limit = 3) {
     })
     .sort((a, b) => b.score - a.score);
   const top = ranked.length ? ranked[0].score : 0;
-  return { items: ranked.slice(0, limit), candidates: ranked.length, tied: ranked.filter(x => x.score === top).length, topScore: top };
+  return {
+    items: ranked.slice(0, limit),
+    candidates: ranked.length,
+    tied: ranked.filter(x => x.score === top).length,
+    topScore: top,
+    ruledOut: T.PIPELINES.filter(p => operatingConflict(p, sig.ops))
+      .map(p => ({ c: p.c, n: p.n, why: operatingConflict(p, sig.ops) })),
+  };
 }
 
 // Position of a signature on the 3D plot (axes 1 to 3).

@@ -37,7 +37,7 @@ from .recommend import conflict, load_taxonomy, rank_models
 FIELDS = [
     "dataset", "task", "rows", "features", "subsampled", "signature", "flags",
     "model", "model_name", "eligible", "ruled_out_why", "recommended_rank",
-    "score", "score_std", "seconds", "status", "detail",
+    "score", "score_std", "seconds", "status", "detail", "seed",
 ]
 TASK_CODE = {"classification": "category", "regression": "number"}
 SCORING = {"classification": "balanced_accuracy", "regression": "r2"}
@@ -70,7 +70,8 @@ def profile_dataset(dataset: ds.Dataset) -> dict:
     return {"signature": sig, "numeric": numeric, "categorical": categorical, "profile": profile}
 
 
-def evaluate(dataset: ds.Dataset, spec, task: str, numeric, categorical, folds: int, budget: int) -> dict:
+def evaluate(dataset: ds.Dataset, spec, task: str, numeric, categorical, folds: int, budget: int,
+             seed: int = 0) -> dict:
     X = dataset.frame.drop(columns=["target"])
     y = dataset.frame["target"].to_numpy()
     if task == "classification":
@@ -79,10 +80,10 @@ def evaluate(dataset: ds.Dataset, spec, task: str, numeric, categorical, folds: 
             return {"status": "skipped", "detail": f"a class has only {counts.min()} rows"}
         # Some libraries (XGBoost) insist on integer class labels.
         y = LabelEncoder().fit_transform(y)
-        cv = StratifiedKFold(folds, shuffle=True, random_state=0)
+        cv = StratifiedKFold(folds, shuffle=True, random_state=seed)
     else:
         y = y.astype(float)
-        cv = KFold(folds, shuffle=True, random_state=0)
+        cv = KFold(folds, shuffle=True, random_state=seed)
 
     pipe = build_pipeline(spec, task, numeric, categorical)
     started = time.time()
@@ -102,11 +103,12 @@ def evaluate(dataset: ds.Dataset, spec, task: str, numeric, categorical, folds: 
                 "detail": f"{type(exc).__name__}: {exc}"[:300]}
 
 
-def done_pairs(path: Path) -> set[tuple[str, str]]:
+def done_pairs(path: Path) -> set[tuple[str, str, str]]:
+    """What has already been measured, so a stopped run resumes where it left off."""
     if not path.exists():
         return set()
     with path.open() as fh:
-        return {(row["dataset"], row["model"]) for row in csv.DictReader(fh)}
+        return {(row["dataset"], row["model"], row.get("seed", "0")) for row in csv.DictReader(fh)}
 
 
 def main(argv=None) -> int:
@@ -117,7 +119,9 @@ def main(argv=None) -> int:
     ap.add_argument("--folds", type=int, default=5)
     ap.add_argument("--budget", type=int, default=120, help="seconds per model per dataset")
     ap.add_argument("--max-rows", type=int, default=5000, help="subsample larger datasets")
-    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--seed", type=int, default=0, help="seed for subsampling")
+    ap.add_argument("--seeds", type=int, default=1,
+                    help="repeat every fit under this many cross-validation seeds, to measure the spread")
     args = ap.parse_args(argv)
 
     taxonomy = load_taxonomy()
@@ -142,7 +146,8 @@ def main(argv=None) -> int:
             for _, row in candidates.iterrows():
                 name = row.dataset
                 codes = [c for c in runnable_codes(task)]
-                if all((name, c) in already for c in codes + [BASELINE.code]):
+                seeds = list(range(args.seeds))
+                if all((name, c, str(seed)) in already for c in codes + [BASELINE.code] for seed in seeds):
                     continue
                 try:
                     dataset = ds.load(name)
@@ -165,13 +170,16 @@ def main(argv=None) -> int:
                       f"{' '.join(sig['codes'])} -> {len(ranking.items)} eligible, {len(ruled)} ruled out",
                       flush=True)
 
-                for code in codes + [BASELINE.code]:
-                    if (name, code) in already:
+                # Every model under every seed: repeating the split is what
+                # separates a real difference from the luck of one partition.
+                for code, seed in ((c, s) for c in codes + [BASELINE.code] for s in seeds):
+                    if (name, code, str(seed)) in already:
                         continue
                     spec = BASELINE if code == BASELINE.code else BY_CODE[code]
                     result = evaluate(dataset, spec, task, measured["numeric"], measured["categorical"],
-                                      args.folds, args.budget)
+                                      args.folds, args.budget, seed=seed)
                     writer.writerow({
+                        "seed": seed,
                         "dataset": name, "task": task, "rows": len(dataset.frame),
                         "features": dataset.n_features, "subsampled": subsampled,
                         "signature": " ".join(sig["codes"]), "flags": " ".join(sig["flags"]),

@@ -40,6 +40,18 @@
    "ref": {
     "label": "scipy.stats.ks_2samp",
     "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -60,6 +72,18 @@
    "ref": {
     "label": "Evidently on GitHub",
     "url": "https://github.com/evidentlyai/evidently"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -80,6 +104,18 @@
    "ref": {
     "label": "scipy.stats.chi2_contingency",
     "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -100,6 +136,18 @@
    "ref": {
     "label": "scipy.stats.wasserstein_distance",
     "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wasserstein_distance.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -121,6 +169,18 @@
    "ref": {
     "label": "scipy.spatial.distance.jensenshannon",
     "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.jensenshannon.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -140,6 +200,18 @@
    "ref": {
     "label": "scipy.stats.entropy",
     "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.entropy.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -159,6 +231,18 @@
    "ref": {
     "label": "Alibi Detect on GitHub",
     "url": "https://github.com/SeldonIO/alibi-detect"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -178,6 +262,18 @@
    "ref": {
     "label": "scipy.stats.anderson_ksamp",
     "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.anderson_ksamp.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -198,6 +294,18 @@
    "ref": {
     "label": "scipy.stats.mannwhitneyu",
     "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -218,6 +326,18 @@
    "ref": {
     "label": "scipy.stats.cramervonmises_2samp",
     "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.cramervonmises_2samp.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -238,6 +358,18 @@
    "ref": {
     "label": "Alibi Detect on GitHub",
     "url": "https://github.com/SeldonIO/alibi-detect"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -257,6 +389,18 @@
    "ref": {
     "label": "scipy.stats.cramervonmises_2samp",
     "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.cramervonmises_2samp.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -276,6 +420,18 @@
    "ref": {
     "label": "scipy.stats.anderson_ksamp",
     "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.anderson_ksamp.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -296,6 +452,18 @@
    "ref": {
     "label": "scipy.stats.energy_distance",
     "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.energy_distance.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares a window of feature values against a reference"
    }
   },
   {
@@ -318,6 +486,16 @@
    "ref": {
     "label": "river drift.binary.DDM",
     "url": "https://riverml.xyz/latest/api/drift/binary/DDM/"
+   },
+   "needs": {
+    "modes": [
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "watches the error stream, so it needs labels arriving as you serve"
    }
   },
   {
@@ -338,6 +516,16 @@
    "ref": {
     "label": "river drift.binary.EDDM",
     "url": "https://riverml.xyz/latest/api/drift/binary/EDDM/"
+   },
+   "needs": {
+    "modes": [
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "watches the error stream, so it needs labels arriving as you serve"
    }
   },
   {
@@ -357,6 +545,16 @@
    "ref": {
     "label": "river drift.PageHinkley",
     "url": "https://riverml.xyz/latest/api/drift/PageHinkley/"
+   },
+   "needs": {
+    "modes": [
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "watches the error stream, so it needs labels arriving as you serve"
    }
   },
   {
@@ -376,6 +574,16 @@
    "ref": {
     "label": "river drift.ADWIN",
     "url": "https://riverml.xyz/latest/api/drift/ADWIN/"
+   },
+   "needs": {
+    "modes": [
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "watches the error stream, so it needs labels arriving as you serve"
    }
   },
   {
@@ -395,6 +603,16 @@
    "ref": {
     "label": "river drift.KSWIN",
     "url": "https://riverml.xyz/latest/api/drift/KSWIN/"
+   },
+   "needs": {
+    "modes": [
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "watches the error stream, so it needs labels arriving as you serve"
    }
   },
   {
@@ -414,6 +632,16 @@
    "ref": {
     "label": "river on GitHub",
     "url": "https://github.com/online-ml/river"
+   },
+   "needs": {
+    "modes": [
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "watches the error stream, so it needs labels arriving as you serve"
    }
   },
   {
@@ -433,6 +661,16 @@
    "ref": {
     "label": "river on GitHub",
     "url": "https://github.com/online-ml/river"
+   },
+   "needs": {
+    "modes": [
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "watches the error stream, so it needs labels arriving as you serve"
    }
   },
   {
@@ -453,6 +691,16 @@
    "ref": {
     "label": "river on GitHub",
     "url": "https://github.com/online-ml/river"
+   },
+   "needs": {
+    "modes": [
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "watches the error stream, so it needs labels arriving as you serve"
    }
   },
   {
@@ -472,6 +720,16 @@
    "ref": {
     "label": "river on GitHub",
     "url": "https://github.com/online-ml/river"
+   },
+   "needs": {
+    "modes": [
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "watches the error stream, so it needs labels arriving as you serve"
    }
   },
   {
@@ -492,6 +750,18 @@
    "ref": {
     "label": "scipy.spatial.distance.mahalanobis",
     "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.mahalanobis.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares the joint distribution of the features"
    }
   },
   {
@@ -513,6 +783,18 @@
    "ref": {
     "label": "Decomposition in scikit-learn",
     "url": "https://scikit-learn.org/stable/modules/decomposition.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "compares the joint distribution of the features"
    }
   },
   {
@@ -534,6 +816,17 @@
    "ref": {
     "label": "Evidently on GitHub",
     "url": "https://github.com/evidentlyai/evidently"
+   },
+   "needs": {
+    "modes": [
+     "batch"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "trains a classifier to separate old data from new, which needs both batches in hand"
    }
   },
   {
@@ -555,6 +848,18 @@
    "ref": {
     "label": "Alibi Detect on GitHub",
     "url": "https://github.com/SeldonIO/alibi-detect"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "scores drift with a learned model of the reference data"
    }
   },
   {
@@ -578,6 +883,18 @@
    "ref": {
     "label": "Alibi Detect on GitHub",
     "url": "https://github.com/SeldonIO/alibi-detect"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "scores drift with a learned model of the reference data"
    }
   }
  ]

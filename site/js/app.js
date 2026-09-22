@@ -9,7 +9,25 @@ import { initDrawer } from './drawer.js';
 import { buildLibrary, initLibrarySearch } from './library.js';
 import { buildEvidence } from './evidence.js';
 
-const state = { T: null, rows: [], cols: [], profile: null, decl: { target: null, task: null, order: null } };
+// mode and labels describe how the thing will run once it is built. They
+// start at the common case and can be changed; the other three have no
+// default because the data cannot imply them.
+const state = {
+  T: null, rows: [], cols: [], profile: null,
+  decl: { target: null, task: null, order: null, mode: 'batch', labels: 'delayed' },
+};
+
+const OPERATING = {
+  mode: [
+    ['batch', 'In batches, on a schedule'],
+    ['streaming', 'As a stream, row by row'],
+  ],
+  labels: [
+    ['immediate', 'Straight away'],
+    ['delayed', 'Later, days or weeks'],
+    ['none', 'Never'],
+  ],
+};
 
 function buildReadout(T) {
   document.getElementById('readout').innerHTML = T.AXES.map(a => `
@@ -91,6 +109,17 @@ function buildDeclarations() {
     b.classList.add('sel'); decl.task = b.dataset.task; checkReady();
   }));
 
+  for (const [key, options] of Object.entries(OPERATING)) {
+    const box = document.getElementById(`q-${key}`);
+    box.innerHTML = options.map(([value, label]) =>
+      `<button class="opt${decl[key] === value ? ' sel' : ''}" data-value="${esc(value)}">${esc(label)}</button>`).join('');
+    box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      box.querySelectorAll('button').forEach(o => o.classList.remove('sel'));
+      b.classList.add('sel');
+      decl[key] = b.dataset.value;
+    }));
+  }
+
   const od = document.getElementById('q-order');
   const hint = profile.dateCols.length ? ` (a date column was found: ${esc(profile.dateCols[0].name)})` : '';
   od.innerHTML =
@@ -139,7 +168,7 @@ function initIntake() {
     const sig = signature(state.profile, state.decl);
     setSlot(5, sig.codes[4], sig.balance != null);
     showFlags(sig);
-    renderResults(state.T, sig, state.decl.task);
+    renderResults(state.T, sig, state.decl.task, state.profile);
     document.getElementById('results').classList.add('on');
     document.getElementById('results').scrollIntoView({ block: 'start' });
   });

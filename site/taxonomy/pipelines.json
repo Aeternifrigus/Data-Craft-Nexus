@@ -75,6 +75,17 @@
    "ref": {
     "label": "Apache Airflow documentation",
     "url": "https://airflow.apache.org/docs/"
+   },
+   "needs": {
+    "modes": [
+     "batch"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "moves data on a schedule"
    }
   },
   {
@@ -101,6 +112,17 @@
    "ref": {
     "label": "Feast, the feature store",
     "url": "https://github.com/feast-dev/feast"
+   },
+   "needs": {
+    "modes": [
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "moves data as it arrives"
    }
   },
   {
@@ -128,6 +150,18 @@
    "ref": {
     "label": "Feature extraction in scikit-learn",
     "url": "https://scikit-learn.org/stable/modules/feature_extraction.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": ""
    }
   },
   {
@@ -159,6 +193,17 @@
    "ref": {
     "label": "Optuna documentation",
     "url": "https://optuna.readthedocs.io/en/stable/"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "training needs labelled examples"
    }
   },
   {
@@ -182,6 +227,17 @@
    "ref": {
     "label": "Cross-validation in scikit-learn",
     "url": "https://scikit-learn.org/stable/modules/cross_validation.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "you cannot validate against labels you never get"
    }
   },
   {
@@ -208,6 +264,18 @@
    "ref": {
     "label": "MLflow documentation",
     "url": "https://mlflow.org/docs/latest/index.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": ""
    }
   },
   {
@@ -236,6 +304,17 @@
    "ref": {
     "label": "BentoML on GitHub",
     "url": "https://github.com/bentoml/BentoML"
+   },
+   "needs": {
+    "modes": [
+     "batch"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "scores a batch at a time"
    }
   },
   {
@@ -262,6 +341,17 @@
    "ref": {
     "label": "Kubeflow Pipelines on GitHub",
     "url": "https://github.com/kubeflow/pipelines"
+   },
+   "needs": {
+    "modes": [
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": "answers one request at a time"
    }
   },
   {
@@ -287,6 +377,18 @@
    "ref": {
     "label": "Evidently on GitHub",
     "url": "https://github.com/evidentlyai/evidently"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": ""
    }
   },
   {
@@ -314,6 +416,17 @@
    "ref": {
     "label": "MLflow documentation",
     "url": "https://mlflow.org/docs/latest/index.html"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "retraining needs fresh labels"
    }
   },
   {
@@ -339,6 +452,17 @@
    "ref": {
     "label": "Label Studio on GitHub",
     "url": "https://github.com/HumanSignal/label-studio"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "none",
+     "delayed"
+    ],
+    "note": "labelling is what you do when labels do not arrive on their own"
    }
   },
   {
@@ -366,6 +490,18 @@
    "ref": {
     "label": "RAG in the Hugging Face docs",
     "url": "https://huggingface.co/docs/transformers/model_doc/rag"
+   },
+   "needs": {
+    "modes": [
+     "batch",
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed",
+     "none"
+    ],
+    "note": ""
    }
   },
   {
@@ -394,6 +530,16 @@
    "ref": {
     "label": "TRL, fine-tuning with Hugging Face",
     "url": "https://huggingface.co/docs/trl/index"
+   },
+   "needs": {
+    "modes": [
+     "batch"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "fine-tuning is a training job over collected examples"
    }
   },
   {
@@ -419,6 +565,16 @@
    "ref": {
     "label": "Statistical tests in SciPy",
     "url": "https://docs.scipy.org/doc/scipy/reference/stats.html"
+   },
+   "needs": {
+    "modes": [
+     "streaming"
+    ],
+    "labels": [
+     "immediate",
+     "delayed"
+    ],
+    "note": "splitting live traffic needs live traffic and an outcome to compare"
    }
   }
  ],

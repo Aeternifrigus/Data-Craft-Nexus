@@ -91,10 +91,17 @@ export function initLibrarySearch() {
       card.style.display = hit ? '' : 'none';
     });
     document.querySelectorAll('#lib-body .lib-subheading').forEach(h => {
-      const group = h.nextElementSibling;
-      const nextCards = group ? group.querySelectorAll('.lib-card') : [];
-      const any = [...nextCards].some(c => c.style.display !== 'none');
+      // The grid isn't always the next element: most groups have a
+      // description paragraph in between. Walk forward to the first grid.
+      let el = h.nextElementSibling;
+      while (el && !el.classList.contains('lib-grid') && !el.classList.contains('lib-subheading')) el = el.nextElementSibling;
+      const cards = el && el.classList.contains('lib-grid') ? el.querySelectorAll('.lib-card') : [];
+      const any = [...cards].some(c => c.style.display !== 'none');
       h.style.display = any ? '' : 'none';
+      if (el && el.classList.contains('lib-grid')) {
+        const desc = h.nextElementSibling;
+        if (desc && desc.classList.contains('lib-sub')) desc.style.display = any ? '' : 'none';
+      }
     });
     document.querySelectorAll('#lib-body .lib-group').forEach(g => {
       const any = [...g.querySelectorAll('.lib-card')].some(c => c.style.display !== 'none');

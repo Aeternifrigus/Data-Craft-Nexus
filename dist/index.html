@@ -693,6 +693,33 @@ footer .sig{font-size:27px}
   }
   var PSI_SHIFT = 0.25;
 
+  // site/js/dates.js
+  var MONTHS = "january|february|march|april|august|september|october|november|december|june|july|jan|feb|mar|apr|may|jun|jul|aug|sept|sep|oct|nov|dec";
+  var DATE_PATTERNS = [
+    // 2025, 2025-01, 2025-01-04, 2025-01-04T10:30:00.500Z, 2025-01-04 10:30
+    /^\d{4}(-\d{1,2}(-\d{1,2})?)?([T ]\d{1,2}:\d{2}(:\d{2})?(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/,
+    // 2025/01/04, 01/04/2025
+    /^\d{1,4}\/\d{1,2}\/\d{1,4}([T ]\d{1,2}:\d{2}(:\d{2})?)?$/,
+    // 04.01.2025
+    /^\d{1,2}\.\d{1,2}\.\d{2,4}$/,
+    // Jan 4, 2025 / January 4 2025 / Jan 4
+    new RegExp(`^(${MONTHS})\\.?\\s+\\d{1,2}(,)?(\\s*\\d{4})?$`, "i"),
+    // Jan 2025
+    new RegExp(`^(${MONTHS})\\.?\\s+\\d{4}$`, "i"),
+    // 4 Jan 2025 / 04-Jan-25
+    new RegExp(`^\\d{1,2}[\\s-](${MONTHS})\\.?[\\s-]\\d{2,4}$`, "i"),
+    // Sat, 04 Jan 2025 10:00:00 GMT
+    new RegExp(`^[a-z]{3},?\\s+\\d{1,2}\\s+(${MONTHS})\\s+\\d{4}\\b.*$`, "i")
+  ];
+  function isDateLike(value) {
+    const s = String(value).trim();
+    if (!s) return false;
+    return DATE_PATTERNS.some((p) => p.test(s));
+  }
+  function countDateLike(values) {
+    return values.reduce((n, v) => n + (isDateLike(v) ? 1 : 0), 0);
+  }
+
   // site/js/profile.js
   var MISSING_WORDS = /* @__PURE__ */ new Set(["", "na", "n/a", "null", "nan", "none", "-"]);
   var isMissing = (v) => v == null || MISSING_WORDS.has(String(v).trim().toLowerCase());
@@ -704,7 +731,7 @@ footer .sig{font-size:27px}
       const nums = nonEmpty.filter((v) => !isNaN(Number(v)) && v !== "");
       const numeric = nonEmpty.length > 0 && nums.length / nonEmpty.length > 0.9;
       const uniq = new Set(nonEmpty).size;
-      const dateLike = !numeric && nonEmpty.length > 0 && nonEmpty.slice(0, 40).filter((v) => !isNaN(Date.parse(v))).length / Math.min(40, nonEmpty.length) > 0.8;
+      const dateLike = !numeric && nonEmpty.length > 0 && countDateLike(nonEmpty.slice(0, 40)) / Math.min(40, nonEmpty.length) > 0.8;
       const zeros = nums.filter((v) => Number(v) === 0).length;
       const avgLen = nonEmpty.length ? nonEmpty.reduce((s, v) => s + v.length, 0) / nonEmpty.length : 0;
       const textLike = !numeric && !dateLike && nonEmpty.length > 0 && (avgLen > 25 || uniq / nonEmpty.length > 0.7) && uniq > Math.min(20, nonEmpty.length * 0.5);

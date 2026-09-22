@@ -1,0 +1,235 @@
+{
+ "datasets": 40,
+ "model_runs": 760,
+ "failed_runs": 2,
+ "metric": {
+  "classification": "balanced accuracy",
+  "regression": "R\u00b2"
+ },
+ "by_task": {
+  "classification": {
+   "datasets": 20,
+   "first": {
+    "median_regret": 0.0236,
+    "mean_regret": 0.0738,
+    "was_best": 0.05,
+    "within_one_point": 0.15
+   },
+   "top4": {
+    "median_regret": 0.0135,
+    "mean_regret": 0.0441,
+    "was_best": 0.05,
+    "within_one_point": 0.35
+   },
+   "boosting": {
+    "median_regret": 0.023,
+    "mean_regret": 0.0308,
+    "was_best": 0.2,
+    "within_one_point": 0.4
+   },
+   "eligible_mean": {
+    "median_regret": 0.0517,
+    "mean_regret": 0.0907,
+    "was_best": 0.0,
+    "within_one_point": 0.05
+   },
+   "first_beats_boosting": 0.35,
+   "top4_beats_boosting": 0.45
+  },
+  "regression": {
+   "datasets": 20,
+   "first": {
+    "median_regret": 0.3119,
+    "mean_regret": 0.3585,
+    "was_best": 0.05,
+    "within_one_point": 0.15
+   },
+   "top4": {
+    "median_regret": 0.1758,
+    "mean_regret": 0.3081,
+    "was_best": 0.05,
+    "within_one_point": 0.2
+   },
+   "boosting": {
+    "median_regret": 0.0069,
+    "mean_regret": 0.0221,
+    "was_best": 0.15,
+    "within_one_point": 0.65
+   },
+   "eligible_mean": {
+    "median_regret": 0.2489,
+    "mean_regret": 0.2898,
+    "was_best": 0.0,
+    "within_one_point": 0.0
+   },
+   "first_beats_boosting": 0.2,
+   "top4_beats_boosting": 0.2
+  }
+ },
+ "ruled_out_winners": [
+  {
+   "dataset": "nikuradse_1",
+   "model": "TR1",
+   "why": "needs A32 data (yours is A31)",
+   "lost": 0.118
+  },
+  {
+   "dataset": "breast_cancer_wisconsin_diagnostic",
+   "model": "LM2",
+   "why": "needs A32 data (yours is A31)",
+   "lost": 0.0109
+  },
+  {
+   "dataset": "strogatz_glider2",
+   "model": "TR1",
+   "why": "needs A32 data (yours is A31)",
+   "lost": 0.2167
+  },
+  {
+   "dataset": "splice",
+   "model": "EN2",
+   "why": "needs A31 data (yours is A32)",
+   "lost": 0.0182
+  },
+  {
+   "dataset": "595_fri_c0_1000_10",
+   "model": "SV2",
+   "why": "is not tagged for this task in the taxonomy",
+   "lost": 0.0113
+  },
+  {
+   "dataset": "229_pwLinear",
+   "model": "EN2",
+   "why": "needs A31 data (yours is A32)",
+   "lost": 0.0181
+  },
+  {
+   "dataset": "mfeat_zernike",
+   "model": "LM2",
+   "why": "needs A32 data (yours is A31)",
+   "lost": 0.008
+  },
+  {
+   "dataset": "606_fri_c2_1000_10",
+   "model": "EN1",
+   "why": "is not tagged for this task in the taxonomy",
+   "lost": 0.501
+  },
+  {
+   "dataset": "620_fri_c1_1000_25",
+   "model": "EN1",
+   "why": "is not tagged for this task in the taxonomy",
+   "lost": 0.5556
+  },
+  {
+   "dataset": "589_fri_c2_1000_25",
+   "model": "EN1",
+   "why": "is not tagged for this task in the taxonomy",
+   "lost": 0.5313
+  },
+  {
+   "dataset": "641_fri_c1_500_10",
+   "model": "EN1",
+   "why": "is not tagged for this task in the taxonomy",
+   "lost": 0.5523
+  },
+  {
+   "dataset": "627_fri_c2_500_10",
+   "model": "EN1",
+   "why": "is not tagged for this task in the taxonomy",
+   "lost": 0.5481
+  },
+  {
+   "dataset": "596_fri_c2_250_5",
+   "model": "EN1",
+   "why": "is not tagged for this task in the taxonomy",
+   "lost": 0.4753
+  },
+  {
+   "dataset": "581_fri_c3_500_25",
+   "model": "EN1",
+   "why": "is not tagged for this task in the taxonomy",
+   "lost": 0.5316
+  },
+  {
+   "dataset": "645_fri_c3_500_50",
+   "model": "EN1",
+   "why": "is not tagged for this task in the taxonomy",
+   "lost": 0.5229
+  },
+  {
+   "dataset": "653_fri_c0_250_25",
+   "model": "EN1",
+   "why": "is not tagged for this task in the taxonomy",
+   "lost": 0.0133
+  },
+  {
+   "dataset": "225_puma8NH",
+   "model": "SV2",
+   "why": "is not tagged for this task in the taxonomy",
+   "lost": 0.1714
+  }
+ ],
+ "ruled_out_by_reason": {
+  "needs A32 data (yours is A31)": {
+   "datasets": 4,
+   "worst_loss": 0.2167,
+   "models": [
+    "LM2",
+    "TR1"
+   ]
+  },
+  "needs A31 data (yours is A32)": {
+   "datasets": 2,
+   "worst_loss": 0.0182,
+   "models": [
+    "EN2"
+   ]
+  },
+  "is not tagged for this task in the taxonomy": {
+   "datasets": 11,
+   "worst_loss": 0.5556,
+   "models": [
+    "EN1",
+    "SV2"
+   ]
+  }
+ },
+ "most_recommended_first": [
+  {
+   "task": "regression",
+   "model": "LM1",
+   "times": 17
+  },
+  {
+   "task": "classification",
+   "model": "TR2",
+   "times": 9
+  },
+  {
+   "task": "classification",
+   "model": "EN2",
+   "times": 6
+  },
+  {
+   "task": "classification",
+   "model": "LM2",
+   "times": 3
+  },
+  {
+   "task": "classification",
+   "model": "IB1",
+   "times": 2
+  },
+  {
+   "task": "regression",
+   "model": "TR2",
+   "times": 2
+  },
+  {
+   "task": "regression",
+   "model": "TR1",
+   "times": 1
+  }
+ ]
+}

@@ -173,7 +173,7 @@ READ: dict[str, tuple[str, str] | None] = {
     "SP1": ("scipy.fft", "https://docs.scipy.org/doc/scipy/reference/fft.html"),
     "SP2": ("scipy.fft.fft", "https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fft.html"),
     "SP3": ("scipy.signal.stft", "https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.stft.html"),
-    "SP4": ("librosa.feature.mfcc", "https://librosa.org/doc/latest/generated/librosa.feature.mfcc.html"),
+    "SP4": ("librosa documentation", "https://librosa.org/doc/latest/index.html"),
 
     # ---- Survival analysis ----------------------------------------------------------
     "SA1": ("lifelines documentation", "https://lifelines.readthedocs.io/en/latest/"),
@@ -266,8 +266,8 @@ READ: dict[str, tuple[str, str] | None] = {
     "DR-C3": ("river drift.PageHinkley", RIVER.format("PageHinkley")),
     "DR-C4": ("river drift.ADWIN", RIVER.format("ADWIN")),
     "DR-C5": ("river drift.KSWIN", RIVER.format("KSWIN")),
-    "DR-C6": ("river drift.binary.HDDM_A", "https://riverml.xyz/latest/api/drift/binary/HDDM-A/"),
-    "DR-C7": ("river drift.binary.HDDM_W", "https://riverml.xyz/latest/api/drift/binary/HDDM-W/"),
+    "DR-C6": ("river on GitHub", "https://github.com/online-ml/river"),
+    "DR-C7": ("river on GitHub", "https://github.com/online-ml/river"),
     "DR-C8": ("river on GitHub", "https://github.com/online-ml/river"),
     "DR-C9": ("river on GitHub", "https://github.com/online-ml/river"),
     "DR-S1": ("river on GitHub", "https://github.com/online-ml/river"),

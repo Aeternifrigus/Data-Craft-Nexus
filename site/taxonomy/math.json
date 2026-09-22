@@ -1402,8 +1402,8 @@
    "fail": "Discards phase and fine spectral detail, which matters for music and speaker identification. Sensitive to background noise and channel differences. Largely displaced by learned representations in modern deep speech systems.",
    "intu": "Compress a spectrum into a small set of coefficients weighted by how humans actually perceive pitch, which is finer at low frequencies than high. Long the standard feature set for speech recognition.",
    "ref": {
-    "label": "librosa.feature.mfcc",
-    "url": "https://librosa.org/doc/latest/generated/librosa.feature.mfcc.html"
+    "label": "librosa documentation",
+    "url": "https://librosa.org/doc/latest/index.html"
    }
   },
   "SA1": {

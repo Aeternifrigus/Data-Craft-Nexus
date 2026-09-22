@@ -22,14 +22,25 @@ files[4].pipelines.forEach(p => collect(p.c, p));
 console.log(`checking ${links.size} distinct links`);
 const failures = [];
 const urls = [...links.keys()];
-const CONCURRENCY = 8;
+const CONCURRENCY = 6;
 
-async function check(url) {
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// A network hiccup is not a broken link, so a failure is retried before it
+// counts. Hosts that rate-limit (GitHub) fail the first attempt often enough
+// that without this the check would cry wolf.
+async function check(url, attempt = 1) {
   try {
-    // A missing Wikipedia article answers 404, so the status is enough.
-    const res = await fetch(url, { redirect: 'follow', headers: { 'user-agent': 'data-craft-nexus link check' } });
-    if (!res.ok) failures.push(`${res.status} ${url} (${links.get(url).join(', ')})`);
+    const res = await fetch(url, {
+      redirect: 'follow',
+      headers: { 'user-agent': 'data-craft-nexus link check (https://github.com/Aeternifrigus/Data-Craft-Nexus)' },
+      signal: AbortSignal.timeout(20000),
+    });
+    if (res.ok) return;
+    if (res.status === 429 && attempt < 3) { await sleep(2000 * attempt); return check(url, attempt + 1); }
+    failures.push(`${res.status} ${url} (${links.get(url).join(', ')})`);
   } catch (err) {
+    if (attempt < 3) { await sleep(1500 * attempt); return check(url, attempt + 1); }
     failures.push(`ERR ${url} ${err.message} (${links.get(url).join(', ')})`);
   }
 }

@@ -412,8 +412,8 @@
    "thr": "Separate warning and drift confidence levels, both with statistical backing rather than convention.",
    "fail": "Assumes independent observations, which is violated whenever errors are autocorrelated (common in time-ordered data). Slower to react than the weighted variant on gradual drift.",
    "ref": {
-    "label": "river drift.binary.HDDM_A",
-    "url": "https://riverml.xyz/latest/api/drift/binary/HDDM-A/"
+    "label": "river on GitHub",
+    "url": "https://github.com/online-ml/river"
    }
   },
   {
@@ -431,8 +431,8 @@
    "thr": "Adds a weighting parameter on top of HDDM_A's confidence levels.",
    "fail": "The weighting parameter directly trades responsiveness against stability, the same tradeoff as TS5's alpha, with the same lack of an obvious default. More false alarms than HDDM_A on noisy streams.",
    "ref": {
-    "label": "river drift.binary.HDDM_W",
-    "url": "https://riverml.xyz/latest/api/drift/binary/HDDM-W/"
+    "label": "river on GitHub",
+    "url": "https://github.com/online-ml/river"
    }
   },
   {

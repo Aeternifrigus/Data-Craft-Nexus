@@ -20,6 +20,15 @@ export function initDrawer(T) {
   }
   const text = (l, t, warn) => field(l, esc(t), warn);
   const chips = (attr, codes) => codes.map(x => `<span class="chip" ${attr}="${esc(x)}">${esc(x)}</span>`).join(' ');
+  // "Read more" links: the concept, and the implementation this project runs.
+  const links = (entry) => {
+    const rows = [entry.ref && ['Read more', entry.ref], entry.docs && ['Documentation', entry.docs]].filter(Boolean);
+    if (!rows.length) return '';
+    return `<div class="d-field"><div class="d-label">Elsewhere</div>` + rows.map(([label, link]) =>
+      `<div class="d-text"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer">${esc(link.label)} &#8599;</a></div>`
+    ).join('') + `</div>`;
+  };
+
   const head = (code, name, meta) => `<div class="d-code">${esc(code)}</div><div class="d-name">${esc(name)}</div>
     ${meta ? `<div class="rec-meta" style="margin-bottom:12px">${esc(meta)}</div>` : ''}`;
 
@@ -30,13 +39,15 @@ export function initDrawer(T) {
     <div class="d-formula">${esc(m.f)}</div>
     ${m.intu ? text('The idea', m.intu) : ''}
     ${text('What it computes', m.mech)}
-    ${text('Where it misleads', m.fail, true)}`);
+    ${text('Where it misleads', m.fail, true)}
+    ${links(m)}`);
   }
   function openCode(code) {
     const c = T.CODES[code]; if (!c) return;
     const axis = T.AXES.find(a => a.n === c.axis);
     show(`${head(code, c.name, axis && `Axis ${axis.n}, ${axis.label}`)}
-    ${text('Definition', c.note)}`);
+    ${text('Definition', c.note)}
+    ${links(c)}`);
   }
   function openModel(code) {
     const m = T.MODELS.find(x => x.c === code); if (!m) return;
@@ -47,7 +58,8 @@ export function initDrawer(T) {
     ${m.dfit ? text('Why these coordinates', m.dfit) : ''}
     ${text('Where it breaks', m.fail, true)}
     ${text('What to use instead', m.alt)}
-    ${field('Built on', chips('data-math', m.math))}`);
+    ${field('Built on', chips('data-math', m.math))}
+    ${links(m)}`);
   }
   function openDrift(code) {
     const d = T.DRIFTS.find(x => x.c === code); if (!d) return;
@@ -57,7 +69,8 @@ export function initDrawer(T) {
     ${text('How it works', d.mech)}
     ${text('What counts as drift', d.thr)}
     ${text('Where it misleads', d.fail, true)}
-    ${field('Built on', chips('data-math', d.math))}`);
+    ${field('Built on', chips('data-math', d.math))}
+    ${links(d)}`);
   }
   function openPipeline(code) {
     const p = T.PIPELINES.find(x => x.c === code); if (!p) return;
@@ -66,7 +79,8 @@ export function initDrawer(T) {
     <p class="rec-metaphor">${esc(p.met)}</p>
     ${text('How it works', p.mech)}
     ${text('Where it breaks', p.fail, true)}
-    ${field('Stages', chips('data-stage', p.stages))}`);
+    ${field('Stages', chips('data-stage', p.stages))}
+    ${links(p)}`);
   }
   function openStage(code) {
     const s = T.STAGES[code]; if (!s) return;

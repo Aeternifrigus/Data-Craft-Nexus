@@ -68,7 +68,11 @@
    "domain": "AO",
    "mech": "Accumulate the full historical sum of squared gradients per parameter, and divide the step by its square root.",
    "fail": "The accumulator only grows, never decays, so effective learning rates shrink monotonically toward zero and training stalls before convergence. RMSProp (AO1) exists specifically to fix this.",
-   "intu": "Parameters that have seen a lot of gradient get progressively smaller steps. Particularly effective for sparse features, where rare features should take large steps on the rare occasions they appear."
+   "intu": "Parameters that have seen a lot of gradient get progressively smaller steps. Particularly effective for sparse features, where rare features should take large steps on the rare occasions they appear.",
+   "ref": {
+    "label": "torch.optim.Adagrad",
+    "url": "https://pytorch.org/docs/stable/generated/torch.optim.Adagrad.html"
+   }
   },
   "AO5": {
    "name": "Conjugate Gradient",
@@ -76,7 +80,11 @@
    "domain": "AO",
    "mech": "Each new search direction is constructed to be conjugate (Hessian-orthogonal) to all previous ones, guaranteeing convergence in at most n steps for a quadratic problem in n dimensions.",
    "fail": "Guarantees hold only for quadratic objectives. On non-quadratic loss surfaces it needs periodic restarts, and it is sensitive to numerical precision loss over many iterations.",
-   "intu": "Descend along directions chosen so that progress made in earlier directions is never undone. Avoids the zigzag inefficiency of plain gradient descent in elongated valleys."
+   "intu": "Descend along directions chosen so that progress made in earlier directions is never undone. Avoids the zigzag inefficiency of plain gradient descent in elongated valleys.",
+   "ref": {
+    "label": "scipy.sparse.linalg.cg",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.cg.html"
+   }
   },
   "AO3": {
    "name": "Cosine Annealing / LR Schedule",
@@ -84,7 +92,11 @@
    "domain": "AO",
    "mech": "Learning rate follows a cosine curve from maximum down to minimum across the training horizon T. Warm-restart variants reset it periodically to escape local minima.",
    "fail": "Requires knowing total training length T in advance. Decaying too early freezes the model before it has found a good region.",
-   "intu": "Start with large steps to explore broadly, then smoothly decay to small steps to settle precisely. The cosine shape decays gently at first, then more aggressively near the end."
+   "intu": "Start with large steps to explore broadly, then smoothly decay to small steps to settle precisely. The cosine shape decays gently at first, then more aggressively near the end.",
+   "ref": {
+    "label": "Learning rate schedules in PyTorch",
+    "url": "https://pytorch.org/docs/stable/optim.html"
+   }
   },
   "AO4": {
    "name": "L-BFGS",
@@ -92,7 +104,11 @@
    "domain": "AO",
    "mech": "Keep the last m gradient and parameter-change pairs, and use them to implicitly approximate the inverse Hessian without ever materializing it.",
    "fail": "Requires full-batch or very large batches; it behaves badly with the noisy gradients of mini-batch training, which is why deep learning uses first-order methods instead. Memory grows with m.",
-   "intu": "Newton's method uses curvature (the Hessian) for much faster convergence, but the Hessian is too large to store. L-BFGS approximates it from a short history of recent gradients instead."
+   "intu": "Newton's method uses curvature (the Hessian) for much faster convergence, but the Hessian is too large to store. L-BFGS approximates it from a short history of recent gradients instead.",
+   "ref": {
+    "label": "torch.optim.LBFGS",
+    "url": "https://pytorch.org/docs/stable/generated/torch.optim.LBFGS.html"
+   }
   },
   "AO1": {
    "name": "RMSProp Update",
@@ -100,7 +116,11 @@
    "domain": "AO",
    "mech": "Maintain a decaying moving average of squared gradients per parameter, then divide the step by its square root. Unlike AdaGrad, the average decays, so old gradients stop mattering.",
    "fail": "The decay rate is another hyperparameter. Largely superseded by Adam (CA19), which adds momentum on top of this same idea.",
-   "intu": "Give each parameter its own learning rate, scaled down for parameters whose gradients have been consistently large. Prevents a few steep directions from dominating every step."
+   "intu": "Give each parameter its own learning rate, scaled down for parameters whose gradients have been consistently large. Prevents a few steep directions from dominating every step.",
+   "ref": {
+    "label": "torch.optim.RMSprop",
+    "url": "https://pytorch.org/docs/stable/generated/torch.optim.RMSprop.html"
+   }
   },
   "AR1": {
    "name": "Support",
@@ -108,7 +128,11 @@
    "domain": "AR",
    "mech": "Count transactions containing the itemset, divide by total transactions.",
    "fail": "Setting the minimum support threshold is a genuine tradeoff: too high and you miss valuable niche patterns (rare but high-value purchases), too low and the candidate space explodes combinatorially.",
-   "intu": "How common is this itemset overall? The basic frequency filter that prevents rule mining from drowning in rare, meaningless combinations."
+   "intu": "How common is this itemset overall? The basic frequency filter that prevents rule mining from drowning in rare, meaningless combinations.",
+   "ref": {
+    "label": "mlxtend association rules",
+    "url": "https://rasbt.github.io/mlxtend/user_guide/frequent_patterns/association_rules/"
+   }
   },
   "AR2": {
    "name": "Confidence",
@@ -116,7 +140,11 @@
    "domain": "AR",
    "mech": "Divide the support of both items together by the support of the antecedent alone.",
    "fail": "Ignores how common B is on its own. If 80 percent of all customers buy bread anyway, a rule with 80 percent confidence pointing at bread carries zero real information. Lift (AR3) exists to correct exactly this.",
-   "intu": "Given that someone bought A, how often do they also buy B? A conditional probability restated in retail terms."
+   "intu": "Given that someone bought A, how often do they also buy B? A conditional probability restated in retail terms.",
+   "ref": {
+    "label": "mlxtend association rules",
+    "url": "https://rasbt.github.io/mlxtend/user_guide/frequent_patterns/association_rules/"
+   }
   },
   "AR3": {
    "name": "Lift",
@@ -124,7 +152,11 @@
    "domain": "AR",
    "mech": "Divide confidence by the standalone support of the consequent, normalizing away baseline popularity.",
    "fail": "Unstable for rare consequents, where a tiny denominator inflates lift dramatically on very little evidence. High lift on low support is usually noise, not insight.",
-   "intu": "How much more likely is B given A, compared to B happening by chance? Lift above 1 means a genuine positive association; exactly 1 means independence."
+   "intu": "How much more likely is B given A, compared to B happening by chance? Lift above 1 means a genuine positive association; exactly 1 means independence.",
+   "ref": {
+    "label": "mlxtend association rules",
+    "url": "https://rasbt.github.io/mlxtend/user_guide/frequent_patterns/association_rules/"
+   }
   },
   "AT1": {
    "name": "Scaled Dot-Product Attention",
@@ -132,7 +164,11 @@
    "domain": "AT",
    "mech": "Queries dot against Keys to produce relevance scores, scaled by the square root of dimension to keep magnitudes stable, softmaxed into weights, then used to average the Values.",
    "fail": "Cost grows quadratically with sequence length, which is the fundamental constraint on context windows. Without the square-root scaling, dot products in high dimensions grow large enough to saturate the softmax into a near one-hot distribution, killing gradients.",
-   "intu": "Every token asks every other token \"how relevant are you to me?\", then builds its new representation as a weighted blend of the answers. This single equation is the core of modern language models."
+   "intu": "Every token asks every other token \"how relevant are you to me?\", then builds its new representation as a weighted blend of the answers. This single equation is the core of modern language models.",
+   "ref": {
+    "label": "Attention Is All You Need",
+    "url": "https://arxiv.org/abs/1706.03762"
+   }
   },
   "AT2": {
    "name": "Multi-Head Attention",
@@ -140,7 +176,11 @@
    "domain": "AT",
    "mech": "Project Q, K, V into h lower-dimensional subspaces, run attention independently in each, concatenate results, then mix them with a final output projection.",
    "fail": "Heads frequently become redundant, with many contributing little and being prunable without accuracy loss. The number of heads is a hyperparameter with no principled way to set it.",
-   "intu": "Run several attention operations in parallel on different learned projections, so different heads can specialize in different relationship types (syntax, coreference, position) simultaneously."
+   "intu": "Run several attention operations in parallel on different learned projections, so different heads can specialize in different relationship types (syntax, coreference, position) simultaneously.",
+   "ref": {
+    "label": "torch.nn.MultiheadAttention",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html"
+   }
   },
   "AT3": {
    "name": "Positional Encoding (Sinusoidal)",
@@ -148,7 +188,11 @@
    "domain": "AT",
    "mech": "Add position-dependent sinusoidal values to token embeddings, with different dimensions oscillating at different frequencies so both fine and coarse position are encoded.",
    "fail": "Extrapolates poorly beyond training sequence lengths. Modern models often use learned or rotary encodings instead, which handle longer contexts more gracefully.",
-   "intu": "Attention treats input as an unordered set, so word order must be injected explicitly. Sinusoids of varying frequencies give each position a unique, smoothly varying fingerprint."
+   "intu": "Attention treats input as an unordered set, so word order must be injected explicitly. Sinusoids of varying frequencies give each position a unique, smoothly varying fingerprint.",
+   "ref": {
+    "label": "Attention Is All You Need",
+    "url": "https://arxiv.org/abs/1706.03762"
+   }
   },
   "AT4": {
    "name": "Layer Normalization",
@@ -156,7 +200,11 @@
    "domain": "AT",
    "mech": "For each individual sample, compute mean and variance across its feature dimension, then standardize.",
    "fail": "Assumes features within a sample are comparable enough to normalize together, which is not always true for heterogeneous inputs. Placement (before or after the sublayer) meaningfully affects training stability.",
-   "intu": "Normalize across features within a single example, rather than across the batch. This removes the batch dependence that makes BatchNorm (CA24) awkward, which is why transformers use it."
+   "intu": "Normalize across features within a single example, rather than across the batch. This removes the batch dependence that makes BatchNorm (CA24) awkward, which is why transformers use it.",
+   "ref": {
+    "label": "torch.nn.LayerNorm",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.LayerNorm.html"
+   }
   },
   "AT5": {
    "name": "Residual Connection",
@@ -164,7 +212,11 @@
    "domain": "AT",
    "mech": "Add the input directly to the sublayer output. Because the derivative of the identity path is exactly 1, gradients flow backward without decaying through it.",
    "fail": "Requires matching dimensions, forcing projection layers when shapes differ. It also makes networks tolerant of useless layers, which can hide architectural inefficiency rather than exposing it.",
-   "intu": "Let a layer's input bypass the layer entirely and add itself to the output. The layer then only needs to learn a correction rather than a full transformation, and gradients get an uninterrupted path back."
+   "intu": "Let a layer's input bypass the layer entirely and add itself to the output. The layer then only needs to learn a correction rather than a full transformation, and gradients get an uninterrupted path back.",
+   "ref": {
+    "label": "Deep Residual Learning",
+    "url": "https://arxiv.org/abs/1512.03385"
+   }
   },
   "CA1": {
    "name": "Partial Derivative",
@@ -172,7 +224,11 @@
    "domain": "CA",
    "mech": "Differentiate with respect to one variable while treating all others as constants.",
    "fail": "Says nothing about interactions. Two inputs can each have near-zero partial derivative individually while mattering enormously together, which is why gradient magnitude alone is a weak feature-importance proxy.",
-   "intu": "How much does the output change if you nudge one input, holding every other input frozen? It isolates the influence of a single variable inside a multi-variable system."
+   "intu": "How much does the output change if you nudge one input, holding every other input frozen? It isolates the influence of a single variable inside a multi-variable system.",
+   "ref": {
+    "label": "Autograd mechanics in PyTorch",
+    "url": "https://pytorch.org/docs/stable/notes/autograd.html"
+   }
   },
   "CA2": {
    "name": "Gradient",
@@ -180,7 +236,11 @@
    "domain": "CA",
    "mech": "Compute all partials, assemble as a vector. Its length indicates steepness, its direction indicates which way is uphill.",
    "fail": "Points to steepest local ascent, with no knowledge of the wider landscape. On a plateau it goes to zero and learning stalls; on a cliff it explodes and training destabilizes.",
-   "intu": "Stack every partial derivative into one vector and you get an arrow pointing in the direction of steepest increase. Training walks the opposite way."
+   "intu": "Stack every partial derivative into one vector and you get an arrow pointing in the direction of steepest increase. Training walks the opposite way.",
+   "ref": {
+    "label": "torch.gradient",
+    "url": "https://pytorch.org/docs/stable/generated/torch.gradient.html"
+   }
   },
   "CA3": {
    "name": "Gradient Descent Update",
@@ -188,7 +248,11 @@
    "domain": "CA",
    "mech": "Compute the gradient, multiply by learning rate η, subtract from current parameters. Repeat until the loss stops improving.",
    "fail": "η is the whole game. Too large and you overshoot the minimum and oscillate or diverge; too small and training crawls or stalls in a poor local region. Also entirely dependent on feature scaling: unscaled features produce elongated loss valleys that descent zigzags across inefficiently.",
-   "intu": "Repeatedly step downhill on the loss surface. This single line is what \"training\" means for nearly every model in the taxonomy."
+   "intu": "Repeatedly step downhill on the loss surface. This single line is what \"training\" means for nearly every model in the taxonomy.",
+   "ref": {
+    "label": "torch.optim.SGD",
+    "url": "https://pytorch.org/docs/stable/generated/torch.optim.SGD.html"
+   }
   },
   "CA4": {
    "name": "Chain Rule",
@@ -196,7 +260,11 @@
    "domain": "CA",
    "mech": "Differentiate the outer function at the inner function's value, then multiply by the inner function's derivative. In a deep network this chains across every layer.",
    "fail": "Multiplying many small derivatives together drives the product toward zero (vanishing gradients), so early layers stop learning. Multiplying many large ones explodes it. ReLU, residual connections, and LSTM gates all exist primarily to manage this.",
-   "intu": "To find how an input affects a deeply nested output, multiply the sensitivities at each layer along the way. This is the mathematical engine of backpropagation."
+   "intu": "To find how an input affects a deeply nested output, multiply the sensitivities at each layer along the way. This is the mathematical engine of backpropagation.",
+   "ref": {
+    "label": "Autograd mechanics in PyTorch",
+    "url": "https://pytorch.org/docs/stable/notes/autograd.html"
+   }
   },
   "CA5": {
    "name": "Jacobian Matrix",
@@ -204,7 +272,11 @@
    "domain": "CA",
    "mech": "Assemble every output's partial derivative with respect to every input into a matrix.",
    "fail": "Grows as outputs times inputs, so it becomes prohibitively expensive to store and compute for large networks. Frameworks avoid materializing it, computing vector-Jacobian products instead.",
-   "intu": "The gradient generalized to functions with multiple outputs. Row i, column j answers: how much does output i shift when input j moves?"
+   "intu": "The gradient generalized to functions with multiple outputs. Row i, column j answers: how much does output i shift when input j moves?",
+   "ref": {
+    "label": "torch.autograd.functional.jacobian",
+    "url": "https://pytorch.org/docs/stable/generated/torch.autograd.functional.jacobian.html"
+   }
   },
   "CA6": {
    "name": "Hessian Matrix",
@@ -212,7 +284,11 @@
    "domain": "CA",
    "mech": "All second-order partials arranged in a matrix. Its eigenvalues classify a critical point: all positive means a minimum, mixed signs mean a saddle point.",
    "fail": "Costs O(n²) memory in parameter count, which is impossible for modern networks. Saddle points (not local minima) are the dominant obstacle in high-dimensional optimization, and they are exactly where the gradient vanishes while the Hessian reveals escape directions.",
-   "intu": "Second derivatives, describing curvature. Where the gradient tells you which way is downhill, the Hessian tells you whether the valley is a gentle bowl or a narrow ravine."
+   "intu": "Second derivatives, describing curvature. Where the gradient tells you which way is downhill, the Hessian tells you whether the valley is a gentle bowl or a narrow ravine.",
+   "ref": {
+    "label": "torch.autograd.functional.hessian",
+    "url": "https://pytorch.org/docs/stable/generated/torch.autograd.functional.hessian.html"
+   }
   },
   "CA7": {
    "name": "Convolution",
@@ -220,7 +296,11 @@
    "domain": "CA",
    "mech": "At each position, multiply the filter against the overlapping input patch element-wise, then sum. Repeat across all positions to produce a feature map.",
    "fail": "Assumes translation invariance: that a pattern means the same thing wherever it occurs. Valid for images and audio, actively wrong for tabular data where column position carries no spatial meaning.",
-   "intu": "Slide a small pattern detector across a larger signal, recording how strongly it responds at each position. Detects local structure regardless of where it appears."
+   "intu": "Slide a small pattern detector across a larger signal, recording how strongly it responds at each position. Detects local structure regardless of where it appears.",
+   "ref": {
+    "label": "torch.nn.Conv1d",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html"
+   }
   },
   "CA8": {
    "name": "Mean Squared Error",
@@ -228,7 +308,11 @@
    "domain": "CA",
    "mech": "Subtract prediction from truth, square, average across all samples.",
    "fail": "The squaring makes it dominated by outliers: a single wild point can steer the entire fit. Units are also squared, making the raw number hard to interpret (which is why RMSE or MAE get reported instead). Use Huber loss when outlier robustness matters.",
-   "intu": "Average squared miss. Squaring makes all errors positive and punishes large mistakes far more harshly than small ones."
+   "intu": "Average squared miss. Squaring makes all errors positive and punishes large mistakes far more harshly than small ones.",
+   "ref": {
+    "label": "torch.nn.MSELoss",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html"
+   }
   },
   "CA9": {
    "name": "Categorical Cross-Entropy Loss",
@@ -236,7 +320,11 @@
    "domain": "CA",
    "mech": "For the true class only, take the negative log of the predicted probability. As predicted probability approaches zero, the log approaches negative infinity, so the loss explodes.",
    "fail": "Numerically unstable when predicted probability hits exactly zero, requiring clipping or the log-sum-exp trick (IT5). Also ignores class imbalance entirely: a model can score well by simply always predicting the dominant class.",
-   "intu": "Penalizes being confidently wrong far more than being uncertainly wrong. Predicting 0.99 for the wrong class is punished brutally; predicting 0.4 is punished mildly."
+   "intu": "Penalizes being confidently wrong far more than being uncertainly wrong. Predicting 0.99 for the wrong class is punished brutally; predicting 0.4 is punished mildly.",
+   "ref": {
+    "label": "torch.nn.CrossEntropyLoss",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html"
+   }
   },
   "CA10": {
    "name": "Sigmoid Function",
@@ -244,7 +332,11 @@
    "domain": "CA",
    "mech": "Large positive inputs map near 1, large negative near 0, zero maps to exactly 0.5.",
    "fail": "Saturates at both ends: for inputs far from zero, the derivative approaches zero, so gradients vanish and learning halts. This is precisely why ReLU replaced sigmoid in deep hidden layers, though sigmoid remains correct for binary output layers.",
-   "intu": "Squashes any real number into the range (0,1), converting an unbounded score into something interpretable as a probability."
+   "intu": "Squashes any real number into the range (0,1), converting an unbounded score into something interpretable as a probability.",
+   "ref": {
+    "label": "torch.nn.Sigmoid",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.Sigmoid.html"
+   }
   },
   "CA11": {
    "name": "Softmax Function",
@@ -252,7 +344,11 @@
    "domain": "CA",
    "mech": "Exponentiate every score (making all positive and amplifying differences), then divide each by the total.",
    "fail": "Exponentiating large values overflows numerically, requiring the standard trick of subtracting the max score first. Also forces a winner-take-most distribution, so it cannot naturally express \"none of these classes apply.\"",
-   "intu": "Turns a vector of arbitrary scores into a probability distribution that sums to one. The multi-class generalization of sigmoid."
+   "intu": "Turns a vector of arbitrary scores into a probability distribution that sums to one. The multi-class generalization of sigmoid.",
+   "ref": {
+    "label": "torch.nn.Softmax",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.Softmax.html"
+   }
   },
   "CA12": {
    "name": "ReLU Activation",
@@ -260,7 +356,11 @@
    "domain": "CA",
    "mech": "A single comparison per element. Its derivative is exactly 1 for positive inputs, which is why gradients survive many layers instead of decaying.",
    "fail": "The \"dying ReLU\" problem: once a unit's output goes negative for all inputs, its gradient is permanently zero and it never recovers. Leaky ReLU (CA16) and GELU (CA13) exist to address this.",
-   "intu": "Pass positive values through untouched, zero out everything negative. Crude, but it made deep networks trainable."
+   "intu": "Pass positive values through untouched, zero out everything negative. Crude, but it made deep networks trainable.",
+   "ref": {
+    "label": "torch.nn.ReLU",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.ReLU.html"
+   }
   },
   "CA13": {
    "name": "GELU Activation",
@@ -268,7 +368,11 @@
    "domain": "CA",
    "mech": "Multiply the input by the standard normal CDF evaluated at that input. Near zero this gives a soft, curved transition instead of ReLU's sharp corner.",
    "fail": "More expensive to compute than ReLU, and the improvement is usually marginal outside transformer architectures, where it has become the default.",
-   "intu": "A smoothed ReLU where the gate is probabilistic rather than a hard cutoff. Inputs get scaled by how likely they are to be \"significant\" under a normal distribution."
+   "intu": "A smoothed ReLU where the gate is probabilistic rather than a hard cutoff. Inputs get scaled by how likely they are to be \"significant\" under a normal distribution.",
+   "ref": {
+    "label": "torch.nn.GELU",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.GELU.html"
+   }
   },
   "CA14": {
    "name": "Lagrange Multipliers",
@@ -276,7 +380,11 @@
    "domain": "CA",
    "mech": "Add the constraint, scaled by a new variable λ, to the objective. At the optimum, gradients of objective and constraint align, which the multiplier enforces.",
    "fail": "Finds stationary points, not guaranteed optima, so results still need verification. Constructing the dual formulation (as SVMs do) can be non-obvious for complex constraints.",
-   "intu": "Optimizing subject to a constraint is hard. This technique folds the constraint into the objective itself, converting a constrained problem into an unconstrained one."
+   "intu": "Optimizing subject to a constraint is hard. This technique folds the constraint into the objective itself, converting a constrained problem into an unconstrained one.",
+   "ref": {
+    "label": "scipy.optimize.minimize (constraints)",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html"
+   }
   },
   "CA15": {
    "name": "Tanh Activation",
@@ -284,7 +392,11 @@
    "domain": "CA",
    "mech": "A rescaled, shifted sigmoid. Strongly negative inputs map near -1, strongly positive near +1.",
    "fail": "Saturates at both extremes exactly like sigmoid, so it suffers the same vanishing gradient problem in deep stacks. It survives inside LSTM and GRU gates specifically because the bounded output is what those gates need.",
-   "intu": "Like sigmoid but centered at zero, mapping into (-1,1) instead of (0,1). Zero-centering makes downstream optimization better behaved."
+   "intu": "Like sigmoid but centered at zero, mapping into (-1,1) instead of (0,1). Zero-centering makes downstream optimization better behaved.",
+   "ref": {
+    "label": "torch.nn.Tanh",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.Tanh.html"
+   }
   },
   "CA16": {
    "name": "Leaky ReLU",
@@ -292,7 +404,11 @@
    "domain": "CA",
    "mech": "Positive inputs pass unchanged; negative inputs are multiplied by a small constant (commonly 0.01) rather than zeroed.",
    "fail": "The leak coefficient is another hyperparameter to choose. In practice the improvement over plain ReLU is inconsistent, which is why ReLU remains the common default.",
-   "intu": "ReLU with a small negative slope instead of a flat zero, so units can recover from going negative rather than dying permanently."
+   "intu": "ReLU with a small negative slope instead of a flat zero, so units can recover from going negative rather than dying permanently.",
+   "ref": {
+    "label": "torch.nn.LeakyReLU",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.LeakyReLU.html"
+   }
   },
   "CA17": {
    "name": "Swish / SiLU Activation",
@@ -300,7 +416,11 @@
    "domain": "CA",
    "mech": "Multiply the input by its sigmoid. Smooth everywhere, non-monotonic near zero, and unbounded above like ReLU.",
    "fail": "Costlier than ReLU, and the accuracy gains are architecture-dependent rather than universal.",
-   "intu": "A self-gating activation: the input decides how much of itself to let through, via its own sigmoid."
+   "intu": "A self-gating activation: the input decides how much of itself to let through, via its own sigmoid.",
+   "ref": {
+    "label": "torch.nn.SiLU",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html"
+   }
   },
   "CA18": {
    "name": "Momentum Update",
@@ -308,7 +428,11 @@
    "domain": "CA",
    "mech": "Maintain a running velocity as an exponentially weighted average of past gradients, and step along velocity rather than raw gradient.",
    "fail": "Can overshoot narrow minima because accumulated velocity carries it past. β is a tradeoff: high values smooth heavily but respond sluggishly to genuine direction changes.",
-   "intu": "A ball rolling downhill accumulates speed in a consistent direction. Momentum lets updates build on prior direction instead of restarting each step, smoothing out noisy gradients."
+   "intu": "A ball rolling downhill accumulates speed in a consistent direction. Momentum lets updates build on prior direction instead of restarting each step, smoothing out noisy gradients.",
+   "ref": {
+    "label": "torch.optim.SGD (momentum)",
+    "url": "https://pytorch.org/docs/stable/generated/torch.optim.SGD.html"
+   }
   },
   "CA19": {
    "name": "Adam Optimizer Update",
@@ -316,7 +440,11 @@
    "domain": "CA",
    "mech": "Track exponentially weighted averages of both the gradient (first moment, m) and squared gradient (second moment, v), bias-correct both, then step along m scaled by the square root of v.",
    "fail": "Can converge to worse solutions than plain SGD on some problems, generalizing less well despite training faster. The adaptivity can also mask a badly chosen base learning rate until late in training.",
-   "intu": "Combines two ideas: momentum (remember direction) and per-parameter adaptive learning rates (parameters with consistently large gradients get smaller steps). The default optimizer for most deep learning."
+   "intu": "Combines two ideas: momentum (remember direction) and per-parameter adaptive learning rates (parameters with consistently large gradients get smaller steps). The default optimizer for most deep learning.",
+   "ref": {
+    "label": "Adam: A Method for Stochastic Optimization",
+    "url": "https://arxiv.org/abs/1412.6980"
+   }
   },
   "CA20": {
    "name": "Hinge Loss",
@@ -324,7 +452,11 @@
    "domain": "CA",
    "mech": "If the signed margin exceeds 1, loss is zero. Otherwise loss grows linearly as the margin shrinks or inverts.",
    "fail": "Not differentiable at the hinge point, requiring subgradient methods. It also produces no calibrated probabilities, only decisions, so probability estimates require separate fitting.",
-   "intu": "Zero penalty once a point is correctly classified with sufficient margin. Only points near or across the boundary contribute anything, which is what makes SVMs depend on support vectors alone."
+   "intu": "Zero penalty once a point is correctly classified with sufficient margin. Only points near or across the boundary contribute anything, which is what makes SVMs depend on support vectors alone.",
+   "ref": {
+    "label": "sklearn.metrics.hinge_loss",
+    "url": "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.hinge_loss.html"
+   }
   },
   "CA21": {
    "name": "Huber Loss",
@@ -332,7 +464,11 @@
    "domain": "CA",
    "mech": "Below the threshold δ it is quadratic; beyond δ it switches to linear, capping how much any single outlier can contribute.",
    "fail": "δ must be chosen, and it is scale-dependent: the right value for prices in PLN is wrong for prices in thousands of PLN.",
-   "intu": "Behaves like MSE for small errors (smooth, well-behaved gradients) and like MAE for large errors (outliers cannot dominate). A deliberate compromise between the two."
+   "intu": "Behaves like MSE for small errors (smooth, well-behaved gradients) and like MAE for large errors (outliers cannot dominate). A deliberate compromise between the two.",
+   "ref": {
+    "label": "torch.nn.HuberLoss",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html"
+   }
   },
   "CA22": {
    "name": "Binary Cross-Entropy (Log Loss)",
@@ -340,7 +476,11 @@
    "domain": "CA",
    "mech": "Only one of the two terms is active per sample, depending on whether the true label is 1 or 0.",
    "fail": "Identical instability as CA9 when predictions reach exactly 0 or 1, requiring clipping. Under heavy class imbalance it optimizes toward the majority class unless class weights are applied.",
-   "intu": "Cross-entropy for the two-class case. Rewards confident correct predictions, punishes confident wrong ones severely."
+   "intu": "Cross-entropy for the two-class case. Rewards confident correct predictions, punishes confident wrong ones severely.",
+   "ref": {
+    "label": "torch.nn.BCELoss",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.BCELoss.html"
+   }
   },
   "CA23": {
    "name": "Elastic Net Penalty",
@@ -348,7 +488,11 @@
    "domain": "CA",
    "mech": "Add both penalty terms to the loss, each with its own weight.",
    "fail": "Two hyperparameters to tune instead of one, and their interaction is not intuitive. Both are scale-sensitive, so features must be standardized first or the penalty applies unevenly.",
-   "intu": "Applies both regularization styles at once: L1 deletes weak features outright, L2 shrinks everything smoothly. Useful when features are correlated, where pure Lasso arbitrarily picks one and discards its correlated partners."
+   "intu": "Applies both regularization styles at once: L1 deletes weak features outright, L2 shrinks everything smoothly. Useful when features are correlated, where pure Lasso arbitrarily picks one and discards its correlated partners.",
+   "ref": {
+    "label": "Elastic net in scikit-learn",
+    "url": "https://scikit-learn.org/stable/modules/linear_model.html"
+   }
   },
   "CA24": {
    "name": "Batch Normalization",
@@ -356,7 +500,11 @@
    "domain": "CA",
    "mech": "For each mini-batch, subtract the batch mean and divide by batch standard deviation, then apply learned scale and shift parameters so the network can undo the normalization if useful.",
    "fail": "Behavior differs between training (batch statistics) and inference (running averages), a genuine source of train/serve discrepancy. Also degrades badly with very small batch sizes, where batch statistics become noisy. Layer Normalization (AT4) exists partly to avoid this batch dependence.",
-   "intu": "Re-standardize layer inputs using the current mini-batch's statistics, keeping activations in a stable range as the network trains and its internal distributions shift."
+   "intu": "Re-standardize layer inputs using the current mini-batch's statistics, keeping activations in a stable range as the network trains and its internal distributions shift.",
+   "ref": {
+    "label": "Batch Normalization (paper)",
+    "url": "https://arxiv.org/abs/1502.03167"
+   }
   },
   "CA25": {
    "name": "Dropout",
@@ -364,7 +512,11 @@
    "domain": "CA",
    "mech": "Sample a binary mask per training step and multiply activations by it. At inference, dropout is disabled and activations are rescaled to compensate.",
    "fail": "Must be turned off at inference; forgetting this produces nondeterministic predictions in production. Excessive dropout underfits, and it interacts awkwardly with batch normalization when both are used in the same block.",
-   "intu": "Randomly switch off a fraction of units during each training step, forcing the network to avoid over-relying on any single pathway. A form of ensembling inside one model."
+   "intu": "Randomly switch off a fraction of units during each training step, forcing the network to avoid over-relying on any single pathway. A form of ensembling inside one model.",
+   "ref": {
+    "label": "torch.nn.Dropout",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.Dropout.html"
+   }
   },
   "CA26": {
    "name": "Perceptron Update Rule",
@@ -372,7 +524,11 @@
    "domain": "CA",
    "mech": "The error term (y minus prediction) is zero on correct predictions, so the whole update vanishes. On errors it shifts weights along the input vector.",
    "fail": "Converges only if the data is linearly separable; on non-separable data it oscillates forever. This limitation is historically what stalled neural network research until multi-layer networks and backpropagation arrived.",
-   "intu": "Only correct yourself when you are wrong. Correct predictions produce zero update; mistakes nudge the weights toward the input that was misclassified."
+   "intu": "Only correct yourself when you are wrong. Correct predictions produce zero update; mistakes nudge the weights toward the input that was misclassified.",
+   "ref": {
+    "label": "Perceptron in scikit-learn",
+    "url": "https://scikit-learn.org/stable/modules/linear_model.html"
+   }
   },
   "CA27": {
    "name": "Taylor Series Expansion",
@@ -380,7 +536,11 @@
    "domain": "CA",
    "mech": "Sum successive derivative terms, each weighted by powers of the distance from the expansion point and divided by factorials.",
    "fail": "Accuracy degrades rapidly away from the expansion point. Truncating too early misrepresents strongly curved regions, which is why Newton-style methods can take badly wrong steps on non-quadratic loss surfaces.",
-   "intu": "Approximate any smooth function near a point using its derivatives there. Most second-order optimization methods are built on truncating this expansion after the quadratic term."
+   "intu": "Approximate any smooth function near a point using its derivatives there. Most second-order optimization methods are built on truncating this expansion after the quadratic term.",
+   "ref": {
+    "label": "scipy.interpolate.approximate_taylor_polynomial",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.approximate_taylor_polynomial.html"
+   }
   },
   "DM1": {
    "name": "Copula Function",
@@ -388,7 +548,11 @@
    "domain": "DM",
    "mech": "Transform each variable to uniform via its own CDF, then model the joint distribution of those uniforms. Sklar's theorem guarantees any joint distribution can be decomposed this way.",
    "fail": "Choice of copula family determines tail behavior, and getting it wrong is consequential: Gaussian copulas notoriously understate the probability of simultaneous extreme events, a documented contributor to 2008 credit model failures.",
-   "intu": "Separate the question \"how is each variable distributed individually?\" from \"how do they move together?\" A copula models only the dependency structure, letting each variable keep whatever marginal distribution it actually has."
+   "intu": "Separate the question \"how is each variable distributed individually?\" from \"how do they move together?\" A copula models only the dependency structure, letting each variable keep whatever marginal distribution it actually has.",
+   "ref": {
+    "label": "copulas (the library)",
+    "url": "https://github.com/sdv-dev/Copulas"
+   }
   },
   "DF1": {
    "name": "Forward Diffusion Process",
@@ -396,7 +560,11 @@
    "domain": "DF",
    "mech": "At each step, shrink the signal slightly and add noise according to a variance schedule β. After enough steps the result is indistinguishable from pure noise.",
    "fail": "The noise schedule matters greatly: too fast destroys structure before the model can learn the transition, too slow wastes compute on hundreds of near-identical steps.",
-   "intu": "Slowly destroy an image by adding small amounts of Gaussian noise over many steps, until nothing remains but static. This direction requires no learning at all; it is the fixed process the model will later learn to reverse."
+   "intu": "Slowly destroy an image by adding small amounts of Gaussian noise over many steps, until nothing remains but static. This direction requires no learning at all; it is the fixed process the model will later learn to reverse.",
+   "ref": {
+    "label": "Denoising Diffusion Probabilistic Models",
+    "url": "https://arxiv.org/abs/2006.11239"
+   }
   },
   "DF2": {
    "name": "Reverse Diffusion (Denoising)",
@@ -404,7 +572,11 @@
    "domain": "DF",
    "mech": "A network predicts the noise present at each timestep; subtracting it moves one step back toward clean data. Repeat across all timesteps.",
    "fail": "Generation is slow because it requires many sequential network passes, unlike a GAN's single forward pass. Errors compound across steps, so a poor prediction early corrupts everything downstream.",
-   "intu": "Learn to undo one small step of noising. Chain hundreds of these learned reversals together and you can walk from pure static back to a coherent image."
+   "intu": "Learn to undo one small step of noising. Chain hundreds of these learned reversals together and you can walk from pure static back to a coherent image.",
+   "ref": {
+    "label": "Diffusers documentation",
+    "url": "https://huggingface.co/docs/diffusers/index"
+   }
   },
   "DF3": {
    "name": "Score Function",
@@ -412,7 +584,11 @@
    "domain": "DF",
    "mech": "The gradient of log-density with respect to the data itself, not the parameters. Learning it avoids ever needing to compute the intractable normalizing constant of the distribution.",
    "fail": "Poorly estimated in low-density regions, precisely where random initialization starts, which is why noise-perturbed training (the diffusion approach) is used to make the score learnable everywhere.",
-   "intu": "At any point in data space, which direction leads toward higher probability? Follow that gradient uphill repeatedly and you arrive at plausible data."
+   "intu": "At any point in data space, which direction leads toward higher probability? Follow that gradient uphill repeatedly and you arrive at plausible data.",
+   "ref": {
+    "label": "Score-Based Generative Modeling through SDEs",
+    "url": "https://arxiv.org/abs/2011.13456"
+   }
   },
   "DF4": {
    "name": "Stochastic Differential Equation (SDE)",
@@ -420,7 +596,11 @@
    "domain": "DF",
    "mech": "The drift term f governs deterministic movement, the diffusion term g scales the random Brownian increment dW. Discretizing this recovers the step-based formulation.",
    "fail": "Requires numerical solvers whose step size trades accuracy against speed. Coarse solvers introduce visible artifacts in generated samples.",
-   "intu": "The continuous-time view of diffusion. Instead of discrete noising steps, describe the process as smooth drift plus continuous random motion."
+   "intu": "The continuous-time view of diffusion. Instead of discrete noising steps, describe the process as smooth drift plus continuous random motion.",
+   "ref": {
+    "label": "Score-Based Generative Modeling through SDEs",
+    "url": "https://arxiv.org/abs/2011.13456"
+   }
   },
   "GM1": {
    "name": "Minimax Objective",
@@ -428,7 +608,11 @@
    "domain": "GM",
    "mech": "The discriminator maximizes its ability to separate real from fake while the generator minimizes that same quantity. Training alternates between the two.",
    "fail": "Notoriously unstable. Mode collapse (generator produces only a few outputs that reliably fool the discriminator), vanishing generator gradients when the discriminator gets too strong too early, and no reliable convergence guarantee.",
-   "intu": "Two networks with directly opposing goals. A generator tries to produce convincing fakes; a discriminator tries to catch them. Each improvement forces the other to improve."
+   "intu": "Two networks with directly opposing goals. A generator tries to produce convincing fakes; a discriminator tries to catch them. Each improvement forces the other to improve.",
+   "ref": {
+    "label": "Generative Adversarial Networks",
+    "url": "https://arxiv.org/abs/1406.2661"
+   }
   },
   "GM2": {
    "name": "Nash Equilibrium",
@@ -436,7 +620,11 @@
    "domain": "GM",
    "mech": "Every player's strategy is a best response to all others' current strategies simultaneously.",
    "fail": "Existence is guaranteed under certain conditions, but gradient-based training has no guarantee of finding it. In practice GAN training often cycles indefinitely rather than settling.",
-   "intu": "A stable state where nobody can improve their outcome by unilaterally changing strategy. The theoretical target GAN training aims at."
+   "intu": "A stable state where nobody can improve their outcome by unilaterally changing strategy. The theoretical target GAN training aims at.",
+   "ref": {
+    "label": "nashpy (the library)",
+    "url": "https://github.com/drvinceknight/Nashpy"
+   }
   },
   "GT1": {
    "name": "Adjacency Matrix",
@@ -444,7 +632,11 @@
    "domain": "GT",
    "mech": "An n by n matrix over n nodes. Symmetric for undirected graphs, and entries can hold weights instead of binary flags.",
    "fail": "Memory grows as n squared, which is prohibitive for large sparse graphs (a million nodes means a trillion entries, almost all zero). Real implementations use sparse edge lists instead.",
-   "intu": "The most direct encoding of a graph: a grid where each cell answers whether two nodes are linked. Everything in graph learning starts here."
+   "intu": "The most direct encoding of a graph: a grid where each cell answers whether two nodes are linked. Everything in graph learning starts here.",
+   "ref": {
+    "label": "networkx adjacency matrix",
+    "url": "https://networkx.org/documentation/stable/reference/convert.html"
+   }
   },
   "GT2": {
    "name": "Graph Laplacian",
@@ -452,7 +644,11 @@
    "domain": "GT",
    "mech": "Subtract the adjacency matrix from the diagonal degree matrix. Eigenvectors of the smallest non-zero eigenvalues expose natural cuts in the graph.",
    "fail": "Requires eigendecomposition, which is expensive on large graphs. Multiple normalized variants exist and produce different results, so the choice must be deliberate.",
-   "intu": "Encodes graph connectivity in a form whose eigenvalues reveal cluster structure. It is the graph analogue of a second derivative, measuring how much a node's value differs from its neighbors' average."
+   "intu": "Encodes graph connectivity in a form whose eigenvalues reveal cluster structure. It is the graph analogue of a second derivative, measuring how much a node's value differs from its neighbors' average.",
+   "ref": {
+    "label": "networkx Laplacian matrix",
+    "url": "https://networkx.org/documentation/stable/reference/linalg.html"
+   }
   },
   "GT3": {
    "name": "Shortest Path (Dijkstra)",
@@ -460,7 +656,11 @@
    "domain": "GT",
    "mech": "Maintain tentative distances, repeatedly select the unvisited node with smallest distance, and relax its outgoing edges.",
    "fail": "Fails outright with negative edge weights, where the greedy assumption breaks and Bellman-Ford is required instead. Cost grows with graph size, making all-pairs computation expensive.",
-   "intu": "Find the cheapest route between two nodes by always expanding the currently-cheapest frontier node first, guaranteeing optimality when you arrive."
+   "intu": "Find the cheapest route between two nodes by always expanding the currently-cheapest frontier node first, guaranteeing optimality when you arrive.",
+   "ref": {
+    "label": "networkx shortest paths",
+    "url": "https://networkx.org/documentation/stable/reference/algorithms/shortest_paths.html"
+   }
   },
   "GT4": {
    "name": "PageRank",
@@ -468,7 +668,11 @@
    "domain": "GT",
    "mech": "Iteratively redistribute each node's score across its outgoing links, with damping factor d controlling how often the random jump happens. Converges to the stationary distribution.",
    "fail": "The damping factor exists specifically to handle dead ends and disconnected components, which would otherwise trap or leak all the score. Manipulable by link farms, which is why search ranking long ago stopped relying on it alone.",
-   "intu": "A node is important if important nodes point at it. Importance flows through the graph recursively until it stabilizes, modelling a random surfer who mostly follows links but occasionally jumps randomly."
+   "intu": "A node is important if important nodes point at it. Importance flows through the graph recursively until it stabilizes, modelling a random surfer who mostly follows links but occasionally jumps randomly.",
+   "ref": {
+    "label": "networkx PageRank",
+    "url": "https://networkx.org/documentation/stable/reference/algorithms/link_analysis.html"
+   }
   },
   "GT5": {
    "name": "Degree Centrality",
@@ -476,7 +680,11 @@
    "domain": "GT",
    "mech": "Count edges touching the node, optionally normalized by the maximum possible degree.",
    "fail": "Purely local, so it misses structural importance entirely. A node with few connections can be critical if it is the sole bridge between two large clusters, which betweenness centrality would catch and degree centrality would not.",
-   "intu": "The simplest importance measure: just count connections. Crude, but often a surprisingly strong baseline feature."
+   "intu": "The simplest importance measure: just count connections. Crude, but often a surprisingly strong baseline feature.",
+   "ref": {
+    "label": "networkx centrality",
+    "url": "https://networkx.org/documentation/stable/reference/algorithms/centrality.html"
+   }
   },
   "IT1": {
    "name": "Entropy",
@@ -484,7 +692,11 @@
    "domain": "IT",
    "mech": "Weight each outcome's log-probability by its probability and negate. Measured in bits when using log base 2.",
    "fail": "Treats all classes symmetrically, ignoring that misclassifying a rare fraud case may cost far more than misclassifying a common legitimate one. Gini impurity is often used instead, being cheaper to compute with near-identical behavior.",
-   "intu": "How uncertain or impure is a distribution? Maximum when all outcomes are equally likely, zero when one outcome is certain. Decision trees split precisely to reduce this."
+   "intu": "How uncertain or impure is a distribution? Maximum when all outcomes are equally likely, zero when one outcome is certain. Decision trees split precisely to reduce this.",
+   "ref": {
+    "label": "scipy.stats.entropy",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.entropy.html"
+   }
   },
   "IT2": {
    "name": "Information Gain",
@@ -492,7 +704,11 @@
    "domain": "IT",
    "mech": "Subtract the size-weighted average entropy of resulting children from the parent's entropy.",
    "fail": "Biased toward high-cardinality features: splitting on a unique ID gives perfect purity and maximum information gain while generalizing not at all. Gain ratio normalizes for this.",
-   "intu": "How much uncertainty does this split remove? The tree greedily chooses whichever split reduces entropy most."
+   "intu": "How much uncertainty does this split remove? The tree greedily chooses whichever split reduces entropy most.",
+   "ref": {
+    "label": "Decision trees in scikit-learn",
+    "url": "https://scikit-learn.org/stable/modules/tree.html"
+   }
   },
   "IT3": {
    "name": "Cross-Entropy",
@@ -500,7 +716,11 @@
    "domain": "IT",
    "mech": "Weight the log of predicted probabilities by true probabilities and negate. This is the information-theoretic identity underlying CA9 and CA22.",
    "fail": "Same numerical instability at zero probability as its loss-function forms. It is also not symmetric: H(p,q) and H(q,p) differ.",
-   "intu": "The expected cost of encoding events from the true distribution using a code built for your predicted distribution. Worse predictions mean more wasted bits, which is why this doubles as a classification loss."
+   "intu": "The expected cost of encoding events from the true distribution using a code built for your predicted distribution. Worse predictions mean more wasted bits, which is why this doubles as a classification loss.",
+   "ref": {
+    "label": "torch.nn.CrossEntropyLoss",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html"
+   }
   },
   "IT4": {
    "name": "KL Divergence",
@@ -508,7 +728,11 @@
    "domain": "IT",
    "mech": "Weight the log-ratio of the two distributions by the reference distribution's probabilities.",
    "fail": "Asymmetric (it is not a true distance) and unbounded: it becomes infinite whenever Q assigns zero probability where P assigns non-zero. This is exactly why PS19 (Jensen-Shannon) exists as the bounded, symmetric alternative for drift comparison.",
-   "intu": "How much information is lost when Q is used to approximate P. Zero only when the distributions match exactly."
+   "intu": "How much information is lost when Q is used to approximate P. Zero only when the distributions match exactly.",
+   "ref": {
+    "label": "torch.nn.KLDivLoss",
+    "url": "https://pytorch.org/docs/stable/generated/torch.nn.KLDivLoss.html"
+   }
   },
   "IT5": {
    "name": "Log-Sum-Exp",
@@ -516,7 +740,11 @@
    "domain": "IT",
    "mech": "Subtract the maximum value before exponentiating, then add it back after taking the log. Mathematically identical, numerically stable.",
    "fail": "Forgetting the max-subtraction trick produces silent overflow to infinity or underflow to zero, giving NaN losses that are difficult to trace back to their source.",
-   "intu": "A numerically safe way to compute the log of a sum of exponentials, which appears constantly in softmax and probabilistic models where naive computation overflows."
+   "intu": "A numerically safe way to compute the log of a sum of exponentials, which appears constantly in softmax and probabilistic models where naive computation overflows.",
+   "ref": {
+    "label": "torch.logsumexp",
+    "url": "https://pytorch.org/docs/stable/generated/torch.logsumexp.html"
+   }
   },
   "IT6": {
    "name": "Mutual Information",
@@ -524,7 +752,11 @@
    "domain": "IT",
    "mech": "Compare the actual joint distribution against what it would be under independence. Zero exactly when the variables are independent.",
    "fail": "Requires estimating a joint distribution, which needs substantial data and becomes unreliable for continuous variables where binning choices heavily influence the result.",
-   "intu": "How much does knowing one variable reduce uncertainty about another? Unlike correlation (PS13), it captures non-linear relationships too."
+   "intu": "How much does knowing one variable reduce uncertainty about another? Unlike correlation (PS13), it captures non-linear relationships too.",
+   "ref": {
+    "label": "sklearn.metrics.mutual_info_score",
+    "url": "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mutual_info_score.html"
+   }
   },
   "IT7": {
    "name": "Perplexity",
@@ -532,7 +764,11 @@
    "domain": "IT",
    "mech": "Raise 2 (or e) to the power of the cross-entropy.",
    "fail": "Only comparable across models sharing an identical tokenization and evaluation corpus. Lower perplexity also does not reliably mean better downstream task performance, so it is a weak proxy for usefulness.",
-   "intu": "Exponentiated entropy, interpretable as the effective number of equally likely choices the model was deciding between. Perplexity of 10 means the model was about as uncertain as choosing uniformly among 10 options."
+   "intu": "Exponentiated entropy, interpretable as the effective number of equally likely choices the model was deciding between. Perplexity of 10 means the model was about as uncertain as choosing uniformly among 10 options.",
+   "ref": {
+    "label": "Perplexity in the Hugging Face docs",
+    "url": "https://huggingface.co/docs/transformers/perplexity"
+   }
   },
   "LA1": {
    "name": "Dot Product",
@@ -540,7 +776,11 @@
    "domain": "LA",
    "mech": "Pair up corresponding elements, multiply, add. Geometrically it equals the product of both magnitudes times the cosine of the angle between them.",
    "fail": "Magnitude-sensitive, so unscaled features dominate the result purely by having larger units. Cosine similarity (LA8) exists to strip magnitude out when only direction matters.",
-   "intu": "Multiply two vectors element-wise and sum the results into a single number. This is the atomic operation of machine learning: every weighted sum, every neuron, every linear prediction is a dot product."
+   "intu": "Multiply two vectors element-wise and sum the results into a single number. This is the atomic operation of machine learning: every weighted sum, every neuron, every linear prediction is a dot product.",
+   "ref": {
+    "label": "numpy.dot",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.dot.html"
+   }
   },
   "LA2": {
    "name": "Matrix Multiplication",
@@ -548,7 +788,11 @@
    "domain": "LA",
    "mech": "Each output element is the dot product of one row from A with one column from B. Inner dimensions must match.",
    "fail": "Not commutative: AB and BA are different operations and often differently shaped. Dimension mismatches are the single most common runtime error in ML code.",
-   "intu": "Apply a linear transformation to many vectors at once. Every neural network layer is fundamentally this operation plus an activation."
+   "intu": "Apply a linear transformation to many vectors at once. Every neural network layer is fundamentally this operation plus an activation.",
+   "ref": {
+    "label": "numpy.matmul",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.matmul.html"
+   }
   },
   "LA3": {
    "name": "Vector Norm (L1)",
@@ -556,7 +800,11 @@
    "domain": "LA",
    "mech": "Take absolute value of every component and sum.",
    "fail": "Not differentiable at zero, requiring subgradient methods. With correlated features it arbitrarily keeps one and zeroes its partners, which can be misleading if you interpret the surviving feature as uniquely important.",
-   "intu": "Sum of absolute magnitudes. Used as a penalty, it drives weak coefficients to exactly zero, performing automatic feature selection."
+   "intu": "Sum of absolute magnitudes. Used as a penalty, it drives weak coefficients to exactly zero, performing automatic feature selection.",
+   "ref": {
+    "label": "numpy.linalg.norm",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.linalg.norm.html"
+   }
   },
   "LA4": {
    "name": "Vector Norm (L2)",
@@ -564,7 +812,11 @@
    "domain": "LA",
    "mech": "Square each component, sum, take the square root.",
    "fail": "Never produces exact zeros, so it does not perform feature selection. Squaring also makes it disproportionately sensitive to a few large components.",
-   "intu": "Ordinary straight-line length of a vector. As a penalty it shrinks all coefficients smoothly toward zero without eliminating any."
+   "intu": "Ordinary straight-line length of a vector. As a penalty it shrinks all coefficients smoothly toward zero without eliminating any.",
+   "ref": {
+    "label": "numpy.linalg.norm",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.linalg.norm.html"
+   }
   },
   "LA5": {
    "name": "Eigenvalue Decomposition",
@@ -572,7 +824,11 @@
    "domain": "LA",
    "mech": "Solve for vectors v and scalars λ where applying A simply scales v by λ. Eigenvalues rank the directions by importance.",
    "fail": "Only defined for square matrices, and not all matrices are diagonalizable. Numerically fragile when eigenvalues are close together. SVD (LA6) is the more general and more stable alternative.",
-   "intu": "Find the special directions a matrix only stretches or compresses, never rotates. Those directions reveal the intrinsic structure of the transformation."
+   "intu": "Find the special directions a matrix only stretches or compresses, never rotates. Those directions reveal the intrinsic structure of the transformation.",
+   "ref": {
+    "label": "numpy.linalg.eig",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.linalg.eig.html"
+   }
   },
   "LA6": {
    "name": "Singular Value Decomposition",
@@ -580,7 +836,11 @@
    "domain": "LA",
    "mech": "Factor A into two orthogonal matrices with a diagonal matrix of singular values between them. Keeping only the largest singular values gives the best low-rank approximation.",
    "fail": "Expensive on very large matrices, requiring randomized or truncated variants. The resulting components are mathematically optimal but often not human-interpretable.",
-   "intu": "Any matrix, square or not, decomposes into rotate, scale, rotate. The scaling factors (singular values) rank how much each direction contributes, which is what makes dimensionality reduction possible."
+   "intu": "Any matrix, square or not, decomposes into rotate, scale, rotate. The scaling factors (singular values) rank how much each direction contributes, which is what makes dimensionality reduction possible.",
+   "ref": {
+    "label": "numpy.linalg.svd",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.linalg.svd.html"
+   }
   },
   "LA7": {
    "name": "Hadamard Product",
@@ -588,7 +848,11 @@
    "domain": "LA",
    "mech": "Multiply corresponding entries. Both operands must be the same shape.",
    "fail": "Easily confused with matrix multiplication in code, producing silently wrong results rather than errors when shapes happen to be compatible.",
-   "intu": "Element-wise multiplication, not matrix multiplication. Used for gating: one tensor acts as a mask controlling how much of another passes through."
+   "intu": "Element-wise multiplication, not matrix multiplication. Used for gating: one tensor acts as a mask controlling how much of another passes through.",
+   "ref": {
+    "label": "numpy.multiply",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.multiply.html"
+   }
   },
   "LA8": {
    "name": "Cosine Similarity",
@@ -596,7 +860,11 @@
    "domain": "LA",
    "mech": "Dot product normalized by both magnitudes, producing a value in [-1, 1].",
    "fail": "Deliberately blind to magnitude, which is wrong when magnitude is meaningful (a document mentioning a term 100 times versus twice). In very high dimensions, all pairs drift toward similar cosine values, weakening its discriminative power.",
-   "intu": "Measures whether two vectors point the same direction, ignoring how long they are. The standard similarity metric for embeddings, where direction encodes meaning and magnitude mostly encodes frequency."
+   "intu": "Measures whether two vectors point the same direction, ignoring how long they are. The standard similarity metric for embeddings, where direction encodes meaning and magnitude mostly encodes frequency.",
+   "ref": {
+    "label": "sklearn.metrics.pairwise.cosine_similarity",
+    "url": "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html"
+   }
   },
   "LA9": {
    "name": "Euclidean Distance",
@@ -604,7 +872,11 @@
    "domain": "LA",
    "mech": "Sum squared differences per dimension, take the square root.",
    "fail": "Scale-sensitive, so a feature measured in thousands dominates one measured in decimals unless standardized. Also degrades in high dimensions, where all points become nearly equidistant (the curse of dimensionality), making nearest-neighbor methods unreliable.",
-   "intu": "Straight-line distance, exactly as measured with a ruler. The default notion of \"closeness\" in k-NN and K-Means."
+   "intu": "Straight-line distance, exactly as measured with a ruler. The default notion of \"closeness\" in k-NN and K-Means.",
+   "ref": {
+    "label": "scipy.spatial.distance.euclidean",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.euclidean.html"
+   }
   },
   "LA10": {
    "name": "Covariance Matrix",
@@ -612,7 +884,11 @@
    "domain": "LA",
    "mech": "For each feature pair, average the product of their deviations from their respective means.",
    "fail": "Requires more samples than features to be invertible, which fails immediately on high-dimensional data (gene expression, text vectors) and breaks PCA, GMM, and Mahalanobis distance alike. Also captures only linear co-movement.",
-   "intu": "A full table of how every pair of features moves together. The diagonal holds each feature's own variance; off-diagonals hold pairwise relationships."
+   "intu": "A full table of how every pair of features moves together. The diagonal holds each feature's own variance; off-diagonals hold pairwise relationships.",
+   "ref": {
+    "label": "numpy.cov",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.cov.html"
+   }
   },
   "LA11": {
    "name": "Matrix Transpose",
@@ -620,7 +896,11 @@
    "domain": "LA",
    "mech": "Element at position (i,j) moves to (j,i).",
    "fail": "Largely a bookkeeping operation, but transposing at the wrong point in a backpropagation derivation silently produces wrong gradients rather than an error.",
-   "intu": "Flip a matrix across its diagonal, swapping rows and columns."
+   "intu": "Flip a matrix across its diagonal, swapping rows and columns.",
+   "ref": {
+    "label": "numpy.transpose",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.transpose.html"
+   }
   },
   "LA12": {
    "name": "Matrix Inverse",
@@ -628,7 +908,11 @@
    "domain": "LA",
    "mech": "Find the matrix that, multiplied against the original, yields the identity.",
    "fail": "Only exists for square, full-rank matrices. Perfectly correlated features make the matrix singular and non-invertible, and near-correlation makes inversion numerically explosive. This is exactly why Ridge regression adds λI to the diagonal: it guarantees invertibility.",
-   "intu": "The matrix that undoes another matrix's transformation. It is what allows linear regression to be solved in closed form rather than iteratively."
+   "intu": "The matrix that undoes another matrix's transformation. It is what allows linear regression to be solved in closed form rather than iteratively.",
+   "ref": {
+    "label": "numpy.linalg.inv",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.linalg.inv.html"
+   }
   },
   "LA13": {
    "name": "Determinant",
@@ -636,7 +920,11 @@
    "domain": "LA",
    "mech": "Computed recursively via cofactor expansion or, practically, from an LU decomposition.",
    "fail": "Underflows or overflows badly in high dimensions, since it multiplies many values together. Practical code works with the log-determinant instead.",
-   "intu": "A single number describing how much a transformation scales volume. Zero means the transformation collapses space into a lower dimension, destroying information irreversibly."
+   "intu": "A single number describing how much a transformation scales volume. Zero means the transformation collapses space into a lower dimension, destroying information irreversibly.",
+   "ref": {
+    "label": "numpy.linalg.det",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.linalg.det.html"
+   }
   },
   "LA14": {
    "name": "Trace",
@@ -644,7 +932,11 @@
    "domain": "LA",
    "mech": "Add the diagonal entries.",
    "fail": "Ignores all off-diagonal structure entirely, so two very differently structured matrices can share the same trace.",
-   "intu": "Sum of the diagonal. It also equals the sum of eigenvalues, which links it to total variance in covariance matrices."
+   "intu": "Sum of the diagonal. It also equals the sum of eigenvalues, which links it to total variance in covariance matrices.",
+   "ref": {
+    "label": "numpy.trace",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.trace.html"
+   }
   },
   "LA15": {
    "name": "Rank",
@@ -652,7 +944,11 @@
    "domain": "LA",
    "mech": "Count linearly independent rows or columns, typically via the number of non-zero singular values.",
    "fail": "Numerical rank is fuzzy: singular values are rarely exactly zero in floating point, so a tolerance threshold must be chosen and that choice changes the answer.",
-   "intu": "How many genuinely independent directions the matrix contains. If three features are all linear combinations of each other, they contribute only one direction of real information."
+   "intu": "How many genuinely independent directions the matrix contains. If three features are all linear combinations of each other, they contribute only one direction of real information.",
+   "ref": {
+    "label": "numpy.linalg.matrix_rank",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.linalg.matrix_rank.html"
+   }
   },
   "LA16": {
    "name": "Orthogonality",
@@ -660,7 +956,11 @@
    "domain": "LA",
    "mech": "Dot product equals zero, meaning a 90-degree angle.",
    "fail": "Orthogonal means uncorrelated, but not independent: two variables can be orthogonal while still being strongly related non-linearly.",
-   "intu": "Two directions carrying entirely non-overlapping information. PCA components are built to be orthogonal precisely so each captures variance the others do not."
+   "intu": "Two directions carrying entirely non-overlapping information. PCA components are built to be orthogonal precisely so each captures variance the others do not.",
+   "ref": {
+    "label": "numpy.linalg.qr",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.linalg.qr.html"
+   }
   },
   "LA17": {
    "name": "Vector Projection",
@@ -668,7 +968,11 @@
    "domain": "LA",
    "mech": "Scale the target direction by how much of the source vector aligns with it.",
    "fail": "Undefined if the direction vector is zero. Projecting onto a near-degenerate subspace amplifies numerical error.",
-   "intu": "The shadow one vector casts onto another's direction. Least-squares regression is precisely the projection of the target vector onto the space spanned by the features."
+   "intu": "The shadow one vector casts onto another's direction. Least-squares regression is precisely the projection of the target vector onto the space spanned by the features.",
+   "ref": {
+    "label": "numpy.vdot",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.vdot.html"
+   }
   },
   "LA18": {
    "name": "Frobenius Norm",
@@ -676,7 +980,11 @@
    "domain": "LA",
    "mech": "Square every entry, sum across the matrix, take the square root.",
    "fail": "Treats all entries as equally important, ignoring structure. A matrix with one huge entry and a matrix with many moderate entries can have identical Frobenius norms despite behaving very differently.",
-   "intu": "The L2 norm applied to an entire matrix: flatten it and measure its overall magnitude. Used to regularize whole weight matrices."
+   "intu": "The L2 norm applied to an entire matrix: flatten it and measure its overall magnitude. Used to regularize whole weight matrices.",
+   "ref": {
+    "label": "numpy.linalg.norm",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.linalg.norm.html"
+   }
   },
   "LA19": {
    "name": "Manhattan Distance (L1)",
@@ -684,7 +992,11 @@
    "domain": "LA",
    "mech": "Sum absolute differences across dimensions.",
    "fail": "Depends on the coordinate system: rotating the data changes the distance, which Euclidean distance does not. Often preferred in high dimensions, where it degrades less severely than Euclidean.",
-   "intu": "Distance travelled along grid lines rather than as the crow flies, like navigating city blocks."
+   "intu": "Distance travelled along grid lines rather than as the crow flies, like navigating city blocks.",
+   "ref": {
+    "label": "scipy.spatial.distance.cityblock",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cityblock.html"
+   }
   },
   "LA20": {
    "name": "Minkowski Distance",
@@ -692,7 +1004,11 @@
    "domain": "LA",
    "mech": "Raise absolute differences to power p, sum, then take the p-th root.",
    "fail": "Introduces p as yet another hyperparameter with no obvious default, and values other than 1 or 2 are rarely justified by anything other than empirical tuning.",
-   "intu": "A single family covering both previous metrics: p=1 gives Manhattan, p=2 gives Euclidean, and p approaching infinity gives the maximum single-dimension difference."
+   "intu": "A single family covering both previous metrics: p=1 gives Manhattan, p=2 gives Euclidean, and p approaching infinity gives the maximum single-dimension difference.",
+   "ref": {
+    "label": "scipy.spatial.distance.minkowski",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.minkowski.html"
+   }
   },
   "LA21": {
    "name": "Mahalanobis Distance",
@@ -700,7 +1016,11 @@
    "domain": "LA",
    "mech": "Weight the difference vector by the inverse covariance matrix, effectively stretching and rotating space so correlated directions are measured fairly.",
    "fail": "Requires inverting the covariance matrix, so it inherits every problem from LA10 and LA12: it breaks with more features than samples, and destabilizes with highly correlated features.",
-   "intu": "Distance that accounts for how features co-vary. A point can be close in raw Euclidean terms yet very unusual once you know the normal correlation pattern, which is what makes this the right metric for anomaly detection."
+   "intu": "Distance that accounts for how features co-vary. A point can be close in raw Euclidean terms yet very unusual once you know the normal correlation pattern, which is what makes this the right metric for anomaly detection.",
+   "ref": {
+    "label": "scipy.spatial.distance.mahalanobis",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.mahalanobis.html"
+   }
   },
   "LA22": {
    "name": "RBF (Gaussian) Kernel",
@@ -708,7 +1028,11 @@
    "domain": "LA",
    "mech": "Exponentiate the negative scaled squared distance. γ controls how fast similarity decays.",
    "fail": "γ is decisive and unintuitive: too high and every point only resembles itself (severe overfitting), too low and everything looks similar (underfitting). Also scale-sensitive, so features must be standardized first.",
-   "intu": "A similarity score that decays smoothly with distance, near 1 for close points and near 0 for far ones. It lets SVMs draw curved boundaries without ever explicitly computing the higher-dimensional space."
+   "intu": "A similarity score that decays smoothly with distance, near 1 for close points and near 0 for far ones. It lets SVMs draw curved boundaries without ever explicitly computing the higher-dimensional space.",
+   "ref": {
+    "label": "sklearn.metrics.pairwise.rbf_kernel",
+    "url": "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.rbf_kernel.html"
+   }
   },
   "LA23": {
    "name": "Polynomial Kernel",
@@ -716,7 +1040,11 @@
    "domain": "LA",
    "mech": "Take the dot product, add a constant, raise to power d. The expansion implicitly contains all feature interactions up to that degree.",
    "fail": "High degrees explode numerically and overfit aggressively. In practice RBF is usually preferred, since it is more flexible with fewer pathological failure modes.",
-   "intu": "Implicitly maps data into a space of feature interactions up to degree d, letting a linear method capture products and combinations of features."
+   "intu": "Implicitly maps data into a space of feature interactions up to degree d, letting a linear method capture products and combinations of features.",
+   "ref": {
+    "label": "sklearn.metrics.pairwise.polynomial_kernel",
+    "url": "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.polynomial_kernel.html"
+   }
   },
   "PS1": {
    "name": "Bayes' Theorem",
@@ -724,7 +1052,11 @@
    "domain": "PS",
    "mech": "Multiply prior belief P(A) by the likelihood of seeing this evidence if the hypothesis were true P(B|A), then normalize by the total probability of the evidence P(B) so the result stays a valid probability.",
    "fail": "Garbage priors produce garbage posteriors, the theorem is arithmetic, not judgement. Also fails badly when P(B) is near zero (rare evidence makes the update numerically unstable).",
-   "intu": "A rule for updating a belief when new evidence arrives. You start with how likely something was before seeing evidence (the prior), then rescale it by how well the evidence fits that hypothesis versus all others."
+   "intu": "A rule for updating a belief when new evidence arrives. You start with how likely something was before seeing evidence (the prior), then rescale it by how well the evidence fits that hypothesis versus all others.",
+   "ref": {
+    "label": "Naive Bayes in scikit-learn",
+    "url": "https://scikit-learn.org/stable/modules/naive_bayes.html"
+   }
   },
   "PS2": {
    "name": "Gaussian (Normal) PDF",
@@ -732,7 +1064,11 @@
    "domain": "PS",
    "mech": "The exponent measures squared distance from the mean, scaled by variance, so probability decays fast the further you get from centre. The leading fraction is just a normalizer forcing the total area to 1.",
    "fail": "Assumes symmetry and thin tails. Real financial, income, and failure-time data are usually skewed with fat tails, where a Gaussian dramatically understates extreme-event probability.",
-   "intu": "The bell curve. Describes how likely a value is when deviations from the average are caused by many small, independent random effects piling up."
+   "intu": "The bell curve. Describes how likely a value is when deviations from the average are caused by many small, independent random effects piling up.",
+   "ref": {
+    "label": "scipy.stats.norm",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.norm.html"
+   }
   },
   "PS3": {
    "name": "Maximum Likelihood Estimation (MLE)",
@@ -740,7 +1076,11 @@
    "domain": "PS",
    "mech": "Compute the probability of the whole dataset as a product across observations, then search parameter space for the maximum. In practice you maximize the log-likelihood instead, turning the product into a sum, which avoids numerical underflow and makes differentiation tractable.",
    "fail": "Overfits on small samples, it will happily choose parameters that explain noise perfectly. No built-in regularization; that has to be imposed separately (which is exactly what Bayesian priors or L1/L2 penalties do).",
-   "intu": "Pick the parameter values that would make the data you actually observed the least surprising thing that could have happened."
+   "intu": "Pick the parameter values that would make the data you actually observed the least surprising thing that could have happened.",
+   "ref": {
+    "label": "scipy.stats.fit",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.fit.html"
+   }
   },
   "PS4": {
    "name": "Mean / Variance",
@@ -748,7 +1088,11 @@
    "domain": "PS",
    "mech": "Mean is the balance point of the values. Variance averages the squared distances from that point, squaring makes deviations positive and penalizes large excursions disproportionately.",
    "fail": "Both are extremely outlier-sensitive: one absurd value drags the mean and inflates variance enormously. For skewed data, median and IQR describe the distribution far more honestly.",
-   "intu": "Centre and spread. Where the data sits, and how far it typically wanders from there."
+   "intu": "Centre and spread. Where the data sits, and how far it typically wanders from there.",
+   "ref": {
+    "label": "numpy.var",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.var.html"
+   }
   },
   "PS5": {
    "name": "Mean Absolute Error (MAE)",
@@ -756,7 +1100,11 @@
    "domain": "PS",
    "mech": "Take every prediction error, discard its sign, average them. The result is directly interpretable: \"off by 900 PLN on average.\"",
    "fail": "Treats a 900-unit miss on a small value the same as on a huge value. Across items of wildly different scale, MAE hides that a small absolute error can be a catastrophic relative error, which is exactly why MAPE exists alongside it.",
-   "intu": "On average, how far off is the prediction, in the original units of the thing you're predicting."
+   "intu": "On average, how far off is the prediction, in the original units of the thing you're predicting.",
+   "ref": {
+    "label": "sklearn.metrics.mean_absolute_error",
+    "url": "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_absolute_error.html"
+   }
   },
   "PS6": {
    "name": "Chi-Square Statistic",
@@ -764,7 +1112,11 @@
    "domain": "PS",
    "mech": "For each category, take observed minus expected count, square it (sign-agnostic, penalizes big gaps), and divide by expected, that division makes the deviation relative, so a gap of 10 matters more in a category that expected 20 than one that expected 10,000.",
    "fail": "Unreliable when expected counts per bucket are small (rule of thumb: below ~5). Rare categories inflate the statistic artificially, the denominator gets tiny and the term explodes.",
-   "intu": "For categorical data: how far do the counts you observed drift from the counts you expected? Big number means the categories are distributed differently than assumed."
+   "intu": "For categorical data: how far do the counts you observed drift from the counts you expected? Big number means the categories are distributed differently than assumed.",
+   "ref": {
+    "label": "scipy.stats.chisquare",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chisquare.html"
+   }
   },
   "PS7": {
    "name": "Kolmogorov–Smirnov Statistic",
@@ -772,7 +1124,11 @@
    "domain": "PS",
    "mech": "Sort both samples, build empirical CDFs (step functions climbing from 0 to 1), then scan across all x-values and record the maximum absolute difference. That single worst-case gap is D.",
    "fail": "Most sensitive near the centre of the distributions and comparatively blind in the tails, so it can miss drift that only affects extreme values. Also gets hypersensitive at large sample sizes, flagging statistically-real-but-practically-meaningless shifts.",
-   "intu": "Draw the cumulative distribution curve for two samples. The KS statistic is simply the widest vertical gap between them anywhere along the axis."
+   "intu": "Draw the cumulative distribution curve for two samples. The KS statistic is simply the widest vertical gap between them anywhere along the axis.",
+   "ref": {
+    "label": "scipy.stats.ks_2samp",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html"
+   }
   },
   "PS8": {
    "name": "Population Stability Index",
@@ -780,7 +1136,11 @@
    "domain": "PS",
    "mech": "Split the feature into bins (commonly 10 deciles). For each bin, compute the proportion in the reference sample and the current sample, then combine their difference with the log of their ratio, a construction that penalizes both direction and magnitude of the shift.",
    "fail": "Bin choice changes the answer, too few bins hides drift, too many produces near-empty bins and unstable log ratios. Empty bins are outright fatal (log of zero), so implementations must add a floor value.",
-   "intu": "Bucket both distributions, then ask how much the proportion in each bucket moved. Unlike KS, it aggregates shift across the whole range rather than reporting a single worst point."
+   "intu": "Bucket both distributions, then ask how much the proportion in each bucket moved. Unlike KS, it aggregates shift across the whole range rather than reporting a single worst point.",
+   "ref": {
+    "label": "Population stability index in Evidently",
+    "url": "https://github.com/evidentlyai/evidently"
+   }
   },
   "PS9": {
    "name": "Conditional Probability",
@@ -788,7 +1148,11 @@
    "domain": "PS",
    "mech": "Take the probability that both occur, and divide by the probability of the condition, effectively renormalizing so the condition's world sums to 1.",
    "fail": "Routinely confused with P(B|A), the \"prosecutor's fallacy.\" The probability of evidence given guilt is not the probability of guilt given evidence, and swapping them can invert a conclusion entirely.",
-   "intu": "Once you already know B happened, you're no longer in the full universe of possibilities, you've shrunk the world to just B. How much of that smaller world contains A?"
+   "intu": "Once you already know B happened, you're no longer in the full universe of possibilities, you've shrunk the world to just B. How much of that smaller world contains A?",
+   "ref": {
+    "label": "scipy.stats.multivariate_normal",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.multivariate_normal.html"
+   }
   },
   "PS10": {
    "name": "Joint Probability",
@@ -796,7 +1160,11 @@
    "domain": "PS",
    "mech": "For independent events it's simply the product of individual probabilities. For dependent events it requires the conditional: P(A∩B) = P(A|B)·P(B).",
    "fail": "The independence assumption is the trap. Multiplying probabilities of events that are actually correlated (two loans defaulting in the same recession) catastrophically understates joint risk, a recognised contributor to 2008-era model failures.",
-   "intu": "The chance two things happen together, not just individually."
+   "intu": "The chance two things happen together, not just individually.",
+   "ref": {
+    "label": "scipy.stats.multivariate_normal",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.multivariate_normal.html"
+   }
   },
   "PS11": {
    "name": "Expectation (Expected Value)",
@@ -804,7 +1172,11 @@
    "domain": "PS",
    "mech": "Weight every possible outcome by its probability, then sum.",
    "fail": "Can be a value that's impossible to actually observe (expected number of children: 2.3). Worse, for heavy-tailed distributions the expectation may not converge at all, making it meaningless as a planning number.",
-   "intu": "The long-run average if you repeated the random process forever. Not a value you expect to see, a value you expect to average."
+   "intu": "The long-run average if you repeated the random process forever. Not a value you expect to see, a value you expect to average.",
+   "ref": {
+    "label": "numpy.mean",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.mean.html"
+   }
   },
   "PS12": {
    "name": "Standard Deviation",
@@ -812,7 +1184,11 @@
    "domain": "PS",
    "mech": "Square root of variance. That's the entire operation; its purpose is purely interpretability.",
    "fail": "Inherits variance's outlier sensitivity. Also frequently misread as implying the 68/95/99.7 rule, which only holds if the data is genuinely Gaussian, and most real data isn't.",
-   "intu": "Variance, but converted back into the original units so it's actually interpretable. If prices are in PLN, σ is in PLN, variance would be in PLN²."
+   "intu": "Variance, but converted back into the original units so it's actually interpretable. If prices are in PLN, σ is in PLN, variance would be in PLN².",
+   "ref": {
+    "label": "numpy.std",
+    "url": "https://numpy.org/doc/stable/reference/generated/numpy.std.html"
+   }
   },
   "PS13": {
    "name": "Pearson Correlation Coefficient",
@@ -820,7 +1196,11 @@
    "domain": "PS",
    "mech": "Numerator is covariance, do they deviate from their means in the same direction? Denominator normalizes by both spreads, forcing the result into [−1, 1] regardless of units.",
    "fail": "Only detects linear relationships. A perfect parabola gives r ≈ 0 despite complete determinism. Also famously outlier-fragile, and correlation never implies causation.",
-   "intu": "How well do two variables move together in a straight line? Ranges from −1 (perfect inverse) through 0 (no linear relationship) to +1 (perfect direct)."
+   "intu": "How well do two variables move together in a straight line? Ranges from −1 (perfect inverse) through 0 (no linear relationship) to +1 (perfect direct).",
+   "ref": {
+    "label": "scipy.stats.pearsonr",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html"
+   }
   },
   "PS14": {
    "name": "Z-score / Standardization",
@@ -828,7 +1208,11 @@
    "domain": "PS",
    "mech": "Subtract the mean (centres at zero), divide by standard deviation (scales spread to one).",
    "fail": "Must use training μ and σ at inference time, never recompute on new data, recomputing is a textbook source of train/serve skew. Also meaningless for heavily skewed data, where \"3 sigma\" doesn't correspond to rarity the way intuition suggests.",
-   "intu": "Restate a value as \"how many standard deviations from average\", putting features measured in wildly different units on a common footing."
+   "intu": "Restate a value as \"how many standard deviations from average\", putting features measured in wildly different units on a common footing.",
+   "ref": {
+    "label": "sklearn.preprocessing.StandardScaler",
+    "url": "https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html"
+   }
   },
   "PS15": {
    "name": "p-value / Hypothesis Testing",
@@ -836,7 +1220,11 @@
    "domain": "PS",
    "mech": "Assume the null hypothesis, compute the probability of observing a result at least this extreme under that assumption. Compare against a pre-chosen threshold α (commonly 0.05).",
    "fail": "Two critical ones. (1) It is not the probability the hypothesis is true, that's a Bayesian quantity requiring priors. (2) Threshold direction is counter-intuitive: a larger α makes the test more likely to flag something (more false positives); a smaller α makes it stricter. Testing many features at once also inflates false positives, requiring correction (Bonferroni, FDR).",
-   "intu": "If nothing were actually going on, how surprising would this result be? Small p = surprising = evidence against \"nothing going on.\""
+   "intu": "If nothing were actually going on, how surprising would this result be? Small p = surprising = evidence against \"nothing going on.\"",
+   "ref": {
+    "label": "scipy.stats.ttest_ind",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html"
+   }
   },
   "PS16": {
    "name": "Poisson Distribution",
@@ -844,7 +1232,11 @@
    "domain": "PS",
    "mech": "A single parameter λ serves as both mean and variance. The formula weighs the event count k against that rate.",
    "fail": "Assumes mean equals variance. Real count data is usually overdispersed (variance far exceeds mean), where Poisson understates volatility and Negative Binomial is the correct choice.",
-   "intu": "How many rare, independent events happen in a fixed window, arrivals per hour, defects per batch, fraud cases per day."
+   "intu": "How many rare, independent events happen in a fixed window, arrivals per hour, defects per batch, fraud cases per day.",
+   "ref": {
+    "label": "scipy.stats.poisson",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.poisson.html"
+   }
   },
   "PS17": {
    "name": "Binomial Distribution",
@@ -852,7 +1244,11 @@
    "domain": "PS",
    "mech": "The binomial coefficient counts how many orderings produce k successes; the rest computes the probability of any one such ordering.",
    "fail": "Requires trials to be independent with constant p. Correlated trials (users influenced by each other) or drifting p (a promotion mid-test) invalidate it.",
-   "intu": "Number of successes in a fixed number of independent yes/no trials, conversions out of visitors, defects out of units."
+   "intu": "Number of successes in a fixed number of independent yes/no trials, conversions out of visitors, defects out of units.",
+   "ref": {
+    "label": "scipy.stats.binom",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.binom.html"
+   }
   },
   "PS18": {
    "name": "Wasserstein Distance",
@@ -860,7 +1256,11 @@
    "domain": "PS",
    "mech": "Minimize over all valid transport plans the total mass-times-distance moved.",
    "fail": "Computationally heavy in high dimensions. But it has a real advantage over KL divergence: it stays finite and meaningful even when distributions barely overlap, which is exactly why WGANs adopted it.",
-   "intu": "Treat two distributions as piles of dirt. The distance is the minimum total work needed to reshape one pile into the other, accounting for both how much mass moves and how far it travels."
+   "intu": "Treat two distributions as piles of dirt. The distance is the minimum total work needed to reshape one pile into the other, accounting for both how much mass moves and how far it travels.",
+   "ref": {
+    "label": "scipy.stats.wasserstein_distance",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wasserstein_distance.html"
+   }
   },
   "PS19": {
    "name": "Jensen–Shannon Divergence",
@@ -868,7 +1268,11 @@
    "domain": "PS",
    "mech": "Build a midpoint distribution M as the average of P and Q, then average each one's KL divergence from that midpoint. The midpoint trick is what removes KL's infinity problem when one distribution has zero mass where the other doesn't.",
    "fail": "Being bounded means it saturates, once two distributions are sufficiently different, JSD stops distinguishing \"different\" from \"wildly different.\"",
-   "intu": "A fairer version of KL divergence, symmetric (order doesn't matter) and bounded, so it can't blow up to infinity."
+   "intu": "A fairer version of KL divergence, symmetric (order doesn't matter) and bounded, so it can't blow up to infinity.",
+   "ref": {
+    "label": "scipy.spatial.distance.jensenshannon",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.jensenshannon.html"
+   }
   },
   "PS20": {
    "name": "Bootstrap Resampling",
@@ -876,7 +1280,11 @@
    "domain": "PS",
    "mech": "Draw n items with replacement (so some repeat, some are omitted), compute the statistic, repeat thousands of times. The spread of those results estimates your uncertainty.",
    "fail": "Cannot rescue a biased or unrepresentative original sample, it only quantifies sampling variability, not sampling error. Also breaks on dependent data (time series), where naive resampling destroys the temporal structure that carries the signal.",
-   "intu": "You only have one sample, but you want to know how much your estimate would wobble across different samples. So you fake having many samples by repeatedly redrawing from the one you have."
+   "intu": "You only have one sample, but you want to know how much your estimate would wobble across different samples. So you fake having many samples by repeatedly redrawing from the one you have.",
+   "ref": {
+    "label": "scipy.stats.bootstrap",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html"
+   }
   },
   "PS21": {
    "name": "ANOVA F-statistic",
@@ -884,7 +1292,11 @@
    "domain": "PS",
    "mech": "Compute variance of group means around the overall mean (between), and variance of points around their own group's mean (within). Their ratio is F, large F means group identity explains meaningful variation.",
    "fail": "Assumes roughly equal variances across groups and approximate normality. Tells you that some group differs, never which, that requires follow-up post-hoc testing.",
-   "intu": "Are the differences between groups larger than the natural noise within groups? If yes, the grouping is capturing something real."
+   "intu": "Are the differences between groups larger than the natural noise within groups? If yes, the grouping is capturing something real.",
+   "ref": {
+    "label": "scipy.stats.f_oneway",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.f_oneway.html"
+   }
   },
   "RL1": {
    "name": "Bellman Equation",
@@ -892,7 +1304,11 @@
    "domain": "RL",
    "mech": "Take the maximum over available actions of immediate reward plus discounted expected future value.",
    "fail": "Requires knowing transition probabilities, which real environments rarely provide, forcing model-free approaches. It also assumes the Markov property: that the current state fully summarizes history, which is frequently false.",
-   "intu": "The value of being somewhere equals the best immediate reward available plus the discounted value of wherever that action takes you. Recursive by construction, which is what makes RL tractable."
+   "intu": "The value of being somewhere equals the best immediate reward available plus the discounted value of wherever that action takes you. Recursive by construction, which is what makes RL tractable.",
+   "ref": {
+    "label": "Gymnasium documentation",
+    "url": "https://gymnasium.farama.org/"
+   }
   },
   "RL2": {
    "name": "Q-value Update Rule",
@@ -900,7 +1316,11 @@
    "domain": "RL",
    "mech": "Move the current estimate a fraction α toward the observed target. Learns without any model of the environment.",
    "fail": "The max operator introduces systematic overestimation bias, since noise in estimates gets selected for. Double Q-learning addresses this. Requires a deliberate exploration strategy, or it converges on whatever it happened to try first.",
-   "intu": "Adjust your estimate of an action's value toward what you actually observed plus the best you expect afterward. The bracketed term is the temporal-difference error: the gap between expectation and reality."
+   "intu": "Adjust your estimate of an action's value toward what you actually observed plus the best you expect afterward. The bracketed term is the temporal-difference error: the gap between expectation and reality.",
+   "ref": {
+    "label": "Q-learning in Stable-Baselines3 docs",
+    "url": "https://stable-baselines3.readthedocs.io/en/master/"
+   }
   },
   "RL3": {
    "name": "Discounted Return",
@@ -908,7 +1328,11 @@
    "domain": "RL",
    "mech": "Sum future rewards, each multiplied by γ raised to how many steps away it is.",
    "fail": "γ is decisive and often under-examined: near 1 makes the agent far-sighted but slow and unstable to train, low values make it myopic and unable to learn delayed payoffs. It also keeps the sum finite for infinite horizons, which is partly a mathematical convenience rather than a modelling choice.",
-   "intu": "Total future reward, with distant rewards worth less than immediate ones. The discount factor γ encodes how far-sighted the agent is."
+   "intu": "Total future reward, with distant rewards worth less than immediate ones. The discount factor γ encodes how far-sighted the agent is.",
+   "ref": {
+    "label": "Gymnasium documentation",
+    "url": "https://gymnasium.farama.org/"
+   }
   },
   "RL4": {
    "name": "Policy Gradient",
@@ -916,7 +1340,11 @@
    "domain": "RL",
    "mech": "Weight the gradient of the log-probability of each action taken by the return it eventually earned, so profitable actions get reinforced.",
    "fail": "Extremely high variance, since returns are noisy. This is why baselines and critics (Actor-Critic) exist. Also sample-inefficient, typically requiring on-policy data that must be discarded after each update.",
-   "intu": "Directly adjust the policy to make high-reward actions more likely, rather than learning values and deriving a policy from them. Naturally handles continuous action spaces where taking a max over actions is impossible."
+   "intu": "Directly adjust the policy to make high-reward actions more likely, rather than learning values and deriving a policy from them. Naturally handles continuous action spaces where taking a max over actions is impossible.",
+   "ref": {
+    "label": "Proximal Policy Optimization",
+    "url": "https://arxiv.org/abs/1707.06347"
+   }
   },
   "RL5": {
    "name": "Markov Transition Probability",
@@ -924,7 +1352,11 @@
    "domain": "RL",
    "mech": "A conditional probability distribution over next states for each state-action pair.",
    "fail": "Rests entirely on the Markov assumption, that the present state captures everything relevant from history. When it does not hold (partial observability), the problem becomes a POMDP and standard methods degrade quietly rather than failing loudly.",
-   "intu": "The chance of landing in a particular next state given where you are and what you do. The formal object that defines an environment's dynamics."
+   "intu": "The chance of landing in a particular next state given where you are and what you do. The formal object that defines an environment's dynamics.",
+   "ref": {
+    "label": "Gymnasium documentation",
+    "url": "https://gymnasium.farama.org/"
+   }
   },
   "SP1": {
    "name": "Fourier Transform",
@@ -932,7 +1364,11 @@
    "domain": "SP",
    "mech": "Correlate the signal against complex exponentials at every frequency; strong correlation means that frequency is present.",
    "fail": "Assumes the signal is stationary across its entire length, so it reports which frequencies exist but not when they occurred. STFT (SP3) exists precisely to recover that timing information.",
-   "intu": "Any signal can be rebuilt as a sum of pure sine waves. The transform reveals which frequencies are present and how strongly, converting a time-domain view into a frequency-domain one."
+   "intu": "Any signal can be rebuilt as a sum of pure sine waves. The transform reveals which frequencies are present and how strongly, converting a time-domain view into a frequency-domain one.",
+   "ref": {
+    "label": "scipy.fft",
+    "url": "https://docs.scipy.org/doc/scipy/reference/fft.html"
+   }
   },
   "SP2": {
    "name": "Discrete Fourier Transform (DFT)",
@@ -940,7 +1376,11 @@
    "domain": "SP",
    "mech": "Sum the signal against discrete complex exponentials. The FFT algorithm computes this in n log n rather than n squared, which is what makes it practical.",
    "fail": "Two classic artifacts. Aliasing: frequencies above half the sampling rate masquerade as lower ones. Spectral leakage: signals that do not fit a whole number of periods in the window smear energy across neighboring bins, which windowing functions mitigate.",
-   "intu": "The Fourier transform for sampled digital data: finite, discrete, and computable."
+   "intu": "The Fourier transform for sampled digital data: finite, discrete, and computable.",
+   "ref": {
+    "label": "scipy.fft.fft",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.fft.html"
+   }
   },
   "SP3": {
    "name": "Short-Time Fourier Transform (STFT)",
@@ -948,7 +1388,11 @@
    "domain": "SP",
    "mech": "Multiply by a window function centered at each position, transform, then stack the results into a time-frequency image.",
    "fail": "An unavoidable resolution tradeoff: short windows give good time resolution but poor frequency resolution, long windows the reverse. You cannot have both, which is a direct consequence of the uncertainty principle.",
-   "intu": "Slide a window across the signal and take a Fourier transform inside each window, producing a picture of how frequency content evolves over time. This is what a spectrogram is."
+   "intu": "Slide a window across the signal and take a Fourier transform inside each window, producing a picture of how frequency content evolves over time. This is what a spectrogram is.",
+   "ref": {
+    "label": "scipy.signal.stft",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.stft.html"
+   }
   },
   "SP4": {
    "name": "Mel-Frequency Cepstral Coefficients (MFCC)",
@@ -956,7 +1400,11 @@
    "domain": "SP",
    "mech": "Map the spectrum onto the mel scale, take the log (matching perceptual loudness), then apply a DCT to decorrelate and compress into typically 13 to 40 coefficients.",
    "fail": "Discards phase and fine spectral detail, which matters for music and speaker identification. Sensitive to background noise and channel differences. Largely displaced by learned representations in modern deep speech systems.",
-   "intu": "Compress a spectrum into a small set of coefficients weighted by how humans actually perceive pitch, which is finer at low frequencies than high. Long the standard feature set for speech recognition."
+   "intu": "Compress a spectrum into a small set of coefficients weighted by how humans actually perceive pitch, which is finer at low frequencies than high. Long the standard feature set for speech recognition.",
+   "ref": {
+    "label": "librosa.feature.mfcc",
+    "url": "https://librosa.org/doc/latest/generated/librosa.feature.mfcc.html"
+   }
   },
   "SA1": {
    "name": "Survival Function",
@@ -964,7 +1412,11 @@
    "domain": "SA",
    "mech": "One minus the cumulative distribution function of event times.",
    "fail": "The entire field exists because of censoring: for subjects who have not experienced the event yet, you know only that their time exceeds the observation window. Treating censored subjects as ordinary non-events biases results badly.",
-   "intu": "The probability an event has not yet happened by time t. Starts at 1 and decreases. Applies to churn, equipment failure, and customer lifetime alike."
+   "intu": "The probability an event has not yet happened by time t. Starts at 1 and decreases. Applies to churn, equipment failure, and customer lifetime alike.",
+   "ref": {
+    "label": "lifelines documentation",
+    "url": "https://lifelines.readthedocs.io/en/latest/"
+   }
   },
   "SA2": {
    "name": "Hazard Function",
@@ -972,7 +1424,11 @@
    "domain": "SA",
    "mech": "The rate of failure in an infinitesimal interval, conditional on survival up to that point.",
    "fail": "Cox models assume the proportional hazards property: that the ratio of hazards between groups stays constant over time. This is frequently violated (a treatment effective early may fade later) and must be tested rather than assumed.",
-   "intu": "Given that something has survived this long, what is the instantaneous risk it fails right now? Distinct from overall probability of failure, because it conditions on having made it this far."
+   "intu": "Given that something has survived this long, what is the instantaneous risk it fails right now? Distinct from overall probability of failure, because it conditions on having made it this far.",
+   "ref": {
+    "label": "lifelines documentation",
+    "url": "https://lifelines.readthedocs.io/en/latest/"
+   }
   },
   "SA3": {
    "name": "Kaplan-Meier Estimator",
@@ -980,7 +1436,11 @@
    "domain": "SA",
    "mech": "Multiply survival probabilities across every event time, where each term is one minus the fraction of at-risk subjects who failed at that moment. Censored subjects leave the at-risk set without causing a drop.",
    "fail": "Handles no covariates at all, only group comparisons, so it cannot answer why one group differs. Its steps become unreliable in the tail where few subjects remain at risk, which is why late-curve confidence intervals widen dramatically.",
-   "intu": "Build the survival curve directly from observed data without assuming any distribution shape. Each observed event drops the curve by a step proportional to how many were still at risk."
+   "intu": "Build the survival curve directly from observed data without assuming any distribution shape. Each observed event drops the curve by a step proportional to how many were still at risk.",
+   "ref": {
+    "label": "lifelines KaplanMeierFitter",
+    "url": "https://lifelines.readthedocs.io/en/latest/fitters/univariate/KaplanMeierFitter.html"
+   }
   },
   "TS1": {
    "name": "Autocorrelation",
@@ -988,7 +1448,11 @@
    "domain": "TS",
    "mech": "Shift the series by k steps, correlate it against the original, normalize by total variance. Repeat for many lags to produce an ACF plot, where spikes at regular intervals reveal seasonality (a spike at lag 12 on monthly data means a yearly cycle).",
    "fail": "Strong trends produce high autocorrelation at every lag, masking the genuine seasonal structure, which is why differencing usually has to come first.",
-   "intu": "How much does a series resemble a time-shifted copy of itself? This is the single property that separates a time series from a pile of independent rows."
+   "intu": "How much does a series resemble a time-shifted copy of itself? This is the single property that separates a time series from a pile of independent rows.",
+   "ref": {
+    "label": "statsmodels.tsa.stattools.acf",
+    "url": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.stattools.acf.html"
+   }
   },
   "TS2": {
    "name": "Differencing",
@@ -996,7 +1460,11 @@
    "domain": "TS",
    "mech": "Subtract each observation from the one before it. Apply twice for quadratic trends. Seasonal differencing subtracts a full period back instead (x_t − x_{t−12}).",
    "fail": "Over-differencing injects artificial negative autocorrelation and destroys real signal. Each round also costs you observations at the start of the series.",
-   "intu": "Instead of modelling the value, model the change in the value. Trends vanish and the series becomes stationary, which is what most classical time-series math requires."
+   "intu": "Instead of modelling the value, model the change in the value. Trends vanish and the series becomes stationary, which is what most classical time-series math requires.",
+   "ref": {
+    "label": "statsmodels time series analysis",
+    "url": "https://www.statsmodels.org/stable/tsa.html"
+   }
   },
   "TS3": {
    "name": "Moving Average (MA)",
@@ -1004,7 +1472,11 @@
    "domain": "TS",
    "mech": "Model the current value as the mean plus a weighted combination of recent noise terms. The θ coefficients control how long a shock persists.",
    "fail": "Errors aren't directly observable, they must be inferred during fitting, which makes MA models slower and less stable to estimate than pure AR models.",
-   "intu": "Today's value depends on the random shocks from recent periods, not on past values themselves, but on past errors. A demand spike from an unexpected event echoes forward for a few periods before fading."
+   "intu": "Today's value depends on the random shocks from recent periods, not on past values themselves, but on past errors. A demand spike from an unexpected event echoes forward for a few periods before fading.",
+   "ref": {
+    "label": "statsmodels ARIMA",
+    "url": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.arima.model.ARIMA.html"
+   }
   },
   "TS4": {
    "name": "Autoregression (AR)",
@@ -1012,7 +1484,11 @@
    "domain": "TS",
    "mech": "Regress the series on p lagged copies of itself. The φ coefficients are learned weights; p (the order) sets how far back memory extends.",
    "fail": "Requires stationarity, apply it to trending data and coefficients become unstable and misleading. Choosing p is a genuine bias-variance tradeoff: too small underfits the memory, too large overfits noise.",
-   "intu": "Predict today directly from its own recent past, a weighted vote among previous values."
+   "intu": "Predict today directly from its own recent past, a weighted vote among previous values.",
+   "ref": {
+    "label": "statsmodels AutoReg",
+    "url": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.ar_model.AutoReg.html"
+   }
   },
   "TS5": {
    "name": "Exponential Smoothing",
@@ -1020,7 +1496,11 @@
    "domain": "TS",
    "mech": "Each smoothed value blends the newest observation with the previous smoothed value, controlled by α. High α reacts fast to change; low α smooths aggressively and reacts slowly. Holt-Winters extends this with separate trend and seasonal terms.",
    "fail": "Basic form has no trend or seasonality handling, it will systematically lag behind a trending series. Choosing α is a direct responsiveness-versus-stability tradeoff.",
-   "intu": "A memory that fades smoothly. Recent observations matter most, older ones decay in influence but never vanish entirely."
+   "intu": "A memory that fades smoothly. Recent observations matter most, older ones decay in influence but never vanish entirely.",
+   "ref": {
+    "label": "statsmodels ExponentialSmoothing",
+    "url": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.holtwinters.ExponentialSmoothing.html"
+   }
   }
  }
 }

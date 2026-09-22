@@ -8,6 +8,7 @@
     "test": "node --test \"tests/**/*.test.js\"",
     "test:update": "UPDATE_SNAPSHOTS=1 node --test \"tests/**/*.test.js\"",
     "build": "node scripts/build.mjs",
+    "check:links": "node tools/check_links.mjs",
     "build:check": "node scripts/build.mjs --check",
     "serve": "python3 -m http.server 8000 -d site"
   },

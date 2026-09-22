@@ -71,7 +71,11 @@
    ],
    "mech": "Extract → Transform → Load on schedule.",
    "fail": "Schema changes break transforms.",
-   "flowchart": "flowchart TD\n    A[\"PL-S3 Extract\"] --> B[\"PL-S4 Transform\"]\n    B --> C{\"PL-S2 Validate\"}\n    C -->|Pass| D[\"PL-S5 Load\"]\n    C -->|Fail| E[\"Quarantine\"]"
+   "flowchart": "flowchart TD\n    A[\"PL-S3 Extract\"] --> B[\"PL-S4 Transform\"]\n    B --> C{\"PL-S2 Validate\"}\n    C -->|Pass| D[\"PL-S5 Load\"]\n    C -->|Fail| E[\"Quarantine\"]",
+   "ref": {
+    "label": "Apache Airflow documentation",
+    "url": "https://airflow.apache.org/docs/"
+   }
   },
   {
    "c": "PL-T2",
@@ -93,7 +97,11 @@
    ],
    "mech": "Extract → Load → Transform continuously.",
    "fail": "Quality issues surface late.",
-   "flowchart": "flowchart TD\n    A[\"PL-S3 Extract\"] --> B[\"PL-S5 Load\"]\n    B --> C[\"PL-S4 Transform\"]\n    C --> D{\"PL-S2 Validate\"}\n    D -->|Pass| E[\"Serve\"]\n    D -->|Fail| F[\"Dead-letter\"]"
+   "flowchart": "flowchart TD\n    A[\"PL-S3 Extract\"] --> B[\"PL-S5 Load\"]\n    B --> C[\"PL-S4 Transform\"]\n    C --> D{\"PL-S2 Validate\"}\n    D -->|Pass| E[\"Serve\"]\n    D -->|Fail| F[\"Dead-letter\"]",
+   "ref": {
+    "label": "Feast, the feature store",
+    "url": "https://github.com/feast-dev/feast"
+   }
   },
   {
    "c": "PL-T3",
@@ -116,7 +124,11 @@
    ],
    "mech": "Turns data into model-ready features.",
    "fail": "Feature drift between stores.",
-   "flowchart": "flowchart TD\n    A[\"Validated data\"] --> B[\"PL-S6 Feature Eng\"]\n    B --> C[\"PL-S7 Store Write\"]\n    C --> D[\"PL-S7 Store Read\"]"
+   "flowchart": "flowchart TD\n    A[\"Validated data\"] --> B[\"PL-S6 Feature Eng\"]\n    B --> C[\"PL-S7 Store Write\"]\n    C --> D[\"PL-S7 Store Read\"]",
+   "ref": {
+    "label": "Feature extraction in scikit-learn",
+    "url": "https://scikit-learn.org/stable/modules/feature_extraction.html"
+   }
   },
   {
    "c": "PL-T4",
@@ -143,7 +155,11 @@
    ],
    "mech": "Split, fit, tune, evaluate, register.",
    "fail": "Leakage between splits.",
-   "flowchart": "flowchart TD\n    A[\"PL-S7 Store Read\"] --> B[\"PL-S8 Split\"]\n    B --> C[\"PL-S9 Train\"]\n    C --> D[\"PL-S10 Tune\"]\n    D --> E[\"PL-S11 Evaluate\"]\n    E --> F{\"PL-S12 Gate\"}\n    F -->|No| C\n    F -->|Yes| G[\"PL-S13 Registry\"]"
+   "flowchart": "flowchart TD\n    A[\"PL-S7 Store Read\"] --> B[\"PL-S8 Split\"]\n    B --> C[\"PL-S9 Train\"]\n    C --> D[\"PL-S10 Tune\"]\n    D --> E[\"PL-S11 Evaluate\"]\n    E --> F{\"PL-S12 Gate\"}\n    F -->|No| C\n    F -->|Yes| G[\"PL-S13 Registry\"]",
+   "ref": {
+    "label": "Optuna documentation",
+    "url": "https://optuna.readthedocs.io/en/stable/"
+   }
   },
   {
    "c": "PL-T5",
@@ -162,7 +178,11 @@
    ],
    "mech": "Gate-checks candidate against champion.",
    "fail": "Unrepresentative evaluation data.",
-   "flowchart": "flowchart TD\n    A[\"Candidate\"] --> B[\"Evaluate\"]\n    B --> C[\"Bias Check\"]\n    C --> D[\"PL-S17 Champion\"]\n    D --> E{\"Beats?\"}\n    E -->|Yes| F[\"Promote\"]\n    E -->|No| G[\"Reject\"]"
+   "flowchart": "flowchart TD\n    A[\"Candidate\"] --> B[\"Evaluate\"]\n    B --> C[\"Bias Check\"]\n    C --> D[\"PL-S17 Champion\"]\n    D --> E{\"Beats?\"}\n    E -->|Yes| F[\"Promote\"]\n    E -->|No| G[\"Reject\"]",
+   "ref": {
+    "label": "Cross-validation in scikit-learn",
+    "url": "https://scikit-learn.org/stable/modules/cross_validation.html"
+   }
   },
   {
    "c": "PL-T6",
@@ -184,7 +204,11 @@
    ],
    "mech": "Builds, tests, ships model artifact.",
    "fail": "Production behaves differently.",
-   "flowchart": "flowchart TD\n    A[\"PL-S13 Registry\"] --> B[\"PL-S14 Build\"]\n    B --> C{\"Tests?\"}\n    C -->|No| D[\"Fail\"]\n    C -->|Yes| E[\"Deploy\"]\n    E --> F[\"PL-S17 Shadow\"]\n    F --> G[\"Rollout\"]"
+   "flowchart": "flowchart TD\n    A[\"PL-S13 Registry\"] --> B[\"PL-S14 Build\"]\n    B --> C{\"Tests?\"}\n    C -->|No| D[\"Fail\"]\n    C -->|Yes| E[\"Deploy\"]\n    E --> F[\"PL-S17 Shadow\"]\n    F --> G[\"Rollout\"]",
+   "ref": {
+    "label": "MLflow documentation",
+    "url": "https://mlflow.org/docs/latest/index.html"
+   }
   },
   {
    "c": "PL-T7",
@@ -208,7 +232,11 @@
    ],
    "mech": "Scores large dataset on schedule.",
    "fail": "Stale features.",
-   "flowchart": "flowchart TD\n    A[\"Scheduled\"] --> B[\"Load model\"]\n    B --> C[\"PL-S7 Read\"]\n    C --> D[\"Score\"]\n    D --> E[\"Write\"]\n    E --> F[\"PL-S18 Monitor\"]"
+   "flowchart": "flowchart TD\n    A[\"Scheduled\"] --> B[\"Load model\"]\n    B --> C[\"PL-S7 Read\"]\n    C --> D[\"Score\"]\n    D --> E[\"Write\"]\n    E --> F[\"PL-S18 Monitor\"]",
+   "ref": {
+    "label": "BentoML on GitHub",
+    "url": "https://github.com/bentoml/BentoML"
+   }
   },
   {
    "c": "PL-T8",
@@ -230,7 +258,11 @@
    ],
    "mech": "Serves predictions synchronously.",
    "fail": "Latency bottlenecks.",
-   "flowchart": "flowchart TD\n    A[\"Request\"] --> B[\"Gateway\"]\n    B --> C[\"PL-S7 Read\"]\n    C --> D[\"PL-S16 Serve\"]\n    D --> E[\"Response\"]\n    E --> F[\"PL-S18 Log\"]"
+   "flowchart": "flowchart TD\n    A[\"Request\"] --> B[\"Gateway\"]\n    B --> C[\"PL-S7 Read\"]\n    C --> D[\"PL-S16 Serve\"]\n    D --> E[\"Response\"]\n    E --> F[\"PL-S18 Log\"]",
+   "ref": {
+    "label": "Kubeflow Pipelines on GitHub",
+    "url": "https://github.com/kubeflow/pipelines"
+   }
   },
   {
    "c": "PL-T9",
@@ -251,7 +283,11 @@
    ],
    "mech": "Watches for drift, fires alerts.",
    "fail": "False alarms or missed drift.",
-   "flowchart": "flowchart TD\n    A[\"Logs\"] --> B[\"Checkers\"]\n    B --> C{\"Drift?\"}\n    C -->|No| A\n    C -->|Yes| D[\"PL-S19 Alert\"]\n    D --> E{\"Severity\"}\n    E -->|Moderate| F[\"Alert Only\"]\n    E -->|Significant| G[\"PL-S20 Retrain\"]"
+   "flowchart": "flowchart TD\n    A[\"Logs\"] --> B[\"Checkers\"]\n    B --> C{\"Drift?\"}\n    C -->|No| A\n    C -->|Yes| D[\"PL-S19 Alert\"]\n    D --> E{\"Severity\"}\n    E -->|Moderate| F[\"Alert Only\"]\n    E -->|Significant| G[\"PL-S20 Retrain\"]",
+   "ref": {
+    "label": "Evidently on GitHub",
+    "url": "https://github.com/evidentlyai/evidently"
+   }
   },
   {
    "c": "PL-T10",
@@ -274,7 +310,11 @@
    ],
    "mech": "Full data→train→evaluate→deploy chain.",
    "fail": "Catastrophic forgetting.",
-   "flowchart": "flowchart TD\n    A[\"Trigger\"] --> B[\"Pull data\"]\n    B --> C[\"Features\"]\n    C --> D[\"Train\"]\n    D --> E[\"Evaluate\"]\n    E --> F{\"Approved?\"}\n    F -->|Yes| G[\"Deploy\"]\n    F -->|No| H[\"Rollback\"]"
+   "flowchart": "flowchart TD\n    A[\"Trigger\"] --> B[\"Pull data\"]\n    B --> C[\"Features\"]\n    C --> D[\"Train\"]\n    D --> E[\"Evaluate\"]\n    E --> F{\"Approved?\"}\n    F -->|Yes| G[\"Deploy\"]\n    F -->|No| H[\"Rollback\"]",
+   "ref": {
+    "label": "MLflow documentation",
+    "url": "https://mlflow.org/docs/latest/index.html"
+   }
   },
   {
    "c": "PL-T11",
@@ -295,7 +335,11 @@
    ],
    "mech": "Human review produces labels.",
    "fail": "Label noise.",
-   "flowchart": "flowchart TD\n    A[\"Unlabeled\"] --> B[\"PL-S21 Review\"]\n    B --> C[\"PL-S22 Label\"]\n    C --> D[\"Agreement\"]\n    D --> E{\"OK?\"}\n    E -->|Yes| F[\"Labeled\"]\n    E -->|No| G[\"Re-annotate\"]"
+   "flowchart": "flowchart TD\n    A[\"Unlabeled\"] --> B[\"PL-S21 Review\"]\n    B --> C[\"PL-S22 Label\"]\n    C --> D[\"Agreement\"]\n    D --> E{\"OK?\"}\n    E -->|Yes| F[\"Labeled\"]\n    E -->|No| G[\"Re-annotate\"]",
+   "ref": {
+    "label": "Label Studio on GitHub",
+    "url": "https://github.com/HumanSignal/label-studio"
+   }
   },
   {
    "c": "PL-T12",
@@ -318,7 +362,11 @@
    ],
    "mech": "Retrieves chunks and injects into LLM.",
    "fail": "Retrieval misses relevant chunks.",
-   "flowchart": "flowchart TD\n    A[\"Corpus\"] --> B[\"Chunk\"]\n    B --> C[\"Embed\"]\n    C --> D[\"PL-S23 Index\"]\n    E[\"Query\"] --> F[\"PL-S24 Retrieve\"]\n    D --> F\n    F --> G[\"PL-S25 Inject\"]\n    G --> H[\"PL-S26 Generate\"]"
+   "flowchart": "flowchart TD\n    A[\"Corpus\"] --> B[\"Chunk\"]\n    B --> C[\"Embed\"]\n    C --> D[\"PL-S23 Index\"]\n    E[\"Query\"] --> F[\"PL-S24 Retrieve\"]\n    D --> F\n    F --> G[\"PL-S25 Inject\"]\n    G --> H[\"PL-S26 Generate\"]",
+   "ref": {
+    "label": "RAG in the Hugging Face docs",
+    "url": "https://huggingface.co/docs/transformers/model_doc/rag"
+   }
   },
   {
    "c": "PL-T13",
@@ -342,7 +390,11 @@
    ],
    "mech": "SFT then preference optimization.",
    "fail": "Catastrophic forgetting.",
-   "flowchart": "flowchart TD\n    A[\"PL-S27 Prep\"] --> B[\"PL-S28 SFT\"]\n    B --> C[\"PL-S11 Eval\"]\n    C --> D{\"Meets?\"}\n    D -->|No| B\n    D -->|Yes| E[\"PL-S29 Pref\"]\n    E --> F[\"PL-S13 Registry\"]"
+   "flowchart": "flowchart TD\n    A[\"PL-S27 Prep\"] --> B[\"PL-S28 SFT\"]\n    B --> C[\"PL-S11 Eval\"]\n    C --> D{\"Meets?\"}\n    D -->|No| B\n    D -->|Yes| E[\"PL-S29 Pref\"]\n    E --> F[\"PL-S13 Registry\"]",
+   "ref": {
+    "label": "TRL, fine-tuning with Hugging Face",
+    "url": "https://huggingface.co/docs/trl/index"
+   }
   },
   {
    "c": "PL-T14",
@@ -363,7 +415,11 @@
    ],
    "mech": "Splits traffic and tests.",
    "fail": "Insufficient sample size.",
-   "flowchart": "flowchart TD\n    A[\"PL-S30 Split\"] --> B[\"Champion\"]\n    A --> C[\"Challenger\"]\n    B --> D[\"Metrics\"]\n    C --> D\n    D --> E[\"PL-S31 Analyze\"]\n    E --> F{\"Significant?\"}\n    F -->|Yes| G[\"Promote\"]\n    F -->|No| H[\"Keep\"]"
+   "flowchart": "flowchart TD\n    A[\"PL-S30 Split\"] --> B[\"Champion\"]\n    A --> C[\"Challenger\"]\n    B --> D[\"Metrics\"]\n    C --> D\n    D --> E[\"PL-S31 Analyze\"]\n    E --> F{\"Significant?\"}\n    F -->|Yes| G[\"Promote\"]\n    F -->|No| H[\"Keep\"]",
+   "ref": {
+    "label": "Statistical tests in SciPy",
+    "url": "https://docs.scipy.org/doc/scipy/reference/stats.html"
+   }
   }
  ],
  "stages": {

@@ -3,6 +3,11 @@
 import fs from 'node:fs';
 import { parseCSV } from '../../site/js/csv.js';
 import { profileData, measuredAxes, classBalance, measureDrift, signature } from '../../site/js/profile.js';
+import { rankModels, rankDrifts, rankPipelines } from '../../site/js/recommend.js';
+import { assembleTaxonomy, TAXONOMY_FILES } from '../../site/js/taxonomy.js';
+
+const T = assembleTaxonomy(Object.fromEntries(TAXONOMY_FILES.map(n =>
+  [n, JSON.parse(fs.readFileSync(new URL(`../../site/taxonomy/${n}.json`, import.meta.url)))])));
 
 const round = (x) => (x == null ? null : Math.round(x * 1e6) / 1e6);
 const out = {};
@@ -34,7 +39,22 @@ for (const path of process.argv.slice(2)) {
       balance: balance && { code: balance.code, majorityShare: round(balance.majorityShare), levels: balance.levels },
       drift: drift && { code: drift.code, psi: round(drift.psi), column: drift.column, scope: drift.scope },
       signature: signature(profile, { target: target ?? '__none__', task: 'number', order: 'A21' }).codes.join(' '),
+      rankings: {},
     };
+    for (const order of ['A21', 'A22']) {
+      const sig = signature(profile, { target: target ?? '__none__', task: 'number', order });
+      for (const t of T.TASKS.map(x => x.id)) {
+        const models = rankModels(T, sig, t);
+        entry.perTarget[key].rankings[`${order}|${t}`] = {
+          signature: sig.codes.join(' ') + (sig.flags.length ? ` +${sig.flags.join(' ')}` : ''),
+          models: models.items.map(m => `${m.c}:${m.score}/${m.of}${m.caution ? '!' : ''}`),
+          tied: models.tied, candidates: models.candidates,
+          ruledOut: models.ruledOut.map(m => `${m.c}:${m.why}`),
+          drifts: rankDrifts(T, sig).items.map(d => d.c),
+          pipelines: rankPipelines(T, sig, t).items.map(p => `${p.c}:${p.score}`),
+        };
+      }
+    }
   }
   out[path.split('/').pop()] = entry;
 }

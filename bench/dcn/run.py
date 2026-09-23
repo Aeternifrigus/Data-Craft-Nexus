@@ -30,6 +30,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from . import datasets as ds
 from .csvread import parse_csv
+from .meta import meta_features
 from .models import BASELINE, BY_CODE, build_pipeline, runnable_codes
 from .profile import profile_data, signature
 from .recommend import conflict, load_taxonomy, rank_models
@@ -65,9 +66,10 @@ def profile_dataset(dataset: ds.Dataset) -> dict:
     parsed = parse_csv(dataset.to_csv_text())
     profile = profile_data(parsed.head, parsed.body)
     sig = signature(profile, "target", "A21")
+    meta = meta_features(parsed.head, parsed.body, "target")
     numeric = [c.name for c in profile.columns if c.numeric and c.name != "target"]
     categorical = [c.name for c in profile.columns if not c.numeric and c.name != "target"]
-    return {"signature": sig, "numeric": numeric, "categorical": categorical, "profile": profile}
+    return {"signature": sig, "numeric": numeric, "categorical": categorical, "profile": profile, "meta": meta}
 
 
 def evaluate(dataset: ds.Dataset, spec, task: str, numeric, categorical, folds: int, budget: int,
@@ -162,7 +164,7 @@ def main(argv=None) -> int:
 
                 measured = profile_dataset(dataset)
                 sig = measured["signature"]
-                ranking = rank_models(taxonomy, sig, TASK_CODE[task], limit=99)
+                ranking = rank_models(taxonomy, sig, TASK_CODE[task], limit=99, meta=measured["meta"])
                 rank_of = {m["c"]: i + 1 for i, m in enumerate(ranking.items)}
                 ruled = {m["c"]: m["why"] for m in ranking.ruled_out}
 

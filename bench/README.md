@@ -158,11 +158,42 @@ Every comparison the site publishes goes through `dcn/significance.py`:
   Multiple Data Sets* (JMLR, 2006). Two models whose average ranks differ by
   less than it cannot be told apart on this benchmark
 
-On the 40-dataset run, the learned order beats counting coordinates by more
-than luck (p = 0.028 on classification, 4 × 10⁻⁵ on regression) and does not
-yet beat always using boosting (p = 0.47 and 0.40). With 20 datasets, two
-classifiers need average ranks 5.9 apart to be separated, so 13 of the 18 are
-indistinguishable from the best one.
+The order in use is compared with the two things it claims to beat: counting
+coordinates and always using boosting, Holm-corrected over those two. On the
+40-dataset run it beats counting coordinates by more than luck (p = 0.019 on
+classification, 3 × 10⁻⁵ on regression) and does not yet beat always using
+boosting (p = 0.47 and 0.20). With 20 datasets, two classifiers need average
+ranks 5.9 apart to be separated, so 13 of the 18 are indistinguishable from the
+best one.
+
+## Which learned order ships
+
+`learn.py` judges three orders leave-one-dataset-out, simplest first:
+
+| order | what it is |
+|---|---|
+| `prior` | each model's average percentile rank, shrunk toward the middle |
+| `prior_fit` | the prior plus ridge-fitted interactions between the dataset's features and the model's family |
+| `prior_knn` | the prior blended with the model's percentile rank on the 10 nearest benchmark datasets |
+
+The blend is `(4 * prior + sum w * rank) / (4 + sum w)` with
+`w = exp(-(distance / h)^2)`, where distance is the same eight-feature distance
+"datasets like yours" uses and `h` is the median distance from a benchmark
+dataset to its nearest other one. Near neighbours pull a model's score toward
+what it did on them; far ones barely move it. Those settings are fixed in
+advance, not tuned on the results, and in the leave-one-dataset-out runs the
+neighbours, the scale and `h` come from the other datasets only.
+
+`choose()` applies a rule fixed before the full run: start from the prior, and
+let a richer order replace it only if its median regret is no worse on either
+task and it is better by more than luck on at least one (Wilcoxon,
+Holm-corrected over the two tasks, more wins than losses). The decisions are
+written into `ranking.json` and shown on the evidence tab. On the 40-dataset
+run neither richer order qualified.
+
+The page and the benchmark compute the neighbour order the same way:
+`tests/test_agreement.py` fits it on the committed run, points the JavaScript
+at it, and compares both rankings on every fixture.
 
 Repeated cross-validation seeds are averaged into one score per dataset and
 model before any of this. Seeds measure how much one split can move a score;
@@ -185,5 +216,4 @@ counts and every model's average rank from the committed data.
 
 ## Next
 
-- run all 196 datasets rather than 40
-- let the order depend on the dataset, not only on each model's average
+- run all 196 datasets rather than 40, and let `choose()` decide again

@@ -4,6 +4,19 @@ The weights come from learn.py and live in site/taxonomy/ranking.json. The
 benchmark has to rank models exactly as the page does, or it would be scoring
 advice nobody is given, so this mirrors the JavaScript and the agreement test
 compares the two.
+
+Three kinds of order can be in use ("chosen" in ranking.json):
+
+  prior       one number per model: its average percentile rank
+  prior_fit   the prior plus fitted interactions with the dataset's features
+  prior_knn   the prior blended with what the model was worth on the
+              benchmark datasets nearest to this one
+
+The blend for prior_knn is (S * prior + sum w * rank) / (S + sum w) over the k
+nearest benchmark datasets, where rank is the model's percentile rank on that
+dataset and w = exp(-(distance / h)^2). Close neighbours pull the score toward
+what happened on them; far ones barely move it off the prior. S, k and h are
+fixed in learn.py before anything is evaluated, not tuned on the results.
 """
 from __future__ import annotations
 
@@ -39,13 +52,61 @@ def has_learned_ranking(ranking: dict | None, task: str) -> bool:
     return bool(ranking and ranking.get("tasks", {}).get(task))
 
 
-def learned_score(ranking: dict | None, model: dict, task: str, features: dict) -> float | None:
+def meta_vector(meta: dict, names: list[str]) -> list[float]:
+    """A dataset's meta-features in a fixed order, at the four decimals both sides store."""
+    return [round(float(meta.get(name) or 0.0), 4) for name in names]
+
+
+def meta_distance(x: list[float], y: list[float], names: list[str], scale: dict) -> float:
+    """Mirrors metaDistance() in site/js/ranking.js and distance() in site/js/nearest.js."""
+    total = 0.0
+    for i, name in enumerate(names):
+        spread = scale.get(name) or 1.0
+        diff = (x[i] - y[i]) / spread
+        total += diff * diff
+    return math.sqrt(total / len(names))
+
+
+def neighbours_of(block: dict, meta: dict) -> list[tuple[dict, float]]:
+    """The k nearest benchmark datasets and their kernel weights, nearest first."""
+    names, scale = block["features"], block["scale"]
+    x = meta_vector(meta, names)
+    scored = [(meta_distance(x, d["meta"], names, scale), d["dataset"], d) for d in block["datasets"]]
+    scored.sort(key=lambda item: (item[0], item[1]))
+    h = block["bandwidth"]
+    return [(d, math.exp(-((dist / h) ** 2))) for dist, _, d in scored[:block["k"]]]
+
+
+def ranking_neighbours(ranking: dict | None, task: str, meta: dict | None):
+    """Neighbours for the order in use, or None when it does not use them."""
+    task_weights = (ranking or {}).get("tasks", {}).get(task)
+    block = (task_weights or {}).get("neighbours")
+    if not block or meta is None or ranking.get("chosen") != "prior_knn":
+        return None
+    return neighbours_of(block, meta)
+
+
+def blend(prior: float, code: str, neighbours: list[tuple[dict, float]], strength: float) -> float:
+    total = weight = 0.0
+    for d, w in neighbours:
+        rank = d["ranks"].get(code)
+        if rank is None:
+            continue
+        total += w * rank
+        weight += w
+    return (strength * prior + total) / (strength + weight)
+
+
+def learned_score(ranking: dict | None, model: dict, task: str, features: dict,
+                  neighbours: list | None = None) -> float | None:
     task_weights = (ranking or {}).get("tasks", {}).get(task)
     if not task_weights:
         return None
     prior = task_weights["prior"].get(model["c"])
     if prior is None:
         return None
+    if neighbours is not None:
+        return blend(prior, model["c"], neighbours, task_weights["neighbours"]["strength"])
     score = prior
     family = (ranking.get("families") or {}).get(model["c"])
     for name, value in features.items():

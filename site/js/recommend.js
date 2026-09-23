@@ -15,7 +15,7 @@
 // implying a ranking it cannot justify.
 
 import { matchCodes } from './profile.js';
-import { hasLearnedRanking, learnedScore, rankingFeatures } from './ranking.js';
+import { hasLearnedRanking, learnedScore, rankingFeatures, rankingNeighbours } from './ranking.js';
 
 const STRUCTURE = ['A21', 'A22', 'A23', 'A24', 'A25', 'A26'];
 const MODALITY = ['A31', 'A32', 'A33', 'A34', 'A35', 'A36', 'A37', 'A38'];
@@ -91,19 +91,20 @@ export function caution(model, sig) {
   return null;
 }
 
-function scored(list, codes, limit, T, sig, task) {
+function scored(list, codes, limit, T, sig, task, meta = null) {
   // The learned order when the benchmark covered this task, coordinates
   // otherwise. Coordinates stay on every card either way: they say what the
   // data has in common with the model, which is worth reading even when it is
   // not what decides the order.
   const learned = T && sig && task && hasLearnedRanking(T, task);
   const features = learned ? rankingFeatures(sig) : null;
+  const neighbours = learned ? rankingNeighbours(T, task, meta) : null;
 
   const ranked = list
     .map(x => {
       const own = x.data || x.fits;
       const hits = own.filter(d => codes.includes(d));
-      const evidence = learned ? learnedScore(T, x, task, features) : null;
+      const evidence = learned ? learnedScore(T, x, task, features, neighbours) : null;
       return { ...x, hits, score: hits.length, of: own.length, evidenceScore: evidence };
     })
     .sort((a, b) => {
@@ -132,10 +133,12 @@ function scored(list, codes, limit, T, sig, task) {
   };
 }
 
-export function rankModels(T, sig, task, limit = 4) {
+// `meta` is the dataset's meta-features (nearest.js), which the neighbour
+// order needs; without it the order falls back to the plain prior.
+export function rankModels(T, sig, task, limit = 4, meta = null) {
   const codes = matchCodes(sig);
   const usable = T.MODELS.filter(m => m.task.includes(task) && !conflict(m, sig));
-  const out = scored(usable, codes, limit, T, sig, task);
+  const out = scored(usable, codes, limit, T, sig, task, meta);
   out.items = out.items.map(m => ({ ...m, caution: caution(m, sig) }));
   out.ruledOut = T.MODELS.filter(m => m.task.includes(task) && conflict(m, sig))
     .map(m => ({ c: m.c, n: m.n, why: conflict(m, sig) }));

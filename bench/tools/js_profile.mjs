@@ -4,10 +4,15 @@ import fs from 'node:fs';
 import { parseCSV } from '../../site/js/csv.js';
 import { profileData, measuredAxes, classBalance, measureDrift, signature } from '../../site/js/profile.js';
 import { rankModels, rankDrifts, rankPipelines } from '../../site/js/recommend.js';
+import { metaFeatures } from '../../site/js/nearest.js';
 import { assembleTaxonomy, TAXONOMY_FILES } from '../../site/js/taxonomy.js';
 
 const T = assembleTaxonomy(Object.fromEntries(TAXONOMY_FILES.map(n =>
   [n, JSON.parse(fs.readFileSync(new URL(`../../site/taxonomy/${n}.json`, import.meta.url)))])));
+// The agreement test also checks orders that are not the one committed (the
+// neighbour order, before learn.py has chosen it), by pointing this at a
+// ranking file of its own.
+if (process.env.DCN_RANKING) T.RANKING = JSON.parse(fs.readFileSync(process.env.DCN_RANKING, 'utf8'));
 
 const round = (x) => (x == null ? null : Math.round(x * 1e6) / 1e6);
 const out = {};
@@ -43,10 +48,15 @@ for (const path of process.argv.slice(2)) {
         return { rows: s.rows, features: s.features }; })(),
       rankings: {},
     };
+    // Measured the way results.js measures an upload, so the neighbour order
+    // (when it is the one in use) sees the same numbers on both sides.
+    const meta = metaFeatures(profile, target);
+    if (drift) meta.drift_psi = Math.min(drift.psi, 5);
+    entry.perTarget[key].meta = Object.fromEntries(Object.entries(meta).map(([k, v]) => [k, round(v)]));
     for (const order of ['A21', 'A22']) {
       const sig = signature(profile, { target: target ?? '__none__', task: 'number', order });
       for (const t of T.TASKS.map(x => x.id)) {
-        const models = rankModels(T, sig, t);
+        const models = rankModels(T, sig, t, 4, meta);
         entry.perTarget[key].rankings[`${order}|${t}`] = {
           signature: sig.codes.join(' ') + (sig.flags.length ? ` +${sig.flags.join(' ')}` : ''),
           models: models.items.map(m => `${m.c}:${m.score}/${m.of}${m.caution ? '!' : ''}` +

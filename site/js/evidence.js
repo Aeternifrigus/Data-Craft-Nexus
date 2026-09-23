@@ -59,7 +59,7 @@ export function formatP(p) {
 export const ALPHA = 0.05;
 export const beyondLuck = (test) => test != null && test.p_holm != null && test.p_holm < ALPHA;
 
-const STRATEGY_KEYS = ['current', 'prior', 'prior_fit', 'boosting'];
+const STRATEGY_KEYS = ['current', 'prior', 'prior_fit', 'prior_knn', 'boosting'];
 
 function strategyLabel(ranking, key) {
   for (const task of Object.keys(ranking.tasks)) {
@@ -109,6 +109,28 @@ function comparisonTable(ranking) {
       }).join('')}
     </tr>`).join('')}</tbody>
   </table>`;
+}
+
+// Why the order in use is the one in use. learn.py only lets a richer order
+// replace the plain prior when it is no worse on either task and better by
+// more than luck on at least one (Holm-corrected over the two tasks); this
+// reports each decision it made, with its numbers.
+export function choiceNote(ranking) {
+  const decisions = ranking?.choice ?? [];
+  if (!decisions.length) return '';
+  const what = {
+    prior_fit: 'Adding interactions between a dataset\'s measured features and a model\'s family',
+    prior_knn: 'Weighting each model toward what it did on the benchmark datasets nearest to yours',
+  };
+  const n = ranking.trained_on?.datasets;
+  const lines = decisions.map(d => {
+    const detail = Object.entries(d.tasks).map(([task, s]) =>
+      `better on ${s.wins} and worse on ${s.losses} ${task} datasets (p = ${formatP(s.p_holm)})`).join(', ');
+    return d.replaced
+      ? `${what[d.candidate] ?? d.candidate} beat the plain per-model order by more than luck on ${n} datasets: ${detail}. It is the order in use.`
+      : `${what[d.candidate] ?? d.candidate} was tried too: ${detail}. That is not better by more than luck, so it is off.`;
+  });
+  return `${lines.join(' ')} Which order ships is decided by a rule fixed before the results were seen, in bench/dcn/learn.py.`;
 }
 
 // One sentence on the comparison people actually ask about: is it better
@@ -287,13 +309,11 @@ export function buildEvidence(T) {
       nothing to the weights that rank it, so this is what the ranking does on data it has not seen.</p>
     ${rankingTable(ev.ranking)}
     <p class="sect-note" style="margin-top:14px">A median over a few dozen datasets moves when a few datasets change, so
-      the order in use is also compared with each alternative dataset by dataset (Wilcoxon signed-rank test, Holm-corrected
-      for making several comparisons). ${esc(boostingVerdict(ev.ranking))}</p>
+      the order in use is also compared, dataset by dataset, with the two things it claims to beat: counting coordinates and
+      always using boosting (Wilcoxon signed-rank test, Holm-corrected for making two comparisons).
+      ${esc(boostingVerdict(ev.ranking))}</p>
     ${comparisonTable(ev.ranking)}
-    <p class="sect-note" style="margin-top:14px">Interactions between a dataset's measured features and a model's family
-      were fitted too, and did not beat the plain per-model order on ${ev.ranking.trained_on?.datasets ?? 40} datasets.
-      They stay switched off until the benchmark is large enough to support them, which is an argument for running all 196
-      datasets rather than 40.</p>` : ''}
+    <p class="sect-note" style="margin-top:14px">${esc(choiceNote(ev.ranking))}</p>` : ''}
 
     ${significanceSection(ev)}
 

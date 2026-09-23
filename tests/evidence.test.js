@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseCSV } from '../site/js/csv.js';
-import { averageRanks, beyondLuck, boostingVerdict, evidenceFor, evidenceSentence, formatP, rankChart }
+import { averageRanks, beyondLuck, boostingVerdict, choiceNote, evidenceFor, evidenceSentence, formatP, rankChart }
   from '../site/js/evidence.js';
 import { loadTaxonomyFromDisk } from './helpers.js';
 
@@ -99,7 +99,7 @@ test('the leave-one-dataset-out medians on the page match bench/results/ranking-
   }
 });
 
-test('the order in use is tested against every alternative, and the counts add up', () => {
+test('the order in use is tested against both references, and the counts add up', () => {
   const rows = readTable('bench/results/ranking-lodo.csv');
   const chosen = EV.ranking.chosen;
   for (const [task, entry] of Object.entries(EV.ranking.tasks)) {
@@ -155,4 +155,16 @@ test('p-values are shown honestly, and the verdict follows the corrected one', (
   if (beyond === 0) assert.match(verdict, /Neither difference is more than luck|within what luck produces/);
   else if (beyond === tests.length) assert.match(verdict, /more than luck\.$/);
   else assert.match(verdict, /^.*Only the .* difference is more than luck\.$/);
+});
+
+test('the page says how the order in use was chosen, and it agrees with ranking.json', () => {
+  const choice = EV.ranking.choice;
+  assert.deepEqual(choice, T.RANKING.choice, 'evidence.json and ranking.json disagree about the choice');
+  const replaced = choice.filter(d => d.replaced).map(d => d.candidate);
+  assert.equal(T.RANKING.chosen, replaced.length ? replaced[replaced.length - 1] : 'prior');
+  const note = choiceNote(EV.ranking);
+  for (const d of choice) assert.match(note, d.replaced ? /It is the order in use/ : /so it is off/);
+  for (const [task, entry] of Object.entries(EV.ranking.tasks)) {
+    assert.deepEqual(Object.keys(entry.against_chosen).sort(), ['boosting', 'current'], task);
+  }
 });

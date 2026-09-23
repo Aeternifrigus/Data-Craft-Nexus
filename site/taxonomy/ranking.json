@@ -144,5 +144,47 @@
    "default_prior": 0.5,
    "datasets": 20
   }
- }
+ },
+ "choice": [
+  {
+   "candidate": "prior_fit",
+   "against": "prior",
+   "replaced": false,
+   "no_worse": false,
+   "tasks": {
+    "classification": {
+     "wins": 1,
+     "losses": 4,
+     "ties": 15,
+     "p_holm": 0.375
+    },
+    "regression": {
+     "wins": 3,
+     "losses": 2,
+     "ties": 15,
+     "p_holm": 0.625
+    }
+   }
+  },
+  {
+   "candidate": "prior_knn",
+   "against": "prior",
+   "replaced": false,
+   "no_worse": false,
+   "tasks": {
+    "classification": {
+     "wins": 0,
+     "losses": 2,
+     "ties": 18,
+     "p_holm": 1.0
+    },
+    "regression": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 20,
+     "p_holm": 1.0
+    }
+   }
+  }
+ ]
 }

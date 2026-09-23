@@ -8,16 +8,25 @@ Target: a model's percentile rank among the models that ran on the same
 dataset. Rank rather than score, because R² and balanced accuracy are not
 comparable and a single catastrophic R² would dominate a regression.
 
-Two candidates, because with 20 datasets per task the simpler one may well win:
+Three candidates, simplest first:
 
   prior         what a model is worth on average, shrunk toward the middle
                 so a model seen on few datasets is not trusted too far
   prior+fit     the prior plus ridge-fitted interactions between the dataset's
                 measured features and the model's family
+  prior+knn     the prior blended with what each model was worth on the
+                benchmark datasets nearest to this one (see ranking.py)
 
-Both are judged leave-one-dataset-out: the held-out dataset never contributes
-to the weights that rank it. They are compared against what the site does now
-and against always reaching for boosting.
+All are judged leave-one-dataset-out: the held-out dataset never contributes
+to the weights, the neighbours or the scale that rank it. They are compared
+against counting coordinates and against always reaching for boosting.
+
+The rule for which one ships was fixed before the full run (choose()): the
+plain prior, unless a richer order is no worse on either task and better by
+more than luck (paired Wilcoxon, Holm-corrected over the two tasks) on at
+least one. The neighbour order's settings are fixed below for the same
+reason: tuning them on the results and then reporting the results would
+flatter it.
 
   python -m dcn.learn --results results/after-fixes.csv
 """
@@ -32,9 +41,18 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import Ridge
 
+from .meta import FEATURES as META_FEATURES
 from .models import BASELINE
+from .ranking import blend, meta_distance, meta_vector, neighbours_of
 from .recommend import conflict, load_taxonomy, rank_models
 from .significance import collapse_seeds, holm, paired
+
+# The neighbour order, fixed in advance rather than tuned on the results.
+KNN_K = 10              # neighbours consulted
+KNN_STRENGTH = 4.0      # how many datasets' worth of trust the prior keeps
+# Bandwidth: the median distance from a benchmark dataset to its nearest
+# other one, so "close" means as close as benchmark datasets usually are.
+ALPHA = 0.05
 
 ROOT = Path(__file__).resolve().parents[2]
 TASK_CODE = {"classification": "category", "regression": "number"}
@@ -106,9 +124,40 @@ def predict(model_code: str, family: str, features: dict, prior: dict, weights: 
     return value
 
 
-def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame) -> dict:
+def load_meta(path: Path) -> pd.DataFrame | None:
+    """Meta-features per dataset (meta.py), which the neighbour order needs."""
+    return pd.read_csv(path) if path.exists() else None
+
+
+def meta_scale(meta: pd.DataFrame) -> dict[str, float]:
+    """Spread of each meta-feature, as evidence.py publishes it for the page."""
+    return {f: round(float(meta[f].std() or 1.0), 4) for f in META_FEATURES}
+
+
+def neighbour_block(train: pd.DataFrame, meta: pd.DataFrame, task: str, scale: dict) -> dict:
+    """The benchmark datasets a neighbour order can draw on, with their ranks."""
+    by_name = {(r.dataset, r.task): r for r in meta.itertuples()}
+    datasets = []
+    for (dataset, _), group in train[train.task == task].groupby(["dataset", "task"]):
+        row = by_name.get((dataset, task))
+        if row is None:
+            continue
+        datasets.append({
+            "dataset": dataset,
+            "meta": meta_vector({f: getattr(row, f) for f in META_FEATURES}, META_FEATURES),
+            "ranks": {m: round(float(r), 4) for m, r in zip(group.model, group.target)},
+        })
+    nearest = [min(meta_distance(d["meta"], o["meta"], META_FEATURES, scale) for o in datasets if o is not d)
+               for d in datasets] if len(datasets) > 1 else [1.0]
+    bandwidth = round(float(np.median(nearest)), 4) or 1.0
+    return {"k": KNN_K, "strength": KNN_STRENGTH, "bandwidth": bandwidth,
+            "features": META_FEATURES, "scale": scale, "datasets": datasets}
+
+
+def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame, meta: pd.DataFrame | None = None) -> dict:
     """Leave one dataset out, rank its models with weights fitted on the rest."""
-    scores = {k: [] for k in ["current", "prior", "prior_fit", "boosting", "oracle"]}
+    keys = ["current", "prior", "prior_fit"] + (["prior_knn"] if meta is not None else []) + ["boosting"]
+    scores = {k: [] for k in keys + ["oracle"]}
     per_dataset = []
     family = {m["c"]: m["dom"] for m in taxonomy["MODELS"]}
 
@@ -118,6 +167,14 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame) -> dict
         prior = fit_prior(train)
         weights = fit_interactions(train, prior)
         features = {name: group.iloc[0][name] for name in FEATURE_NAMES}
+
+        neighbours = None
+        if meta is not None:
+            own = meta[(meta.dataset == dataset) & (meta.task == task)]
+            others = meta[~((meta.dataset == dataset) & (meta.task == task))]
+            if len(own):
+                block = neighbour_block(train, others, task, meta_scale(others))
+                neighbours = (block, neighbours_of(block, {f: own.iloc[0][f] for f in META_FEATURES}))
 
         best = group.score.max()
         run = results[(results.dataset == dataset) & (results.task == task)]
@@ -140,18 +197,21 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame) -> dict
 
         prior_pick = pick(lambda m: prior.get(m, 0.5))
         fit_pick = pick(lambda m: predict(m, family.get(m, "?"), features, prior, weights))
+        picks = {"current": current, "prior": prior_pick, "prior_fit": fit_pick, "boosting": boosting}
+        if meta is not None:
+            picks["prior_knn"] = (pick(lambda m: blend(prior.get(m, 0.5), m, neighbours[1], KNN_STRENGTH))
+                                  if neighbours else prior_pick)
 
-        for key, value in [("current", current), ("prior", prior_pick), ("prior_fit", fit_pick),
-                           ("boosting", boosting), ("oracle", best)]:
+        for key, value in list(picks.items()) + [("oracle", best)]:
             scores[key].append(best - value if value is not None else np.nan)
-        per_dataset.append({"dataset": dataset, "task": task, "best": best, "current": current,
-                            "prior": prior_pick, "prior_fit": fit_pick, "boosting": boosting})
+        per_dataset.append({"dataset": dataset, "task": task, "best": best,
+                            **{k: picks[k] for k in keys}})
 
     table = pd.DataFrame(per_dataset)
     summary = {}
     for task, group in table.groupby("task"):
         summary[task] = {}
-        for key in ["current", "prior", "prior_fit", "boosting"]:
+        for key in keys:
             regret = (group.best - group[key]).dropna()
             summary[task][key] = {
                 "median_regret": round(float(regret.median()), 4),
@@ -162,15 +222,66 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame) -> dict
     return {"summary": summary, "table": table}
 
 
-STRATEGIES = ["current", "prior", "prior_fit", "boosting"]
+STRATEGIES = ["current", "prior", "prior_fit", "prior_knn", "boosting"]
+CANDIDATES = ["prior", "prior_fit", "prior_knn"]   # simplest first
+
+
+def choose(table: pd.DataFrame) -> tuple[str, list[dict]]:
+    """Which learned order ships, by the rule fixed before the full run.
+
+    Start from the plain prior. A richer candidate replaces the current choice
+    only if its median regret is no worse on either task and it is better by
+    more than luck on at least one: paired Wilcoxon, Holm-corrected over the
+    tasks, p below ALPHA, with more wins than losses.
+    """
+    decisions = []
+    chosen = "prior"
+    for candidate in CANDIDATES[1:]:
+        if candidate not in table:
+            continue
+        no_worse, tests = True, {}
+        for task, group in table.groupby("task"):
+            regret_new = (group.best - group[candidate]).to_numpy()
+            regret_old = (group.best - group[chosen]).to_numpy()
+            if np.nanmedian(regret_new) > np.nanmedian(regret_old) + 1e-9:
+                no_worse = False
+            tests[task] = paired(regret_new, regret_old)
+        adjusted = holm({task: test["p"] for task, test in tests.items()})
+        better = [task for task, test in tests.items()
+                  if adjusted[task] < ALPHA and test["wins"] > test["losses"]]
+        decisions.append({
+            "candidate": candidate, "against": chosen, "replaced": bool(no_worse and better),
+            "no_worse": no_worse,
+            "tasks": {task: {"wins": test["wins"], "losses": test["losses"], "ties": test["ties"],
+                             "p_holm": float(f"{adjusted[task]:.4g}")} for task, test in tests.items()},
+        })
+        if no_worse and better:
+            chosen = candidate
+    return chosen, decisions
+
+
+def describe(decision: dict) -> str:
+    verdict = "replaces" if decision["replaced"] else "does not replace"
+    detail = ", ".join(f"{task}: better on {d['wins']}, worse on {d['losses']}, p = {d['p_holm']:.3g}"
+                       for task, d in decision["tasks"].items())
+    worse = "" if decision["no_worse"] else "; worse median regret on a task"
+    return f"{decision['candidate']} {verdict} {decision['against']} ({detail}{worse})"
+
+
+REFERENCES = ["current", "boosting"]   # what the order in use is claimed to beat
 
 
 def comparisons(table: pd.DataFrame, chosen: str) -> dict:
-    """The order in use against every alternative, per task, with Holm's correction."""
+    """The order in use against the two references, per task, Holm-corrected over the two.
+
+    The learned variants are not in this family: whether one of them replaces
+    the prior is choose()'s question, tested there.
+    """
     out = {}
     for task, group in table.groupby("task"):
         regret = {key: (group.best - group[key]).to_numpy() for key in STRATEGIES if key in group}
-        tests = {other: paired(regret[chosen], regret[other]) for other in regret if other != chosen}
+        tests = {other: paired(regret[chosen], regret[other]) for other in REFERENCES
+                 if other in regret and other != chosen}
         adjusted = holm({other: t["p"] for other, t in tests.items()})
         for other, t in tests.items():
             t["p_holm"] = adjusted[other]
@@ -179,7 +290,7 @@ def comparisons(table: pd.DataFrame, chosen: str) -> dict:
 
 
 def report_comparisons(table: pd.DataFrame, chosen: str) -> str:
-    lines = [f"{chosen} against each alternative, paired over datasets (Wilcoxon, Holm-adjusted):"]
+    lines = [f"{chosen} against the references, paired over datasets (Wilcoxon, Holm-adjusted):"]
     for task, tests in comparisons(table, chosen).items():
         lines.append(f"  {task}")
         for other, t in tests.items():
@@ -188,7 +299,8 @@ def report_comparisons(table: pd.DataFrame, chosen: str) -> str:
     return "\n".join(lines)
 
 
-def export(frame: pd.DataFrame, taxonomy: dict, out: Path, chosen: str) -> dict:
+def export(frame: pd.DataFrame, taxonomy: dict, out: Path, chosen: str, meta: pd.DataFrame | None = None,
+           decisions: list[dict] | None = None) -> dict:
     """Fit on everything and write the weights the site will use."""
     family = {m["c"]: m["dom"] for m in taxonomy["MODELS"]}
     payload = {
@@ -199,6 +311,8 @@ def export(frame: pd.DataFrame, taxonomy: dict, out: Path, chosen: str) -> dict:
         "features": FEATURE_NAMES,
         "families": {},
         "tasks": {},
+        # How the order in use was chosen, by the rule in choose().
+        "choice": decisions or [],
     }
     for task, group in frame.groupby("task"):
         prior = fit_prior(group)
@@ -209,6 +323,8 @@ def export(frame: pd.DataFrame, taxonomy: dict, out: Path, chosen: str) -> dict:
             "default_prior": 0.5,
             "datasets": int(group.dataset.nunique()),
         }
+        if chosen == "prior_knn" and meta is not None:
+            payload["tasks"][TASK_CODE[task]]["neighbours"] = neighbour_block(group, meta, task, meta_scale(meta))
     payload["families"] = {m["c"]: family[m["c"]] for m in taxonomy["MODELS"]}
     out.write_text(json.dumps(payload, indent=1) + "\n")
     return payload
@@ -219,33 +335,38 @@ def main(argv=None) -> int:
     ap.add_argument("--results", default="results/after-fixes.csv")
     ap.add_argument("--out", default=str(ROOT / "site" / "taxonomy" / "ranking.json"))
     ap.add_argument("--report", default="results/ranking-lodo.csv")
+    ap.add_argument("--meta", default=None, help="meta-features per dataset (default: meta.csv next to the results)")
     args = ap.parse_args(argv)
 
     results = pd.read_csv(args.results)
+    meta = load_meta(Path(args.meta) if args.meta else Path(args.results).parent / "meta.csv")
     taxonomy = load_taxonomy()
     frame = build_frame(results, taxonomy)
-    evaluation = evaluate(frame, taxonomy, results)
+    if meta is not None:
+        meta = meta.merge(frame[["dataset", "task"]].drop_duplicates(), on=["dataset", "task"])
+    evaluation = evaluate(frame, taxonomy, results, meta)
 
     print(f"{frame.dataset.nunique()} datasets, {len(frame)} model results, leave-one-dataset-out\n")
     for task, stats in evaluation["summary"].items():
         print(f"{task}")
         print(f"{'':26}{'median regret':>14}{'was best':>10}{'within 1pt':>12}")
         for key, label in [("current", "counting coordinates"), ("prior", "learned prior"),
-                           ("prior_fit", "prior + interactions"), ("boosting", "always boosting")]:
+                           ("prior_fit", "prior + interactions"), ("prior_knn", "prior + neighbours"),
+                           ("boosting", "always boosting")]:
+            if key not in stats:
+                continue
             s = stats[key]
             print(f"  {label:24}{s['median_regret']:>14.3f}{s['was_best']:>10.0%}{s['within_one_point']:>12.0%}")
         print()
 
-    # Pick by median regret across both tasks, ties going to the simpler model.
-    def total(key):
-        return sum(stats[key]["median_regret"] for stats in evaluation["summary"].values())
-    chosen = "prior" if total("prior") <= total("prior_fit") else "prior_fit"
-    print(f"chosen: {chosen} (prior {total('prior'):.3f} vs prior+interactions {total('prior_fit'):.3f}, "
-          f"counting coordinates {total('current'):.3f}, boosting {total('boosting'):.3f})\n")
+    chosen, decisions = choose(evaluation["table"])
+    for decision in decisions:
+        print(describe(decision))
+    print(f"chosen: {chosen}\n")
     print(report_comparisons(evaluation["table"], chosen))
 
     evaluation["table"].round(4).to_csv(args.report, index=False)
-    payload = export(frame, taxonomy, Path(args.out), chosen)
+    payload = export(frame, taxonomy, Path(args.out), chosen, meta, decisions)
     print(f"wrote {args.out} ({len(payload['tasks'])} tasks) and {args.report}")
     return 0
 

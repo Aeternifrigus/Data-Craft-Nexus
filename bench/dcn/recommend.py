@@ -12,7 +12,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from .ranking import has_learned_ranking, learned_score, load_ranking, ranking_features
+from .ranking import has_learned_ranking, learned_score, load_ranking, ranking_features, ranking_neighbours
 
 STRUCTURE = ["A21", "A22", "A23", "A24", "A25", "A26"]
 MODALITY = ["A31", "A32", "A33", "A34", "A35", "A36", "A37", "A38"]
@@ -99,11 +99,14 @@ def _ranking() -> dict | None:
     return _RANKING_CACHE["value"]
 
 
-def rank_models(taxonomy: dict, sig: dict, task: str, limit: int = 4, ranking: dict | None = None) -> Ranking:
+def rank_models(taxonomy: dict, sig: dict, task: str, limit: int = 4, ranking: dict | None = None,
+                meta: dict | None = None) -> Ranking:
+    """`meta` is the dataset's meta-features (meta.py), which the neighbour order needs."""
     codes = match_codes(sig)
     ranking = ranking if ranking is not None else _ranking()
     learned = has_learned_ranking(ranking, task)
     features = ranking_features(sig) if learned else {}
+    neighbours = ranking_neighbours(ranking, task, meta) if learned else None
 
     usable, ruled_out = [], []
     for model in taxonomy["MODELS"]:
@@ -116,7 +119,7 @@ def rank_models(taxonomy: dict, sig: dict, task: str, limit: int = 4, ranking: d
         hits = [d for d in model["data"] if d in codes]
         usable.append({**model, "hits": hits, "score": len(hits), "of": len(model["data"]),
                        "caution": caution(model, sig),
-                       "evidence_score": learned_score(ranking, model, task, features) if learned else None})
+                       "evidence_score": learned_score(ranking, model, task, features, neighbours) if learned else None})
 
     def sort_key(m):
         # Models the benchmark ran come first, ordered by what they were worth;

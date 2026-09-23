@@ -58,7 +58,8 @@ def model_lines(results: pd.DataFrame, table: pd.DataFrame) -> dict:
 
 
 STRATEGY_LABELS = [("current", "counting matched coordinates"), ("prior", "learned from the benchmark"),
-                   ("prior_fit", "learned, with dataset interactions"), ("boosting", "always use boosting")]
+                   ("prior_fit", "learned, with dataset interactions"),
+                   ("prior_knn", "learned, weighted toward datasets like yours"), ("boosting", "always use boosting")]
 
 
 def _r(x, digits=4):
@@ -83,7 +84,8 @@ def ranking_evidence(lodo_path: Path) -> dict | None:
     ranking = load_ranking() or {}
     chosen = ranking.get("chosen")
     tests = comparisons(table, chosen) if chosen in table else {}
-    out = {"chosen": chosen, "trained_on": ranking.get("trained_on"), "level": 0.95, "tasks": {}}
+    out = {"chosen": chosen, "trained_on": ranking.get("trained_on"), "level": 0.95,
+           "choice": ranking.get("choice", []), "tasks": {}}
     for task, group in table.groupby("task"):
         out["tasks"][task] = {"datasets": int(len(group)), "metric": METRIC[task], "strategies": {},
                               "against_chosen": {}}

@@ -37,17 +37,20 @@ function chip(code, kind, codes) {
 
 export function renderResults(T, sig, task, profile) {
   const codes = matchCodes(sig);
-  const models = rankModels(T, sig, task);
 
-  // Where this dataset sits among the benchmark datasets, measured the same way.
+  // Where this dataset sits among the benchmark datasets, measured the same
+  // way. The order can depend on it, so it is measured first.
   const meta = profile ? metaFeatures(profile, sig.target ?? null) : null;
   if (meta && sig.drift) meta.drift_psi = Math.min(sig.drift.psi, 5);
+  const models = rankModels(T, sig, task, 4, meta);
   const neighbours = meta ? nearestDatasets(T, meta, task) : [];
   const taskLabel = T.TASKS.find(t => t.id === task).label.toLowerCase();
 
   const provenance = rankingProvenance(T, task);
   const orderedBy = models.rankedBy === 'evidence' && provenance
-    ? ` Ordered by what each model was worth on ${provenance.datasets} benchmark datasets, not by how many coordinates it matches.`
+    ? (provenance.chosen === 'prior_knn'
+      ? ` Ordered by what each model was worth on ${provenance.datasets} benchmark datasets, weighted toward the ones most like yours, not by how many coordinates it matches.`
+      : ` Ordered by what each model was worth on ${provenance.datasets} benchmark datasets, not by how many coordinates it matches.`)
     : ' Ordered by coordinates matched: the benchmark has not covered this task, so there is nothing measured to rank them by.';
 
   const note = document.getElementById('model-note');

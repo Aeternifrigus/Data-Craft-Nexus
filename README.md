@@ -54,49 +54,64 @@ First, what cannot work is ruled out, with the reason shown on the page: a seque
 
 What is left is **ordered by what those models were worth on the benchmark**, not by how many coordinates they match. The coordinate count is still shown on every card, because it says what your data has in common with the model, but it no longer decides the order: it used to, and it put plain Linear Regression first on 17 of 20 regression datasets at a cost of up to 0.7 R².
 
-The weights are a prior per model, fitted in `bench/dcn/learn.py` and judged leave-one-dataset-out, so a dataset never contributes to the weights that rank it:
+The weights are a prior per model, fitted in `bench/dcn/learn.py` on 195 real datasets and judged leave-one-dataset-out, so a dataset never contributes to the weights that rank it:
 
-| median regret, leave-one-dataset-out (95% interval) | classification (20 datasets) | regression (20 datasets, 8 independent) |
+| median regret, leave-one-dataset-out (95% interval) | classification (94 datasets) | regression (101 datasets, 35 independent) |
 |---|---|---|
-| counting matched coordinates (before) | 0.055 (0.033 to 0.093) | 0.322 (0.035 to 0.515) |
-| learned from the benchmark (now) | 0.011 (0.005 to 0.017) | 0.003 (0.000 to 0.061) |
-| always use boosting | 0.023 (0.004 to 0.036) | 0.009 (0.005 to 0.050) |
+| counting matched coordinates (before) | 0.046 (0.030 to 0.056) | 0.205 (0.071 to 0.303) |
+| learned from the benchmark (now) | 0.015 (0.011 to 0.018) | 0.012 (0.002 to 0.027) |
+| always use boosting | 0.014 (0.011 to 0.021) | 0.021 (0.009 to 0.055) |
 
-Datasets generated from one function are not independent: 13 of those 20 regression datasets come from Friedman's benchmark functions, sisters that share a winner. Such a family is held out whole when its members are ranked, and counted once in every number above, so 20 regression datasets are 8 independent units.
+Datasets generated from one function are not independent. Of the 101 regression datasets, 54 come from Friedman's benchmark functions and 14 from Strogatz's equations: sisters that share a winner. Such a family is held out whole when its members are ranked, and counted once in every number above, so 101 regression datasets are 35 independent units. Counting them one by one made the learned order look better on regression than it is (0.007 instead of 0.012).
 
-The intervals come from resampling those units, and the order in use is also compared, unit by unit, with the two things it claims to beat (Wilcoxon signed-rank, Holm-corrected for the two comparisons). Against counting coordinates it is better by more than luck: better on 16 of 20 classification datasets (p = 0.019) and 7 of 8 regression units (p = 0.047). **Against always using boosting it is not, yet.** It was better on 12 of 20 and 6 of 8, but p = 0.47 and 0.46: within what luck produces. Only a larger benchmark can settle it.
+The intervals come from resampling those units, and the order in use is also compared, unit by unit, with the two things it claims to beat (Wilcoxon signed-rank, Holm-corrected for the two comparisons):
 
-Two richer orders are built and judged the same way, and either can replace the per-model prior: one adds interactions between the dataset's measured features and each model's family, and one weights each model toward what it did on the benchmark datasets nearest to yours. Which one ships is decided by a rule fixed before the results were seen (`choose()` in `bench/dcn/learn.py`): a richer order replaces the prior only if it is no worse on either task and better by more than luck on at least one. On 40 datasets neither did, so the order in use is the prior. The evidence tab reports each decision with its numbers.
+- **Against counting coordinates it is better by more than luck:** on 69 of 94 classification datasets, worse on 22 (p = 2 × 10⁻⁶), and on 27 of 35 regression units (p = 2 × 10⁻⁵).
+- **Against always using boosting, it is level on classification:** better on 47, worse on 40 (p = 0.52).
+- **On regression it is better on 21 of 35 units, worse on 14 (p = 0.046).** That is just under the 5% line, and the interval on the median difference touches zero. Read it as suggestive, not settled.
+
+Two richer orders are built and judged the same way, and either can replace the per-model prior: one adds interactions between the dataset's measured features and each model's family, and one weights each model toward what it did on the benchmark datasets nearest to yours. Which one ships is decided by a rule fixed before the results were seen (`choose()` in `bench/dcn/learn.py`): a richer order replaces the prior only if it is no worse on either task and better by more than luck on at least one. Neither qualified on the full run (interactions: 9 better and 10 worse of 35 regression units; neighbours: 8 and 6), so the order in use is still the prior. The evidence tab reports each decision with its numbers.
 
 A model the benchmark never ran is shown below the ones it did, with no score attached, and a task the benchmark never covered (forecasting, grouping, anomalies) still falls back to coordinates. The page says which of the two it used.
 
 ### Datasets like yours
 
-The plot used to place a dataset by axes 1 to 3, and the first two are the same for every labelled table with independent rows, so three different uploads could land on the same point among ten invented reference datasets. It now shows the 40 datasets the recommendations were tested on, positioned by measured properties (size, shape, how much of the table is numeric), with your data placed among them and its closest neighbours highlighted.
+The plot used to place a dataset by axes 1 to 3, and the first two are the same for every labelled table with independent rows, so three different uploads could land on the same point among ten invented reference datasets. It now shows the 195 datasets the recommendations were tested on, positioned by measured properties (size, shape, how much of the table is numeric), with your data placed among them and its closest neighbours highlighted.
 
 Underneath, those neighbours are listed with what actually won on each, and every recommendation carries a second line: how often that model was the best choice on the datasets closest to yours, and how far below the winner it typically landed. Closeness is measured on the same eight properties for an upload and for a benchmark dataset, scaled by how much each varies across the benchmark.
 
-When an upload is outside what the benchmark tested, the page says so above the map, before any number: when it has fewer rows than the smallest benchmark dataset (200), and when its nearest benchmark dataset is further away than 95% of benchmark datasets are from their own nearest neighbour. The bundled 20-row sample triggers both, which is the point: twenty rows is too few for any measured score to mean much. The thresholds are written to `evidence.json` by the benchmark and recomputed from the page's own data by the tests.
+When an upload is outside what the benchmark tested, the page says so above the map, before any number: when it has fewer rows than the smallest benchmark dataset (200), and when its nearest benchmark dataset is further away than 95% of benchmark datasets are from their own nearest neighbour of a different kind (a synthetic dataset's sisters do not count). The bundled 20-row sample triggers both, which is the point: twenty rows is too few for any measured score to mean much. The thresholds are written to `evidence.json` by the benchmark and recomputed from the page's own data by the tests.
 
 ### What it was worth on real data
 
-The instrument now publishes its own scoreboard, in **The evidence** tab: 40
-real datasets from [PMLB](https://github.com/EpistasisLab/pmlb), every
-runnable model fitted on every one of them, five-fold cross-validated, 760
-model runs. Each recommendation also carries a line saying how that model did.
+The instrument publishes its own scoreboard, in **The evidence** tab: 195
+datasets from [PMLB](https://github.com/EpistasisLab/pmlb), every runnable
+model fitted on every one of them, five-fold cross-validated, 5,250 model runs
+(40 of the datasets under three cross-validation seeds, to measure how much a
+split alone moves things). Each recommendation also carries a line saying how
+that model did.
 
-| median regret | classification | regression |
+| median regret, as recorded | classification | regression |
 |---|---|---|
-| the first model shown | 0.055 | 0.432 |
-| best of the four shown | 0.015 | 0.176 |
-| always use boosting | 0.023 | 0.007 |
-| a model picked at random from the eligible ones | 0.060 | 0.240 |
+| the first model shown | 0.012 | 0.011 |
+| best of the four shown | 0.005 | 0.002 |
+| always use boosting | 0.014 | 0.021 |
+| a model picked at random from the eligible ones | 0.050 | 0.162 |
 
 Regret is how far below the best model that ran a choice landed, in balanced
-accuracy and in R². The four models shown contain the best available choice
-15% of the time on classification and beat reaching for boosting on 55% of
-those datasets. On regression boosting wins outright. The single model shown
-first is the weakest part, for the reason in the next section.
+accuracy and in R². These are the recommendations as the run recorded them,
+ordered by the prior fitted on the earlier 40-dataset run, which had already
+seen 40 of these datasets; the leave-one-dataset-out table above is the fairer
+test. The four models shown contain the best available choice 29% of the time
+on classification and 43% on regression.
+
+The full run also measured how much one split decides. Between cross-validation
+seeds a model's score moves by a median of 0.004 on classification and 0.005 on
+regression. The best model was the same under all three seeds on only 30% of
+classification datasets and 50% of regression ones, and the first pick and
+boosting swapped places, depending only on the split, on 10 of 20 classification
+datasets and 4 of 20 regression ones. A single dataset's winner is
+weak evidence, which is why every comparison here is made across datasets.
 
 The numbers on the page are generated from `bench/results/`, and a test
 recomputes them from that data on every run, so the page cannot quietly
@@ -104,7 +119,9 @@ disagree with the run behind it.
 
 ### Not done yet
 
-- **The order in use is a per-model prior, not yet a per-dataset one.** Both ways of making it depend on your data (interactions, and weighting toward the nearest benchmark datasets) are built, tested against the JavaScript, and judged leave-one-dataset-out, and neither beat the prior by more than luck on the 40-dataset run. Running all 196 datasets is what can change that; the choice is then made by the rule, not by hand.
+- **The order in use is a per-model prior, not yet a per-dataset one.** Both ways of making it depend on your data (interactions, and weighting toward the nearest benchmark datasets) are built, tested against the JavaScript, and judged leave-one-dataset-out, and neither beat the prior by more than luck on 195 datasets once synthetic families count once. With only 35 independent regression units, a per-dataset order needs more collected data to prove itself, not more of the same generators.
+- **The prior itself still counts a family's datasets one by one when it is fitted**, so on regression it leans toward what wins on Friedman's functions. Weighting a family once in the fit is the obvious change, and it should be declared before the next run rather than tried after this one.
+- **The benchmark found a rule that throws away winners:** models that need numeric features (A31) are ruled out on all-categorical tables (A32), yet with one-hot encoding they won on 9 datasets, by up to 0.13 R² on solar_flare.
 - **Only classification and regression are benchmarked.** Forecasting, survival, grouping, anomalies, compression and generation still fall back to counting coordinates.
 - Image, audio, graph and spatial data cannot be detected from a CSV, so those models are reachable in the reference but never recommended from an upload.
 - Separability (A55/A56) and weak or self-supervised labelling (A13 to A15) are not measured yet.

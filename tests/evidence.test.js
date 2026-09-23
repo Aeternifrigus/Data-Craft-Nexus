@@ -6,8 +6,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseCSV } from '../site/js/csv.js';
-import { averageRanks, beyondLuck, boostingVerdict, choiceNote, evidenceFor, evidenceSentence, formatP, rankChart,
-  seedsNote } from '../site/js/evidence.js';
+import { averageRanks, beyondLuck, boostingVerdict, choiceNote, evidenceFor, evidenceSentence, formatP, luckWords,
+  rankChart, seedsNote, unitNoun } from '../site/js/evidence.js';
 import { loadTaxonomyFromDisk } from './helpers.js';
 
 const T = loadTaxonomyFromDisk();
@@ -173,7 +173,7 @@ test('p-values are shown honestly, and the verdict follows the corrected one', (
   const beyond = tests.filter(([, c]) => beyondLuck(c)).length;
   if (beyond === 0) assert.match(verdict, /Neither difference is more than luck|within what luck produces/);
   else if (beyond === tests.length) assert.match(verdict, /more than luck\.$/);
-  else assert.match(verdict, /^.*Only the .* difference is more than luck\.$/);
+  else assert.match(verdict, /Only the .* difference is more than luck(, and only narrowly)?\.$/);
 });
 
 test('the page says how the order in use was chosen, and it agrees with ranking.json', () => {
@@ -198,4 +198,12 @@ test('what the seeds show is self-consistent, and said in words', () => {
   const note = seedsNote({ classification: { datasets: 5, seeds: 3, score_spread: 0.01, same_best: 0.6, compared: 4, flips: 1 } });
   assert.match(note, /5 classification datasets run under 3 seeds/);
   assert.match(note, /1 of 4/);
+});
+
+test('counts say what they count, and a narrow result reads as narrow', () => {
+  assert.equal(unitNoun({ datasets: 101, units: 35 }, 'regression'), 'independent regression units');
+  assert.equal(unitNoun({ datasets: 94, units: 94 }, 'classification'), 'classification datasets');
+  assert.equal(luckWords({ p_holm: 0.046 }), 'more than luck, narrowly');
+  assert.equal(luckWords({ p_holm: 0.001 }), 'more than luck');
+  assert.equal(luckWords({ p_holm: 0.2 }), 'within what luck produces');
 });

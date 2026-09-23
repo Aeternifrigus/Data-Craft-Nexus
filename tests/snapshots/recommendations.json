@@ -21,7 +21,7 @@
    },
    "ship_date | category | A21": {
     "signature": "A11 A21 A38 A41 A53 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -29,7 +29,7 @@
    },
    "ship_date | category | A22": {
     "signature": "A11 A22 A38 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -149,7 +149,7 @@
    },
    "origin_port | category | A21": {
     "signature": "A11 A21 A38 A41 A51 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -157,7 +157,7 @@
    },
    "origin_port | category | A22": {
     "signature": "A11 A22 A38 A41 A51 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -277,7 +277,7 @@
    },
    "dest_port | category | A21": {
     "signature": "A11 A21 A38 A41 A51 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -285,7 +285,7 @@
    },
    "dest_port | category | A22": {
     "signature": "A11 A22 A38 A41 A51 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -405,7 +405,7 @@
    },
    "commodity | category | A21": {
     "signature": "A11 A21 A38 A41 A51 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -413,7 +413,7 @@
    },
    "commodity | category | A22": {
     "signature": "A11 A22 A38 A41 A51 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -533,7 +533,7 @@
    },
    "container_type | category | A21": {
     "signature": "A11 A21 A38 A41 A51 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -541,7 +541,7 @@
    },
    "container_type | category | A22": {
     "signature": "A11 A22 A38 A41 A51 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -661,7 +661,7 @@
    },
    "goods_value_usd | category | A21": {
     "signature": "A11 A21 A38 A41 A53 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -669,7 +669,7 @@
    },
    "goods_value_usd | category | A22": {
     "signature": "A11 A22 A38 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -789,7 +789,7 @@
    },
    "freight_rate_usd | category | A21": {
     "signature": "A11 A21 A38 A41 A53 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -797,7 +797,7 @@
    },
    "freight_rate_usd | category | A22": {
     "signature": "A11 A22 A38 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -917,7 +917,7 @@
    },
    "fx_usd_pln | category | A21": {
     "signature": "A11 A21 A38 A41 A53 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -925,7 +925,7 @@
    },
    "fx_usd_pln | category | A22": {
     "signature": "A11 A22 A38 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -1045,7 +1045,7 @@
    },
    "transit_days | category | A21": {
     "signature": "A11 A21 A38 A41 A53 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -1053,7 +1053,7 @@
    },
    "transit_days | category | A22": {
     "signature": "A11 A22 A38 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -1173,7 +1173,7 @@
    },
    "delayed | category | A21": {
     "signature": "A11 A21 A38 A41 A53 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -1181,7 +1181,7 @@
    },
    "delayed | category | A22": {
     "signature": "A11 A22 A38 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -1435,7 +1435,7 @@
    },
    "f1 | category | A21": {
     "signature": "A11 A21 A38 A41 A53 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -1443,7 +1443,7 @@
    },
    "f1 | category | A22": {
     "signature": "A11 A22 A38 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -1563,7 +1563,7 @@
    },
    "f2 | category | A21": {
     "signature": "A11 A21 A38 A41 A53 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -1571,7 +1571,7 @@
    },
    "f2 | category | A22": {
     "signature": "A11 A22 A38 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -1691,7 +1691,7 @@
    },
    "label | category | A21": {
     "signature": "A11 A21 A31 A41 A51 A61 (+A53)",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -1699,7 +1699,7 @@
    },
    "label | category | A22": {
     "signature": "A11 A22 A31 A41 A51 A61 (+A53)",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -1953,7 +1953,7 @@
    },
    "color | category | A21": {
     "signature": "A11 A21 A32 A41 A51 A61 (+A53)",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 15",
     "ruledOut": 25,
     "drift": "DR-C1, DR-C8, DR-M2, DR-M3",
@@ -1961,7 +1961,7 @@
    },
    "color | category | A22": {
     "signature": "A11 A22 A32 A41 A51 A61 (+A53)",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 15",
     "ruledOut": 25,
     "drift": "DR-C1, DR-C8, DR-M2, DR-M3",
@@ -2081,7 +2081,7 @@
    },
    "shape | category | A21": {
     "signature": "A11 A21 A32 A41 A51 A61 (+A53)",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 15",
     "ruledOut": 25,
     "drift": "DR-C1, DR-C8, DR-M2, DR-M3",
@@ -2089,7 +2089,7 @@
    },
    "shape | category | A22": {
     "signature": "A11 A22 A32 A41 A51 A61 (+A53)",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 15",
     "ruledOut": 25,
     "drift": "DR-C1, DR-C8, DR-M2, DR-M3",
@@ -2209,7 +2209,7 @@
    },
    "size | category | A21": {
     "signature": "A11 A21 A32 A41 A51 A61 (+A53)",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 15",
     "ruledOut": 25,
     "drift": "DR-C1, DR-C8, DR-M2, DR-M3",
@@ -2217,7 +2217,7 @@
    },
    "size | category | A22": {
     "signature": "A11 A22 A32 A41 A51 A61 (+A53)",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 15",
     "ruledOut": 25,
     "drift": "DR-C1, DR-C8, DR-M2, DR-M3",
@@ -2471,7 +2471,7 @@
    },
    "g0 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -2479,7 +2479,7 @@
    },
    "g0 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -2599,7 +2599,7 @@
    },
    "g1 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -2607,7 +2607,7 @@
    },
    "g1 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -2727,7 +2727,7 @@
    },
    "g2 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -2735,7 +2735,7 @@
    },
    "g2 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -2855,7 +2855,7 @@
    },
    "g3 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -2863,7 +2863,7 @@
    },
    "g3 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -2983,7 +2983,7 @@
    },
    "g4 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -2991,7 +2991,7 @@
    },
    "g4 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3111,7 +3111,7 @@
    },
    "g5 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3119,7 +3119,7 @@
    },
    "g5 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3239,7 +3239,7 @@
    },
    "g6 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3247,7 +3247,7 @@
    },
    "g6 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3367,7 +3367,7 @@
    },
    "g7 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3375,7 +3375,7 @@
    },
    "g7 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3495,7 +3495,7 @@
    },
    "g8 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3503,7 +3503,7 @@
    },
    "g8 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3623,7 +3623,7 @@
    },
    "g9 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3631,7 +3631,7 @@
    },
    "g9 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3751,7 +3751,7 @@
    },
    "g10 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3759,7 +3759,7 @@
    },
    "g10 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3879,7 +3879,7 @@
    },
    "g11 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -3887,7 +3887,7 @@
    },
    "g11 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4007,7 +4007,7 @@
    },
    "g12 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4015,7 +4015,7 @@
    },
    "g12 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4135,7 +4135,7 @@
    },
    "g13 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4143,7 +4143,7 @@
    },
    "g13 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4263,7 +4263,7 @@
    },
    "g14 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4271,7 +4271,7 @@
    },
    "g14 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4391,7 +4391,7 @@
    },
    "g15 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4399,7 +4399,7 @@
    },
    "g15 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4519,7 +4519,7 @@
    },
    "g16 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4527,7 +4527,7 @@
    },
    "g16 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4647,7 +4647,7 @@
    },
    "g17 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4655,7 +4655,7 @@
    },
    "g17 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4775,7 +4775,7 @@
    },
    "g18 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4783,7 +4783,7 @@
    },
    "g18 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4903,7 +4903,7 @@
    },
    "g19 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -4911,7 +4911,7 @@
    },
    "g19 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5031,7 +5031,7 @@
    },
    "g20 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5039,7 +5039,7 @@
    },
    "g20 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5159,7 +5159,7 @@
    },
    "g21 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5167,7 +5167,7 @@
    },
    "g21 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5287,7 +5287,7 @@
    },
    "g22 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5295,7 +5295,7 @@
    },
    "g22 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5415,7 +5415,7 @@
    },
    "g23 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5423,7 +5423,7 @@
    },
    "g23 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5543,7 +5543,7 @@
    },
    "g24 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5551,7 +5551,7 @@
    },
    "g24 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5671,7 +5671,7 @@
    },
    "g25 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5679,7 +5679,7 @@
    },
    "g25 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5799,7 +5799,7 @@
    },
    "g26 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5807,7 +5807,7 @@
    },
    "g26 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5927,7 +5927,7 @@
    },
    "g27 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -5935,7 +5935,7 @@
    },
    "g27 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6055,7 +6055,7 @@
    },
    "g28 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6063,7 +6063,7 @@
    },
    "g28 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6183,7 +6183,7 @@
    },
    "g29 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6191,7 +6191,7 @@
    },
    "g29 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6311,7 +6311,7 @@
    },
    "g30 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6319,7 +6319,7 @@
    },
    "g30 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6439,7 +6439,7 @@
    },
    "g31 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6447,7 +6447,7 @@
    },
    "g31 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6567,7 +6567,7 @@
    },
    "g32 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6575,7 +6575,7 @@
    },
    "g32 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6695,7 +6695,7 @@
    },
    "g33 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6703,7 +6703,7 @@
    },
    "g33 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6823,7 +6823,7 @@
    },
    "g34 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6831,7 +6831,7 @@
    },
    "g34 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6951,7 +6951,7 @@
    },
    "g35 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -6959,7 +6959,7 @@
    },
    "g35 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -7079,7 +7079,7 @@
    },
    "g36 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -7087,7 +7087,7 @@
    },
    "g36 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -7207,7 +7207,7 @@
    },
    "g37 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -7215,7 +7215,7 @@
    },
    "g37 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -7335,7 +7335,7 @@
    },
    "g38 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -7343,7 +7343,7 @@
    },
    "g38 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -7463,7 +7463,7 @@
    },
    "g39 | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -7471,7 +7471,7 @@
    },
    "g39 | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -7591,7 +7591,7 @@
    },
    "out | category | A21": {
     "signature": "A11 A21 A31 A42 A54 A61",
-    "models": "TR3 (2/3), EN4 (3/3), TR2 (2/3), EN3 (3/3)",
+    "models": "EN4 (3/3), NN2 (2/3), TR3 (2/3), EN3 (3/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -7599,7 +7599,7 @@
    },
    "out | category | A22": {
     "signature": "A11 A22 A31 A42 A54 A61",
-    "models": "TR3 (1/3), EN4 (2/3), TR2 (1/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (1/3), TR3 (1/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M10, DR-M11, DR-M14, DR-MV1",
@@ -7853,7 +7853,7 @@
    },
    "age | category | A21": {
     "signature": "A11 A21 A38 A41 A53 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -7861,7 +7861,7 @@
    },
    "age | category | A22": {
     "signature": "A11 A22 A38 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -7981,7 +7981,7 @@
    },
    "city | category | A21": {
     "signature": "A11 A21 A38 A41 A51 A61 (+A53)",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -7989,7 +7989,7 @@
    },
    "city | category | A22": {
     "signature": "A11 A22 A38 A41 A51 A61 (+A53)",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -8109,7 +8109,7 @@
    },
    "income | category | A21": {
     "signature": "A11 A21 A38 A41 A53 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -8117,7 +8117,7 @@
    },
    "income | category | A22": {
     "signature": "A11 A22 A38 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -8237,7 +8237,7 @@
    },
    "churn | category | A21": {
     "signature": "A11 A21 A38 A41 A52 A61 (+A53)",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -8245,7 +8245,7 @@
    },
    "churn | category | A22": {
     "signature": "A11 A22 A38 A41 A52 A61 (+A53)",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -8499,7 +8499,7 @@
    },
    "a | category | A21": {
     "signature": "A11 A21 A31 A41 A54 A62",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -8507,7 +8507,7 @@
    },
    "a | category | A22": {
     "signature": "A11 A22 A31 A41 A54 A62",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -8627,7 +8627,7 @@
    },
    "b | category | A21": {
     "signature": "A11 A21 A31 A41 A54 A62",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -8635,7 +8635,7 @@
    },
    "b | category | A22": {
     "signature": "A11 A22 A31 A41 A54 A62",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -8755,7 +8755,7 @@
    },
    "c | category | A21": {
     "signature": "A11 A21 A31 A41 A54 A62",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -8763,7 +8763,7 @@
    },
    "c | category | A22": {
     "signature": "A11 A22 A31 A41 A54 A62",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -8883,7 +8883,7 @@
    },
    "t | category | A21": {
     "signature": "A11 A21 A31 A41 A54 A62",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -8891,7 +8891,7 @@
    },
    "t | category | A22": {
     "signature": "A11 A22 A31 A41 A54 A62",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -9145,7 +9145,7 @@
    },
    "x1 | category | A21": {
     "signature": "A11 A21 A31 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -9153,7 +9153,7 @@
    },
    "x1 | category | A22": {
     "signature": "A11 A22 A31 A41 A53 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -9273,7 +9273,7 @@
    },
    "x2 | category | A21": {
     "signature": "A11 A21 A31 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -9281,7 +9281,7 @@
    },
    "x2 | category | A22": {
     "signature": "A11 A22 A31 A41 A53 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -9401,7 +9401,7 @@
    },
    "x3 | category | A21": {
     "signature": "A11 A21 A31 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -9409,7 +9409,7 @@
    },
    "x3 | category | A22": {
     "signature": "A11 A22 A31 A41 A53 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -9529,7 +9529,7 @@
    },
    "y | category | A21": {
     "signature": "A11 A21 A31 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -9537,7 +9537,7 @@
    },
    "y | category | A22": {
     "signature": "A11 A22 A31 A41 A53 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -9791,7 +9791,7 @@
    },
    "name | category | A21": {
     "signature": "A11 A21 A38 A41 A54 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -9799,7 +9799,7 @@
    },
    "name | category | A22": {
     "signature": "A11 A22 A38 A41 A54 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -9919,7 +9919,7 @@
    },
    "comment | category | A21": {
     "signature": "A11 A21 A38 A41 A54 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -9927,7 +9927,7 @@
    },
    "comment | category | A22": {
     "signature": "A11 A22 A38 A41 A54 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -10047,7 +10047,7 @@
    },
    "score | category | A21": {
     "signature": "A11 A21 A38 A41 A54 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -10055,7 +10055,7 @@
    },
    "score | category | A22": {
     "signature": "A11 A22 A38 A41 A54 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -10309,7 +10309,7 @@
    },
    "kwota | category | A21": {
     "signature": "A11 A21 A32 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 15",
     "ruledOut": 25,
     "drift": "DR-C1, DR-C8, DR-M2, DR-M3",
@@ -10317,7 +10317,7 @@
    },
    "kwota | category | A22": {
     "signature": "A11 A22 A32 A41 A53 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 15",
     "ruledOut": 25,
     "drift": "DR-C1, DR-C8, DR-M2, DR-M3",
@@ -10437,7 +10437,7 @@
    },
    "miasto | category | A21": {
     "signature": "A11 A21 A38 A41 A51 A61 (+A54)",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -10445,7 +10445,7 @@
    },
    "miasto | category | A22": {
     "signature": "A11 A22 A38 A41 A51 A61 (+A54)",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -10565,7 +10565,7 @@
    },
    "status | category | A21": {
     "signature": "A11 A21 A38 A41 A51 A61 (+A54)",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -10573,7 +10573,7 @@
    },
    "status | category | A22": {
     "signature": "A11 A22 A38 A41 A51 A61 (+A54)",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -10827,7 +10827,7 @@
    },
    "a | category | A21": {
     "signature": "A11 A21 A31 A43 A53 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -10835,7 +10835,7 @@
    },
    "a | category | A22": {
     "signature": "A11 A22 A31 A43 A53 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -10955,7 +10955,7 @@
    },
    "b | category | A21": {
     "signature": "A11 A21 A31 A43 A53 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -10963,7 +10963,7 @@
    },
    "b | category | A22": {
     "signature": "A11 A22 A31 A43 A53 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -11083,7 +11083,7 @@
    },
    "c | category | A21": {
     "signature": "A11 A21 A31 A43 A53 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -11091,7 +11091,7 @@
    },
    "c | category | A22": {
     "signature": "A11 A22 A31 A43 A53 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -11211,7 +11211,7 @@
    },
    "d | category | A21": {
     "signature": "A11 A21 A31 A43 A53 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -11219,7 +11219,7 @@
    },
    "d | category | A22": {
     "signature": "A11 A22 A31 A43 A53 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -11339,7 +11339,7 @@
    },
    "e | category | A21": {
     "signature": "A11 A21 A31 A43 A53 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -11347,7 +11347,7 @@
    },
    "e | category | A22": {
     "signature": "A11 A22 A31 A43 A53 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -11467,7 +11467,7 @@
    },
    "target | category | A21": {
     "signature": "A11 A21 A31 A43 A53 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -11475,7 +11475,7 @@
    },
    "target | category | A22": {
     "signature": "A11 A22 A31 A43 A53 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -11729,7 +11729,7 @@
    },
    "review | category | A21": {
     "signature": "A11 A21 A32 A41 A53 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 15",
     "ruledOut": 25,
     "drift": "DR-C1, DR-C8, DR-M2, DR-M3",
@@ -11737,7 +11737,7 @@
    },
    "review | category | A22": {
     "signature": "A11 A22 A32 A41 A53 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 15",
     "ruledOut": 25,
     "drift": "DR-C1, DR-C8, DR-M2, DR-M3",
@@ -11857,7 +11857,7 @@
    },
    "sentiment | category | A21": {
     "signature": "A11 A21 A34 A41 A51 A61 (+A53)",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 15",
     "ruledOut": 25,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -11865,7 +11865,7 @@
    },
    "sentiment | category | A22": {
     "signature": "A11 A22 A34 A41 A51 A61 (+A53)",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 20",
     "ruledOut": 20,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -12119,7 +12119,7 @@
    },
    "date | category | A21": {
     "signature": "A11 A21 A31 A41 A54 A61",
-    "models": "TR3 (2/3), EN4 (2/3), TR2 (2/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (2/3), TR3 (2/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -12127,7 +12127,7 @@
    },
    "date | category | A22": {
     "signature": "A11 A22 A31 A41 A54 A61",
-    "models": "TR3 (1/3), EN4 (1/3), TR2 (1/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (1/3), TR3 (1/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M1, DR-M2, DR-M4, DR-M5",
@@ -12247,7 +12247,7 @@
    },
    "value | category | A21": {
     "signature": "A11 A21 A38 A41 A54 A61",
-    "models": "TR3 (3/3), EN4 (2/3), TR2 (3/3), EN3 (2/3)",
+    "models": "EN4 (2/3), NN2 (3/3), TR3 (3/3), EN3 (2/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",
@@ -12255,7 +12255,7 @@
    },
    "value | category | A22": {
     "signature": "A11 A22 A38 A41 A54 A61",
-    "models": "TR3 (2/3), EN4 (1/3), TR2 (2/3), EN3 (1/3)",
+    "models": "EN4 (1/3), NN2 (2/3), TR3 (2/3), EN3 (1/3)",
     "tied": "1 of 19",
     "ruledOut": 21,
     "drift": "DR-M8, DR-C1, DR-C2, DR-C3",

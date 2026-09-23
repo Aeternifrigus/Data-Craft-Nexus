@@ -81,6 +81,23 @@ python -m dcn.compare --before results/pilot.csv \
 python -m dcn.evidence --results results/after-fixes.csv           # publish it to the site
 ```
 
+The full run, which is what the site now publishes:
+
+```bash
+python -m dcn.run --budget 60 --out results/full.csv                        # every dataset, seed 0
+python -m dcn.run --limit 20 --seeds 3 --budget 60 --out results/full.csv   # seeds 1 and 2 on 40 of them
+python -m dcn.meta --results results/full.csv --out results/meta.csv
+python -m dcn.analyze --results results/full.csv
+python -m dcn.learn --results results/full.csv
+python -m dcn.evidence --results results/full.csv --label "195 PMLB datasets, 5250 model runs" \
+    --ranked-by "the per-model prior fitted on the earlier 40-dataset run, which had already seen 40 of these datasets"
+```
+
+The runner is resumable, so more seeds can be added later (`--seeds 5`)
+without refitting what is there. Run it as one process: two processes on two
+cores starve the multithreaded boosting libraries, which then run out of
+their time budget for reasons that have nothing to do with the model.
+
 `evidence.py` writes `site/taxonomy/evidence.json`, which is what the site's
 **The evidence** tab and the "Measured." line under each recommendation read.
 A test in `tests/evidence.test.js` recomputes the published headline from
@@ -91,7 +108,7 @@ site rules out, and appends a row per result so it can be stopped and resumed.
 `analyze.py` turns that into regret: how much worse than the best available
 model each strategy was.
 
-## What the runs found
+## What the first runs found
 
 Two runs of the same 40 datasets (20 classification, 20 regression), 760
 model runs each, committed in `results/`: `pilot.csv` before the taxonomy
@@ -144,6 +161,55 @@ first recommendation changed on 20 of 20 classification datasets and got
 worse on 12 of them, while the four shown stayed level and the ruled-out
 winners went from 17 datasets to none. A correct pool, an arbitrary order.
 
+## What the full run found
+
+Every dataset that fits, 196, of which 195 could be scored: auto_insurance_symboling
+has a class with 3 rows and cannot be split five ways. 5,250 model runs, with
+40 of the datasets under three cross-validation seeds. Ten fits ran out of
+their 60-second budget, all of them scikit-learn's GradientBoosting on large
+multiclass tables. (An earlier attempt ran two processes on two cores; the
+boosting libraries starved each other, and the baseline timed out on datasets
+it normally fits in a second. Every timeout from that period was deleted and
+refitted alone.)
+
+Leave-one-dataset-out, with synthetic families held out whole and counted once
+(see "A family counts once" below):
+
+| median regret (95% interval) | classification, 94 datasets | regression, 101 datasets, 35 independent |
+|---|---|---|
+| counting coordinates | 0.046 (0.030 to 0.056) | 0.205 (0.071 to 0.303) |
+| learned prior, in use | 0.015 (0.011 to 0.018) | 0.012 (0.002 to 0.027) |
+| prior + interactions | 0.015 (0.009 to 0.021) | 0.012 (0.003 to 0.025) |
+| prior + neighbours | 0.016 (0.009 to 0.020) | 0.012 (0.001 to 0.025) |
+| always boosting | 0.014 (0.011 to 0.021) | 0.021 (0.009 to 0.055) |
+
+- The learned order beats counting coordinates by more than luck on both
+  tasks (p = 2e-6 and 2e-5).
+- Against always using boosting it is level on classification (better on 47,
+  worse on 40, p = 0.52) and ahead on regression (21 of 35 units, p = 0.046),
+  which is just under the line and not settled: the interval on the median
+  difference touches zero.
+- Neither richer order beats the prior, so it stays.
+- With 94 datasets, two classifiers need average ranks 2.7 apart to be told
+  apart, and 10 of the 18 are within that of the best (LightGBM). On regression
+  the 35 units give a critical difference of 5.0, with 10 of 20 tied with the
+  best (scikit-learn's GradientBoosting).
+- One split decides a lot. Across three seeds the best model stayed the same on
+  30% of classification datasets and 50% of regression ones, and the first
+  pick and boosting swapped places on 10 of 20 and 4 of 20.
+
+Counting the families one by one, which is how the first attempt at this
+analysis did it, made the prior's regression regret 0.007 and made the
+interactions order look better than the prior at p = 0.0008. Both effects
+came from 54 sister datasets being ranked by weights learned on each other.
+
+The run also found a rule that throws away winners. Models that need numeric
+features (A31) are ruled out on all-categorical tables (A32), but the pipeline
+one-hot encodes categories, and a ruled-out model won on 9 datasets: Logistic
+Regression, Naive Bayes and Bayesian linear regression among them, by up to
+0.13 R² on solar_flare (elsewhere by 0.002 to 0.023). The details are in `summary.json`
+under `ruled_out_winners`.
+
 ## Is it more than luck?
 
 Every comparison the site publishes goes through `dcn/significance.py`:
@@ -159,12 +225,17 @@ Every comparison the site publishes goes through `dcn/significance.py`:
   less than it cannot be told apart on this benchmark
 
 The order in use is compared with the two things it claims to beat: counting
-coordinates and always using boosting, Holm-corrected over those two. On the
-40-dataset run it beats counting coordinates by more than luck (p = 0.019 on
-classification, 0.047 on regression) and does not yet beat always using
-boosting (p = 0.47 and 0.46). With 20 datasets, two classifiers need average
-ranks 5.9 apart to be separated, so 13 of the 18 are indistinguishable from the
-best one.
+coordinates and always using boosting, Holm-corrected over those two. The
+results are in "What the full run found" above.
+
+Repeated cross-validation seeds are averaged into one score per dataset and
+model before any of this. Seeds measure how much one split can move a score;
+counting them as extra datasets would make every difference look more certain
+than it is.
+
+`python -m dcn.learn` prints the paired comparisons; `python -m dcn.evidence`
+publishes them, and `tests/evidence.test.js` recomputes the medians, the win
+counts and every model's average rank from the committed data.
 
 ### A family counts once
 
@@ -205,21 +276,12 @@ neighbours, the scale and `h` come from the other datasets only.
 let a richer order replace it only if its median regret is no worse on either
 task and it is better by more than luck on at least one (Wilcoxon,
 Holm-corrected over the two tasks, more wins than losses). The decisions are
-written into `ranking.json` and shown on the evidence tab. On the 40-dataset
-run neither richer order qualified.
+written into `ranking.json` and shown on the evidence tab. Neither richer order
+qualified on the 40-dataset run or on the full one.
 
 The page and the benchmark compute the neighbour order the same way:
 `tests/test_agreement.py` fits it on the committed run, points the JavaScript
 at it, and compares both rankings on every fixture.
-
-Repeated cross-validation seeds are averaged into one score per dataset and
-model before any of this. Seeds measure how much one split can move a score;
-counting them as extra datasets would make every difference look more certain
-than it is.
-
-`python -m dcn.learn` prints the paired comparisons; `python -m dcn.evidence`
-publishes them, and `tests/evidence.test.js` recomputes the medians, the win
-counts and every model's average rank from the committed data.
 
 ## What is in results/
 
@@ -227,10 +289,19 @@ counts and every model's average rank from the committed data.
 |---|---|---|
 | `pilot.csv` | dataset and model, before the fixes | signature, eligibility, rank, score, seconds, status |
 | `after-fixes.csv` | dataset and model, after the fixes | the same columns |
-| `per_dataset.csv` | dataset | best model and score, the first pick, best of four, boosting, and the regret of each |
-| `delta.csv` | dataset | both runs side by side and the change |
-| `summary.json` | run | the aggregate table above, plus which models were ruled out and why |
+| `full.csv` | dataset, model and seed, the full run | the same columns; what the site publishes |
+| `meta.csv` | dataset | the eight meta-features "datasets like yours" and the neighbour order use |
+| `per_dataset.csv` | dataset, full run | best model and score, the first pick, best of four, boosting, and the regret of each |
+| `ranking-lodo.csv` | dataset, full run | the score and model each order picked, leave-one-dataset-out with families held out |
+| `summary.json` | full run | the recorded headline, plus which models were ruled out and why |
+| `delta.csv` | dataset | the two 40-dataset runs side by side and the change |
+| `seeds.csv` | dataset, model and seed | an early three-seed check on seven datasets |
 
 ## Next
 
-- run all 196 datasets rather than 40, and let `choose()` decide again
+- let numeric-feature models run on all-categorical tables, since the pipeline
+  encodes categories, and check the 9 lost winners come back
+- weight a synthetic family once when fitting the prior, declared before the
+  next run
+- more collected regression data: 35 independent units is what limits every
+  regression claim here, and more generated datasets would not help

@@ -150,6 +150,20 @@ function scored(list, codes, limit, T, sig, task, meta = null) {
   return ordered(ranked, limit, learned);
 }
 
+// A reference the page shows before the order's first pick: tuned boosting,
+// when it beat the order by the same rule that decides which order ships
+// (choose_lead() in bench/dcn/learn.py). Only where the benchmark measured
+// it: a labelled table of numbers, categories or both, predicting a category
+// or a number.
+export const LEAD_NAME = 'Histogram Gradient Boosting, tuned';
+export function leadRecommendation(T, sig, task) {
+  const lead = T.RANKING?.lead;
+  if (!lead?.led) return null;
+  if (!['category', 'number'].includes(task)) return null;
+  if (sig.codes[0] !== 'A11' || !['A31', 'A32', 'A38'].includes(sig.codes[2])) return null;
+  return { c: lead.code, n: LEAD_NAME, ...lead };
+}
+
 // `meta` is the dataset's meta-features (nearest.js), which the neighbour
 // order needs; without it the order falls back to the plain prior.
 export function rankModels(T, sig, task, limit = 4, meta = null) {

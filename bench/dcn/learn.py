@@ -291,6 +291,33 @@ def choose(table: pd.DataFrame) -> tuple[str, list[dict]]:
     return chosen, decisions
 
 
+def choose_lead(table: pd.DataFrame, chosen: str) -> dict | None:
+    """Should a reference be shown before the order's first pick?
+
+    The same rule as choose(), applied to tuned boosting against the order in
+    use: no worse median regret on either task, and better by more than luck on
+    at least one. choose() was written for the learned orders before the full
+    run; this applies it to the reference afterwards, when tuned boosting's
+    result was already known, and the page says so.
+    """
+    if "tuned" not in table or chosen not in table:
+        return None
+    no_worse, tests = True, {}
+    for task, group in table.groupby("task"):
+        units = regret_units(group, ["tuned", chosen])
+        if np.nanmedian(units["tuned"]) > np.nanmedian(units[chosen]) + 1e-9:
+            no_worse = False
+        tests[task] = paired(units["tuned"].to_numpy(), units[chosen].to_numpy())
+    adjusted = holm({task: test["p"] for task, test in tests.items()})
+    better = [task for task, test in tests.items() if adjusted[task] < ALPHA and test["wins"] > test["losses"]]
+    return {
+        "candidate": "tuned", "code": REFERENCE_KEYS["tuned"], "against": chosen,
+        "led": bool(no_worse and better), "no_worse": no_worse, "better_on": better,
+        "tasks": {task: {"wins": test["wins"], "losses": test["losses"], "ties": test["ties"],
+                         "p_holm": float(f"{adjusted[task]:.4g}")} for task, test in tests.items()},
+    }
+
+
 def describe(decision: dict) -> str:
     verdict = "replaces" if decision["replaced"] else "does not replace"
     detail = ", ".join(f"{task}: better on {d['wins']}, worse on {d['losses']}, p = {d['p_holm']:.3g}"
@@ -347,12 +374,15 @@ def report_comparisons(table: pd.DataFrame, chosen: str) -> str:
 
 
 def export(frame: pd.DataFrame, taxonomy: dict, out: Path, chosen: str, meta: pd.DataFrame | None = None,
-           decisions: list[dict] | None = None) -> dict:
+           decisions: list[dict] | None = None, lead: dict | None = None) -> dict:
     """Fit on everything and write the weights the site will use."""
     family = {m["c"]: m["dom"] for m in taxonomy["MODELS"]}
     payload = {
         "version": 1,
         "chosen": chosen,
+        # A reference shown before the order's first pick, when it passed the
+        # same rule against the order (choose_lead()).
+        "lead": lead,
         "trained_on": {"datasets": int(frame.dataset.nunique()), "rows": int(len(frame))},
         "target": "percentile rank of a model among those that ran on the same dataset",
         "features": FEATURE_NAMES,
@@ -411,11 +441,16 @@ def main(argv=None) -> int:
     chosen, decisions = choose(evaluation["table"])
     for decision in decisions:
         print(describe(decision))
-    print(f"chosen: {chosen}\n")
+    print(f"chosen: {chosen}")
+    lead = choose_lead(evaluation["table"], chosen)
+    if lead:
+        print(describe({**lead, "replaced": lead["led"]}).replace("replaces", "goes before")
+              .replace("does not replace", "does not go before"))
+    print()
     print(report_comparisons(evaluation["table"], chosen))
 
     evaluation["table"].round(4).to_csv(args.report, index=False)
-    payload = export(frame, taxonomy, Path(args.out), chosen, meta, decisions)
+    payload = export(frame, taxonomy, Path(args.out), chosen, meta, decisions, lead)
     print(f"wrote {args.out} ({len(payload['tasks'])} tasks) and {args.report}")
     return 0
 

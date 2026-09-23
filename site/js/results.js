@@ -3,8 +3,8 @@
 
 import { esc } from './html.js';
 import { matchCodes } from './profile.js';
-import { driftUnmeasured, paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
-import { driftSentence, evidenceFor, evidenceSentence, messyNote } from './evidence.js';
+import { driftUnmeasured, leadRecommendation, paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
+import { driftSentence, evidenceFor, evidenceSentence, leadSentence, messyNote } from './evidence.js';
 import { rankingProvenance } from './ranking.js';
 import { coverageNotes, metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
 import { MODEL_CODE, columnRoles, downloadScript, pythonScript, scriptable } from './export.js';
@@ -58,16 +58,19 @@ export function renderResults(T, sig, task, profile, source = null) {
       : ` Ordered by what each model was worth on ${provenance.datasets} benchmark datasets, not by how many coordinates it matches.`)
     : ' Ordered by coordinates matched: the benchmark has not covered this task, so there is nothing measured to rank them by.';
 
+  const lead = leadRecommendation(T, sig, task);
+  const leadNote = lead ? ' Tuned boosting comes first, before the order: on the benchmark it beat the order\'s first pick.' : '';
+
   const note = document.getElementById('model-note');
   if (models.items.length) {
-    note.textContent = `${models.candidates} of the ${paradigmLabel(paradigmOf(sig))} models can produce ${taskLabel} for data shaped like yours.${orderedBy}${tieNote(models)}${messyNote(T, sig, task, meta?.missing_share)}`;
+    note.textContent = `${models.candidates} of the ${paradigmLabel(paradigmOf(sig))} models can produce ${taskLabel} for data shaped like yours.${orderedBy}${tieNote(models)}${leadNote}${messyNote(T, sig, task, meta?.missing_share)}`;
   } else if (models.ruledOut.length) {
     note.textContent = `No model fits. Every model that could produce ${taskLabel} is ruled out by your data: ${models.ruledOut.slice(0, 3).map(m => `${m.n} ${m.why}`).join('; ')}.`;
   } else {
     note.textContent = `No model in the taxonomy produces ${taskLabel}.`;
   }
 
-  document.getElementById('models').innerHTML = models.items.map(m => `
+  document.getElementById('models').innerHTML = (lead && models.items.length ? leadCard(T, lead) : '') + models.items.map(m => `
     <article class="rec">
       <div>
         <div class="rec-code" data-model="${esc(m.c)}">${esc(m.c)}</div>
@@ -176,15 +179,37 @@ export function renderResults(T, sig, task, profile, source = null) {
     }
   });
 
-  renderTakeHome(T, sig, task, profile, source, models.items.map(m => m.c));
+  renderTakeHome(T, sig, task, profile, source, models.items.map(m => m.c), lead);
   renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
   renderNeighbours(T, neighbours, task);
   plotSpace(T, sig, meta, neighbours);
 }
 
+// Tuned boosting, before the order's picks, when it earned that place.
+function leadCard(T, lead) {
+  return `
+    <article class="rec lead">
+      <div>
+        <div class="rec-code rec-code-plain">${esc(lead.c)}</div>
+        <div class="rec-rank">start here</div>
+      </div>
+      <div>
+        <div class="rec-name">${esc(lead.n)}</div>
+        <div class="rec-meta">reference · supervised</div>
+        <p class="rec-metaphor">Boosting that was given a small search before it was trusted.</p>
+        <p class="rec-body">Scikit-learn's histogram gradient boosting, tried with ${esc(T.EVIDENCE?.tuning ?? 'a small set of configurations')}.
+          It is not a family of its own: it is the benchmark's default boosting, tuned, and the take-home script runs it
+          beside the models below.</p>
+        <p class="rec-body evidence">Measured. ${esc(leadSentence(T, lead))}</p>
+        ${refLinks({ ref: { label: 'Histogram-based gradient boosting in scikit-learn',
+          url: 'https://scikit-learn.org/stable/modules/ensemble.html#histogram-based-gradient-boosting' } })}
+      </div>
+    </article>`;
+}
+
 // "Take it home": the shortlist as a Python script, for the tasks the
 // benchmark covers (it needs a target to score against).
-function renderTakeHome(T, sig, task, profile, source, codes) {
+function renderTakeHome(T, sig, task, profile, source, codes, lead = null) {
   const el = document.getElementById('takehome');
   if (!el) return;
   const { run } = scriptable(codes, task);
@@ -198,9 +223,10 @@ function renderTakeHome(T, sig, task, profile, source, codes) {
     target: sig.target, task, ordered: sig.codes[1] === 'A22', ...columnRoles(profile, sig.target), shortlist: codes,
   });
   el.innerHTML = `<p class="takehome-h">Take it home</p>
-    <p class="sect-note">A Python script that runs ${run.map(c => esc(names[c] ?? c)).join(', ')} on your whole file,
-      with the preprocessing and cross-validation the benchmark used, and tuned boosting beside them: on the benchmark, a
-      small tuning budget was worth more than the choice among the top models. It needs pandas and scikit-learn.</p>
+    <p class="sect-note">A Python script that runs ${lead ? 'tuned boosting, which the page puts first, and ' : ''}${
+      run.map(c => esc(names[c] ?? c)).join(', ')} on your whole file, with the preprocessing and cross-validation the
+      benchmark used${lead ? '' : ', and tuned boosting beside them: on the benchmark, a small tuning budget was worth more than the choice among the top models'}.
+      It needs pandas and scikit-learn.</p>
     <div class="takehome-row">
       <button class="run takehome-btn" id="takehome-btn" type="button">Download the script</button>
       ${source?.text ? '<button class="run takehome-btn ghost" id="verify-btn" type="button">Run it here</button>' : ''}
@@ -212,7 +238,7 @@ function renderTakeHome(T, sig, task, profile, source, codes) {
     <div class="verify" id="verify-out" hidden></div>` : ''}`;
   document.getElementById('takehome-btn').addEventListener('click', () => downloadScript(script()));
   document.getElementById('verify-btn')?.addEventListener('click', (event) =>
-    runHere(event.currentTarget, script(), source.text, run, codes[0]));
+    runHere(event.currentTarget, script(), source.text, run, lead ? lead.c : codes[0]));
 }
 
 // "Run it here": the script in a Pyodide worker, results as they arrive.

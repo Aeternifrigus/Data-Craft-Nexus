@@ -457,6 +457,15 @@ Holm-corrected over the two tasks, more wins than losses). The decisions are
 written into `ranking.json` and shown on the evidence tab. Neither richer order
 qualified on the 40-dataset run or on the full one.
 
+`choose_lead()` applies the same rule to tuned boosting against the order in
+use. It was no worse on either task and better by more than luck on
+classification (49 of 78 units to 24, p = 0.029; regression 19 of 35 to 16,
+p = 0.53), so `ranking.json` names it as the lead and the page shows it first,
+above the order's picks, on labelled tables of numbers, categories or both
+predicting a category or a number: what the benchmark covered. The rule was
+written for the learned orders before the full run; applying it to the
+reference came after tuned boosting's result was known, and the page says so.
+
 The page and the benchmark compute the neighbour order the same way:
 `tests/test_agreement.py` fits it on the committed run, points the JavaScript
 at it, and compares both rankings on every fixture.
@@ -591,8 +600,8 @@ choice. `tests/drift.test.js` recomputes every published rate from
 
 - run TabPFN (see "Running TabPFN on your own machine") and let the evidence
   pick it up
-- fold tuning into the advice: the site recommends families at their
-  defaults, and ten configurations of boosting beat that on classification
+- tune every family the way boosting was tuned, and rank them on that: the
+  page puts tuned boosting first, but ranks the rest at their defaults
 - weight a synthetic family once when fitting the prior, declared before the
   next run
 - more collected regression data: 35 independent units is what limits every

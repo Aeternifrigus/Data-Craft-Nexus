@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { caution, conflict, rankModels, rankPipelines } from '../site/js/recommend.js';
+import { caution, conflict, leadRecommendation, rankModels, rankPipelines } from '../site/js/recommend.js';
+import { leadSentence } from '../site/js/evidence.js';
 import { loadTaxonomyFromDisk } from './helpers.js';
 
 const T = loadTaxonomyFromDisk();
@@ -146,4 +147,18 @@ test('a pipeline earns no points from a wildcard code', () => {
   assert.deepEqual(batch.hits, []);
   assert.equal(batch.of, 1);
   assert.equal(batch.score, 1, 'only the task match counts');
+});
+
+test('tuned boosting goes first only where the benchmark measured it, and says why', () => {
+  const table = sig(['A11', 'A21', 'A38', 'A41', 'A51', 'A61']);
+  assert.equal(T.RANKING.lead.led, true, 'the committed ranking puts tuned boosting first');
+  const lead = leadRecommendation(T, table, 'category');
+  assert.equal(lead.c, 'BASE-HGB-TUNED');
+  assert.ok(leadRecommendation(T, table, 'number'));
+  assert.equal(leadRecommendation(T, table, 'forecast'), null, 'not benchmarked for forecasting');
+  assert.equal(leadRecommendation(T, sig(['A12', 'A21', 'A31', 'A41', 'A53', 'A61']), 'cluster'), null, 'needs labels');
+  assert.equal(leadRecommendation(T, sig(['A11', 'A21', 'A34', 'A41', 'A51', 'A61']), 'category'), null, 'no text was benchmarked');
+  assert.equal(leadRecommendation({ RANKING: { lead: { led: false } } }, table, 'category'), null);
+  assert.match(leadSentence(T, lead), /beat the order's first pick on 49 of 78 independent classification units/);
+  assert.match(leadSentence(T, lead), /by more than luck on classification/);
 });

@@ -94,6 +94,22 @@
    "std": 1.7689
   }
  },
+ "coverage": {
+  "classification": {
+   "datasets": 20,
+   "min_rows": 200,
+   "max_rows": 5000,
+   "nearest_median": 0.5413,
+   "nearest_p95": 1.1216
+  },
+  "regression": {
+   "datasets": 20,
+   "min_rows": 200,
+   "max_rows": 5000,
+   "nearest_median": 0.2253,
+   "nearest_p95": 0.9216
+  }
+ },
  "headline": {
   "classification": {
    "datasets": 20,

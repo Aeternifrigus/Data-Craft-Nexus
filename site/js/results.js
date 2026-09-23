@@ -6,7 +6,7 @@ import { matchCodes } from './profile.js';
 import { paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
 import { evidenceFor, evidenceSentence } from './evidence.js';
 import { rankingProvenance } from './ranking.js';
-import { metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
+import { coverageNotes, metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
@@ -162,8 +162,20 @@ export function renderResults(T, sig, task, profile) {
     }
   });
 
+  renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
   renderNeighbours(T, neighbours, task);
   plotSpace(T, sig, meta, neighbours);
+}
+
+// Outside what was tested: said once, above the map, before any number.
+function renderCoverage(notes) {
+  const el = document.getElementById('coverage');
+  if (!el) return;
+  el.hidden = !notes.length;
+  el.innerHTML = notes.length
+    ? `<p class="coverage-h">Outside what the benchmark tested</p>${notes.map(n =>
+      `<p class="coverage-p" data-kind="${esc(n.kind)}">${esc(n.text)}</p>`).join('')}`
+    : '';
 }
 
 // The benchmark datasets as a map, with this one placed on it.
@@ -172,12 +184,18 @@ export function renderResults(T, sig, task, profile) {
 // the same for every labelled table with independent rows: three different
 // uploads could land on the same point, scattered among ten invented
 // reference datasets. It now uses measured properties that actually differ,
-// and the reference points are the 40 datasets the recommendations were
-// tested on.
+// and the reference points are the benchmark datasets the recommendations
+// were tested on.
 function plotSpace(T, sig, meta, neighbours) {
   const ev = T.EVIDENCE;
   const points = (ev?.datasets ?? []).filter(d => d.meta);
   const nearest = new Set(neighbours.map(d => d.dataset));
+  const note = document.getElementById('plot-note');
+  if (note && points.length) {
+    note.textContent = `Your data placed among the ${points.length} datasets the recommendations were tested on, by size, ` +
+      'shape and how much of the table is numeric. The brighter points are the ones closest to yours, and what won on ' +
+      'them is listed below.';
+  }
 
   if (!points.length || !meta) {
     document.getElementById('plot').innerHTML =

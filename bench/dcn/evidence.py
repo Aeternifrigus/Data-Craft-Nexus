@@ -12,8 +12,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from .analyze import BASELINE as BASELINE_CODE, METRIC, per_dataset
@@ -120,6 +122,42 @@ def model_significance(results: pd.DataFrame, table: pd.DataFrame, names: dict) 
     return out
 
 
+def meta_distance(a: dict, b: dict, names: list[str], scale: dict) -> float:
+    """Distance between two datasets' meta-features. Mirrors distance() in site/js/nearest.js."""
+    total = 0.0
+    for name in names:
+        spread = (scale.get(name) or {}).get("std") or 1.0
+        diff = ((a.get(name) or 0.0) - (b.get(name) or 0.0)) / spread
+        total += diff * diff
+    return math.sqrt(total / len(names))
+
+
+def coverage(datasets: list[dict], names: list[str], scale: dict | None) -> dict:
+    """What the benchmark covered, so the page can say when an upload is outside it.
+
+    Two things per task: the smallest dataset tested, and how far a benchmark
+    dataset usually is from its nearest other benchmark dataset. An upload
+    further from every benchmark dataset than 95% of benchmark datasets are
+    from each other is not like anything that was tested. Computed from the
+    rounded values the page carries, so the page can recompute it.
+    """
+    out = {}
+    if not scale:
+        return out
+    for task in sorted({d["task"] for d in datasets}):
+        rows = [d for d in datasets if d["task"] == task and d.get("meta")]
+        nearest = [min(meta_distance(d["meta"], o["meta"], names, scale) for o in rows if o is not d)
+                   for d in rows] if len(rows) > 1 else []
+        out[task] = {
+            "datasets": len(rows),
+            "min_rows": int(min(d["rows"] for d in rows)) if rows else None,
+            "max_rows": int(max(d["rows"] for d in rows)) if rows else None,
+            "nearest_median": round(float(np.quantile(nearest, 0.5)), 4) if nearest else None,
+            "nearest_p95": round(float(np.quantile(nearest, 0.95)), 4) if nearest else None,
+        }
+    return out
+
+
 def load_meta(path: Path) -> pd.DataFrame | None:
     return pd.read_csv(path) if path.exists() else None
 
@@ -176,6 +214,12 @@ def build(results_path: Path, run_label: str) -> dict:
         "eligible": int(row.n_eligible),
     } for row in table.itertuples()]
 
+    # Mean and spread of each feature across the benchmark, so a distance
+    # between datasets can be computed in the page without shipping pandas.
+    meta_scale = ({f: {"mean": round(float(meta[f].mean()), 4),
+                       "std": round(float(meta[f].std() or 1.0), 4)} for f in FEATURES}
+                  if meta is not None else None)
+
     return {
         "run": run_label,
         "source": "PMLB (Penn Machine Learning Benchmarks)",
@@ -187,11 +231,8 @@ def build(results_path: Path, run_label: str) -> dict:
         "not_runnable": {code: why for code, why in NOT_RUNNABLE.items()},
         "runnable": sorted(BY_CODE),
         "meta_features": FEATURES,
-        # Mean and spread of each feature across the benchmark, so a distance
-        # between datasets can be computed in the page without shipping pandas.
-        "meta_scale": ({f: {"mean": round(float(meta[f].mean()), 4),
-                            "std": round(float(meta[f].std() or 1.0), 4)} for f in FEATURES}
-                       if meta is not None else None),
+        "meta_scale": meta_scale,
+        "coverage": coverage(datasets, FEATURES, meta_scale),
         "headline": headline,
         "ranking": ranking_evidence(results_path.parent / "ranking-lodo.csv"),
         "significance": model_significance(results, table, names),

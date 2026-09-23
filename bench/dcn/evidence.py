@@ -87,7 +87,7 @@ def ranking_evidence(lodo_path: Path) -> dict | None:
     chosen = ranking.get("chosen")
     tests = comparisons(table, chosen) if chosen in table else {}
     out = {"chosen": chosen, "trained_on": ranking.get("trained_on"), "level": 0.95,
-           "choice": ranking.get("choice", []), "tasks": {}}
+           "choice": ranking.get("choice", []), "lead": ranking.get("lead"), "tasks": {}}
     for task, group in table.groupby("task"):
         # Every number is over independent units: a synthetic family's
         # datasets are averaged into one, as the tests in learn.py count them.

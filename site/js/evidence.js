@@ -356,7 +356,22 @@ export function choiceNote(ranking) {
       ? `${what[d.candidate] ?? d.candidate} beat the plain per-model order by more than luck on ${n} datasets: ${detail}. It is the order in use.`
       : `${what[d.candidate] ?? d.candidate} was tried too: ${detail}. That is not better by more than luck, so it is off.`;
   });
-  return `${lines.join(' ')} Which order ships is decided by a rule fixed before the results were seen, in bench/dcn/learn.py.`;
+  const lead = ranking.lead;
+  const leadLine = lead?.led
+    ? ` The same rule, applied to tuned boosting against the order in use, puts tuned boosting first on the page: it was no worse on either task and better by more than luck on ${lead.better_on.join(' and ')}. That rule was written for the learned orders before the full run; applying it to the reference came after tuned boosting's result was known.`
+    : '';
+  return `${lines.join(' ')} Which order ships is decided by a rule fixed before the results were seen, in bench/dcn/learn.py.${leadLine}`;
+}
+
+// Why tuned boosting is shown first, in the numbers that decided it.
+export function leadSentence(T, lead) {
+  if (!lead) return '';
+  const ranking = T.EVIDENCE?.ranking;
+  const parts = Object.entries(lead.tasks).map(([task, s]) =>
+    `${s.wins} of ${s.wins + s.losses + s.ties} ${unitNoun(ranking?.tasks?.[task], task)} (p = ${formatP(s.p_holm)})`);
+  const beyond = lead.better_on?.length ? `, by more than luck on ${lead.better_on.join(' and ')}` : '';
+  return `Leave-one-dataset-out, it beat the order's first pick on ${parts.join(' and on ')}${beyond}, and was no worse `
+    + 'anywhere. That passes the rule that decides which order ships, applied to it after its result was known.';
 }
 
 // One sentence on the comparison people actually ask about: is it better

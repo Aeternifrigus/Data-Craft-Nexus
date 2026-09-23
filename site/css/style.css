@@ -161,6 +161,11 @@ select.opt{color:var(--ink);padding-right:28px}
 .rec:last-child{border-bottom:1px solid var(--rule)}
 .rec-code{font-size:19px;font-weight:500;color:var(--chrome);cursor:pointer;line-height:1.3}
 .rec-code:hover{color:var(--ink)}
+.rec-code-plain{cursor:default}
+.rec-code-plain:hover{color:var(--chrome)}
+.rec.lead{border-top:2px solid var(--chrome)}
+.rec.lead .rec-rank{color:var(--chrome)}
+.rec.lead .rec-code{font-size:13px;word-break:break-all}
 .rec-rank{font-size:11px;color:var(--dim);margin-top:2px}
 .rec-rank-sub{display:block;font-size:10px;color:var(--rule);margin-top:2px}
 .rec-name{font-size:17px;color:var(--ink);margin-bottom:7px}

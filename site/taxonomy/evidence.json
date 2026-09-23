@@ -188,6 +188,30 @@
     }
    }
   ],
+  "lead": {
+   "candidate": "tuned",
+   "code": "BASE-HGB-TUNED",
+   "against": "prior",
+   "led": true,
+   "no_worse": true,
+   "better_on": [
+    "classification"
+   ],
+   "tasks": {
+    "classification": {
+     "wins": 49,
+     "losses": 24,
+     "ties": 5,
+     "p_holm": 0.02908
+    },
+    "regression": {
+     "wins": 19,
+     "losses": 16,
+     "ties": 0,
+     "p_holm": 0.5337
+    }
+   }
+  },
   "tasks": {
    "classification": {
     "datasets": 94,

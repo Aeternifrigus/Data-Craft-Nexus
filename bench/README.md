@@ -132,6 +132,32 @@ Which weights, and what the licence allows:
   datasets are recorded as skipped with the reason, so TabPFN's comparisons are
   made only on the datasets it ran on, and the page says how many.
 
+## Messy data
+
+PMLB's datasets are clean, and the files people upload are not: the quality
+axis (A62 missing, A64 noisy) had no evidence behind it. `dcn/corrupt.py`
+damages clean datasets in known ways, and `--corrupt` runs the benchmark on the
+damaged copies:
+
+| condition | what is done |
+|---|---|
+| `missing_10`, `missing_30` | 10% or 30% of feature cells blanked, completely at random |
+| `dirty_5` | 5% of the cells in numeric columns replaced by spreadsheet junk (`?`, `n/a`, `#VALUE!`, ...) |
+| `labels_10` | 10% of the training labels replaced by another row's label, inside each training fold only, so every model is still scored on the true labels |
+
+The damage is seeded, so a condition damages a dataset the same way for every
+model. The profiler then measures the damaged file, so the recorded signature
+says whether it noticed. Damaged data goes through what any real pipeline does
+with a messy file: junk in a numeric column becomes missing, and categories
+become text.
+
+```bash
+OMP_NUM_THREADS=1 python -m dcn.run --limit 20 --corrupt missing_30 --budget 120 --out results/messy.csv
+```
+
+Results carry a `condition` column; a results file written before it existed
+is upgraded in place the next time the runner appends to it.
+
 ## Running it
 
 ```bash

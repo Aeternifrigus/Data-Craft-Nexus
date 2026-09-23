@@ -141,6 +141,10 @@ The numbers on the page are generated from `bench/results/`, and a test
 recomputes them from that data on every run, so the page cannot quietly
 disagree with the run behind it.
 
+### When the data is messy
+
+Benchmark datasets are clean and uploads are not, so 40 of the datasets were damaged on purpose and every model run again: 10% or 30% of cells blanked, junk text (`?`, `n/a`, `#VALUE!`) in 5% of numeric cells, or 10% of training labels swapped. The profiler flagged every file with blanked cells (A62) and 89% of those with junk (A64); the ones it missed had junk in the few numeric columns of a mostly categorical table, where the average over all columns stays under the threshold. On classification the order's first pick held up under every kind of damage. On regression it did not under 30% missing cells or noisy targets (its regret rose from 0.003 to 0.049 and 0.033), where the linear models and the linear SVM lost least and tree ensembles most; that rests on 8 independent units. On the 8 classification units that arrived with missing values of their own, the order did as well as on the complete ones, as far as 8 units can tell. A file flagged A62 or A64 now gets a line under the models saying what the same kind of damage did on the benchmark. Details in [`bench/README.md`](bench/README.md#messy-data).
+
 ### What the drift checkers were worth
 
 The drift checkers get a benchmark of their own (`bench/dcn/drift.py`): 18 real datasets, each cut five ways into a 500-row reference window and a 250-row current window, and seven scenarios per cut: nothing changes, one feature shifts by 0.3 standard deviations, its spread widens by half, its link to the other features is broken while every feature looks the same on its own, the rows are drawn with a bias, the class mix changes, or the labels change meaning while the features stay put. Every checker ran as its card says, at its card's threshold.
@@ -159,6 +163,8 @@ It also found five defects, now fixed: six drift cards linked to the wrong funct
 - **The order in use is a per-model prior, not yet a per-dataset one.** Both ways of making it depend on your data (interactions, and weighting toward the nearest benchmark datasets) are built, tested against the JavaScript, and judged leave-one-dataset-out, and neither beat the prior by more than luck on 195 datasets once families count once. With only 35 independent regression units, a per-dataset order needs more collected data to prove itself, not more of the same generators.
 - **The prior itself still counts a family's datasets one by one when it is fitted**, so on regression it leans toward what wins on Friedman's functions. Weighting a family once in the fit is the obvious change, and it should be declared before the next run rather than tried after this one.
 - **The benchmark found a rule that throws away winners:** models that need numeric features (A31) are ruled out on all-categorical tables (A32), yet with one-hot encoding they won on 9 datasets, by up to 0.13 R² on solar_flare.
+- **The order ignores data quality.** On regression with 30% of cells missing or noisy targets, its first pick lost ground that the linear models kept. An order that reads A62 and A64 has not been built or tested.
+- **A64 is judged on the average over all columns**, so junk confined to the few numeric columns of a wide categorical table goes unflagged. Judging it per column is the fix.
 - **Drift was injected at one strength per kind**, on classification datasets, with 500- and 250-row windows, so the rates hold for that setting. Detectors tuned to their stream would beat river's defaults.
 - **Only classification and regression are benchmarked.** Forecasting, survival, grouping, anomalies, compression and generation still fall back to counting coordinates.
 - Image, audio, graph and spatial data cannot be detected from a CSV, so those models are reachable in the reference but never recommended from an upload.
@@ -227,6 +233,7 @@ npm test             # Node 20+
 - `tests/export.test.js`: what the generated script carries: the page's reading of the file, the column roles, every runnable model's estimator, and the models it cannot run, named.
 - `tests/verify.test.js`: "Run it here": the messages between the page and its Python worker, with a stand-in worker.
 - `tests/drift.test.js`: drift checkers ordered by what they measured, and every published rate recomputed from `bench/results/drift.csv`.
+- `tests/messy.test.js`: which damaged run a messy upload is told about, and that every one is published.
 - `tests/check_links.test.js`: the link checker against a fake network. A connection that resets and then answers passes, a 404 fails on the first answer, and no host gets more than two requests at once. `npm run check:links` runs the real check, which needs the internet and runs in CI.
 - `tests/recommend.snapshot.test.js`: runs every fixture in `tests/fixtures/` through every target, task and order answer, and compares what gets recommended with `tests/snapshots/recommendations.json`. When a change to the profiler or the ranking is intended, run `npm run test:update` and review the snapshot diff in the commit.
 

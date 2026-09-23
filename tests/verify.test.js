@@ -89,6 +89,7 @@ test('the verdict says where the page\'s first pick landed', () => {
   assert.match(verdict([r('A', null, 'error'), r('B', 0.9)], 'A'), /did not finish here/);
   assert.match(verdict([r('B', 0.9)], 'NN9'), /is not a model the script can run/);
   assert.equal(verdict([r('A', null, 'error')], 'A'), 'No model finished on this file.');
+  assert.equal(verdict([r('A', 0.8), r('B', 0.9)], null), 'The best of 2 on your file was B, at 0.9000.');
   assert.match(verdict([r('A', 0.5), r('B', 0.5), r('C', 0.4)], 'A'), /A, was the best of 3 on your file, level with B\./);
   assert.match(verdict([r('A', 0.8), r('B', 0.9), r('C', 0.8)], 'A'), /came 2nd of 3 on your file, level with C,/);
 });

@@ -16,7 +16,7 @@ Every code is clickable, down to the formula underneath.
 
 **[Try it here](https://aeternifrigus.github.io/Data-Craft-Nexus/)**
 
-The footer of the live page says which commit it was built from. If that is not the latest commit on `main`, the deploy has not finished or has failed: the "Deploy static content to Pages" workflow builds the page, deploys it, and then fetches the live page until it carries the new commit, failing if it does not within five minutes. A browser can also hold on to an older copy for a few minutes; a hard refresh fetches the new one.
+The live page carries the commit it was built from in a meta tag (`dcn-build`), out of sight. The "Deploy static content to Pages" workflow builds the page, deploys it, and then fetches the live page until it carries the new commit, failing if it does not within five minutes, so a deploy that did not take shows up as a failed run under Actions. A browser can also hold on to an older copy for a few minutes; a hard refresh fetches the new one.
 
 ---
 
@@ -102,6 +102,8 @@ python dcn_shortlist.py shipments.csv
   0.3359 ± 0.0355  LM2             Logistic Regression  (0.1s)
   0.3196 ± 0.0361  TR3             Extra Trees  (2.2s)
 ```
+
+The script checks models that predict a column, so it is offered when you answer "A number" or "A category". For "A future value" on rows in time order, it checks the nearest thing it can, the target predicted from the other columns and split by time, and says so above the buttons; it does not build lag features or run the forecasting models. For any other kind of answer, the section says why there is no script and what to answer instead, rather than leaving a gap.
 
 The script is held to the benchmark by `bench/tests/test_export.py`: it is generated with the site's own JavaScript, every estimator in it is compared with the benchmark's registry, and on the test fixtures it produces exactly the benchmark's scores.
 

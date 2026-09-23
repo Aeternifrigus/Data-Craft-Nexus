@@ -185,8 +185,10 @@ function initIntake() {
     const sig = signature(state.profile, state.decl);
     setSlot(5, sig.codes[4], sig.balance != null);
     showFlags(sig);
-    renderResults(state.T, sig, state.decl.task, state.profile, state.source);
+    // Shown before it is drawn: the plot takes its width from its container,
+    // and a hidden one gives Plotly its 700-pixel default, wider than a phone.
     document.getElementById('results').classList.add('on');
+    renderResults(state.T, sig, state.decl.task, state.profile, state.source);
     document.getElementById('results').scrollIntoView({ block: 'start' });
   });
 }

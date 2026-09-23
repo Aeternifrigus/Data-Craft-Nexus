@@ -5,7 +5,9 @@
 
 import { esc } from './html.js';
 
-const pct = (x) => `${Math.round(x * 100)}%`;
+// Shares arrive rounded to three decimals; round from those, so 0.565 shows
+// as 57% and not, through 56.49999999999999, as 56%.
+const pct = (x) => `${Math.round(Math.round(x * 1000) / 10)}%`;
 const num = (x, digits = 3) => (x == null || Number.isNaN(x) ? '—' : x.toFixed(digits));
 
 // A model's line for one task, or null when the benchmark never ran it there.

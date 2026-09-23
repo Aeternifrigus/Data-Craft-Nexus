@@ -36,6 +36,7 @@ from sklearn.model_selection import KFold, StratifiedKFold, cross_val_score
 from sklearn.preprocessing import LabelEncoder
 
 from . import datasets as ds
+from .corrupt import CONDITIONS, NoisyLabels, coerce, damage
 from .csvread import parse_csv
 from .meta import meta_features
 from .models import BASELINE, BY_CODE, REFERENCE_BY_CODE, build_pipeline, runnable_codes
@@ -45,7 +46,7 @@ from .recommend import conflict, load_taxonomy, rank_models
 FIELDS = [
     "dataset", "task", "rows", "features", "subsampled", "signature", "flags",
     "model", "model_name", "eligible", "ruled_out_why", "recommended_rank",
-    "score", "score_std", "seconds", "status", "detail", "seed",
+    "score", "score_std", "seconds", "status", "detail", "seed", "condition",
 ]
 TASK_CODE = {"classification": "category", "regression": "number"}
 SCORING = {"classification": "balanced_accuracy", "regression": "r2"}
@@ -80,7 +81,7 @@ def profile_dataset(dataset: ds.Dataset) -> dict:
 
 
 def evaluate(dataset: ds.Dataset, spec, task: str, numeric, categorical, folds: int, budget: int,
-             seed: int = 0) -> dict:
+             seed: int = 0, condition: str = "clean") -> dict:
     if spec.max_rows and len(dataset.frame) > spec.max_rows:
         return {"status": "skipped", "detail": f"over the {spec.max_rows}-row limit this model runs with here"}
     X = dataset.frame.drop(columns=["target"])
@@ -96,7 +97,13 @@ def evaluate(dataset: ds.Dataset, spec, task: str, numeric, categorical, folds: 
         y = y.astype(float)
         cv = KFold(folds, shuffle=True, random_state=seed)
 
+    if condition != "clean":
+        # Damaged data needs what any real pipeline does with a messy file:
+        # junk in a numeric column becomes missing, categories become text.
+        X = coerce(X, numeric, categorical)
     pipe = build_pipeline(spec, task, numeric, categorical)
+    if condition == "labels_10":
+        pipe = NoisyLabels(pipe, rate=0.1)
     started = time.time()
     try:
         with warnings.catch_warnings():
@@ -114,12 +121,33 @@ def evaluate(dataset: ds.Dataset, spec, task: str, numeric, categorical, folds: 
                 "detail": f"{type(exc).__name__}: {exc}"[:300]}
 
 
-def done_pairs(path: Path) -> set[tuple[str, str, str]]:
+def upgrade_header(path: Path) -> None:
+    """Give a results file written before a column existed the current columns.
+
+    Appending rows with more fields than the header has would shift every
+    later column by one; an older file is rewritten once with the new columns
+    empty, which reads as "clean" for the condition.
+    """
+    if not path.exists():
+        return
+    with path.open(newline="") as fh:
+        reader = csv.DictReader(fh)
+        if reader.fieldnames == FIELDS:
+            return
+        rows = list(reader)
+    with path.open("w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=FIELDS, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def done_pairs(path: Path) -> set[tuple[str, str, str, str]]:
     """What has already been measured, so a stopped run resumes where it left off."""
     if not path.exists():
         return set()
     with path.open() as fh:
-        return {(row["dataset"], row["model"], row.get("seed", "0")) for row in csv.DictReader(fh)}
+        return {(row["dataset"], row["model"], row.get("seed") or "0", row.get("condition") or "clean")
+                for row in csv.DictReader(fh)}
 
 
 def main(argv=None) -> int:
@@ -135,6 +163,8 @@ def main(argv=None) -> int:
                     help="repeat every fit under this many cross-validation seeds, to measure the spread")
     ap.add_argument("--reference-budget", type=int, default=600,
                     help="seconds per reference per dataset: tuning fits a model ten times")
+    ap.add_argument("--corrupt", default="clean", choices=["clean", *CONDITIONS],
+                    help="damage every dataset this way first (see corrupt.py)")
     ap.add_argument("--models", default="",
                     help="comma-separated codes to run (default: every taxonomy model, the baseline and "
                          "every installed reference)")
@@ -147,6 +177,7 @@ def main(argv=None) -> int:
     taxonomy = load_taxonomy()
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
+    upgrade_header(out)
     already = done_pairs(out)
     new_file = not out.exists()
 
@@ -169,7 +200,7 @@ def main(argv=None) -> int:
                 if only:
                     codes = [c for c in codes if c in only]
                 seeds = list(range(args.seeds))
-                if all((name, c, str(seed)) in already for c in codes for seed in seeds):
+                if all((name, c, str(seed), args.corrupt) in already for c in codes for seed in seeds):
                     continue
                 try:
                     dataset = ds.load(name)
@@ -183,6 +214,11 @@ def main(argv=None) -> int:
                     subsampled = True
 
                 measured = profile_dataset(dataset)
+                if args.corrupt != "clean":
+                    # Damage the clean columns, then measure again: the signature
+                    # recorded is what the profiler makes of the messy file.
+                    dataset.frame = damage(dataset.frame, args.corrupt, measured["numeric"])
+                    measured = profile_dataset(dataset)
                 sig = measured["signature"]
                 ranking = rank_models(taxonomy, sig, TASK_CODE[task], limit=99, meta=measured["meta"])
                 rank_of = {m["c"]: i + 1 for i, m in enumerate(ranking.items)}
@@ -195,14 +231,14 @@ def main(argv=None) -> int:
                 # Every model under every seed: repeating the split is what
                 # separates a real difference from the luck of one partition.
                 for code, seed in ((c, s) for c in codes for s in seeds):
-                    if (name, code, str(seed)) in already:
+                    if (name, code, str(seed), args.corrupt) in already:
                         continue
                     spec = BASELINE if code == BASELINE.code else BY_CODE.get(code) or REFERENCE_BY_CODE[code]
                     budget = args.reference_budget if code in REFERENCE_BY_CODE else args.budget
                     result = evaluate(dataset, spec, task, measured["numeric"], measured["categorical"],
-                                      args.folds, budget, seed=seed)
+                                      args.folds, budget, seed=seed, condition=args.corrupt)
                     writer.writerow({
-                        "seed": seed,
+                        "seed": seed, "condition": args.corrupt,
                         "dataset": name, "task": task, "rows": len(dataset.frame),
                         "features": dataset.n_features, "subsampled": subsampled,
                         "signature": " ".join(sig["codes"]), "flags": " ".join(sig["flags"]),

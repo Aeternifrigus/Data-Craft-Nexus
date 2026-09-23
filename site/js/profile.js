@@ -149,6 +149,9 @@ export function signature(profile, decl) {
 
   return {
     codes: [target ? 'A11' : 'A12', decl.order, a3, a4, a5, a6],
+    // The resolved target, so what is measured later (the meta-features that
+    // place an upload among the benchmark datasets) leaves it out too.
+    target,
     flags,
     balance,
     drift,

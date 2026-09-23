@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseCSV } from '../site/js/csv.js';
-import { profileData } from '../site/js/profile.js';
+import { profileData, signature } from '../site/js/profile.js';
 import { coverageNotes, distance, metaFeatures, nearestDatasets, performanceOn, quantile, winnerAmong }
   from '../site/js/nearest.js';
 import { loadTaxonomyFromDisk } from './helpers.js';
@@ -125,4 +125,18 @@ test('an upload far from everything is told so, and a task without a benchmark s
 test('quantile matches numpy on a small case', () => {
   assert.equal(quantile([1, 2, 3, 4], 0.5), 2.5);
   assert.ok(Math.abs(quantile([0, 10], 0.95) - 9.5) < 1e-12);
+});
+
+test('an upload is placed without its target, as the benchmark datasets are', () => {
+  // results.js measures the upload with sig.target. signature() did not
+  // return one, so the target was counted as a feature and the class balance
+  // of every upload read as zero.
+  const { head, body } = parseCSV(fs.readFileSync(new URL('tests/fixtures/imbalanced.csv', ROOT), 'utf8'));
+  const profile = profileData(head, body);
+  const sig = signature(profile, { target: 'churn', task: 'category', order: 'A21' });
+  assert.equal(sig.target, 'churn');
+  const meta = metaFeatures(profile, sig.target ?? null);
+  assert.equal(meta.log_features, Math.log10(head.length - 1));
+  assert.ok(meta.majority_share > 0.5, 'an imbalanced target has a majority class');
+  assert.equal(signature(profile, { target: '__none__', task: 'group', order: 'A21' }).target, null);
 });

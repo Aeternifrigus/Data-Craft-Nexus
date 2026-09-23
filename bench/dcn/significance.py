@@ -27,6 +27,13 @@ Strogatz's equations: sisters that share a winner. Each such family counts
 once (family_of, by_family), so 101 regression datasets are 35 independent
 units, and a test that counted all 101 would claim far more certainty than
 the data holds.
+
+And for datasets cut from one table. PMLB has the Garvan thyroid records
+under six names with six targets, three horse colic targets, four feature
+sets of the same handwritten digits (mfeat), chess and kr_vs_kp twice, the
+mushroom table twice, and the same generators behind led7 and led24,
+waveform_21 and waveform_40, and the three MONK's problems. Each is one
+family too (SHARED_TABLES).
 """
 from __future__ import annotations
 
@@ -42,10 +49,23 @@ LEVEL = 0.95
 SYNTHETIC_FAMILIES = [(re.compile(r"^\d+_fri_c\d"), "friedman"), (re.compile(r"^strogatz_"), "strogatz"),
                       (re.compile(r"^feynman_"), "feynman"), (re.compile(r"BNG"), "bng")]
 
+# One table, or one generator, under several names in PMLB.
+SHARED_TABLES = [
+    (re.compile(r"^(allbp|allhyper|allhypo|allrep|dis|hypothyroid)$"), "thyroid_garvan"),
+    (re.compile(r"^horse_colic_"), "horse_colic"),
+    (re.compile(r"^mfeat_"), "mfeat"),
+    (re.compile(r"^(chess|kr_vs_kp)$"), "chess_krkp"),
+    (re.compile(r"^(mushroom|agaricus_lepiota)$"), "mushroom"),
+    (re.compile(r"^led(7|24)$"), "led"),
+    (re.compile(r"^waveform_(21|40)$"), "waveform"),
+    (re.compile(r"^monk[123]$"), "monk"),
+    (re.compile(r"^auto_insurance_"), "auto_insurance"),
+]
+
 
 def family_of(dataset: str) -> str:
-    """The family a dataset was generated in, or the dataset itself when it stands alone."""
-    for pattern, family in SYNTHETIC_FAMILIES:
+    """The family a dataset was generated or cut from, or the dataset itself when it stands alone."""
+    for pattern, family in SYNTHETIC_FAMILIES + SHARED_TABLES:
         if pattern.search(dataset):
             return family
     return dataset

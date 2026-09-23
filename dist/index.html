@@ -194,6 +194,13 @@ select.opt{color:var(--ink);padding-right:28px}
 .takehome-h{color:var(--chrome);font-size:12px;letter-spacing:.04em;margin-bottom:8px}
 .takehome .sect-note{margin-bottom:16px}
 .takehome-btn{margin-top:0}
+.takehome-row{display:flex;flex-wrap:wrap;gap:12px}
+.run.ghost{background:transparent;color:var(--chrome);box-shadow:inset 0 0 0 1px var(--chrome-dim)}
+.run.ghost:not(:disabled):hover{background:rgba(255,255,255,.04)}
+.takehome-fine{font-size:12px;margin-top:12px}
+.verify{margin-top:18px}
+.verify-status{color:var(--ink);font-size:13px;line-height:1.7;max-width:72ch;margin-bottom:12px}
+.verify-table .rec-code{font-size:12.5px;display:inline;margin-right:8px;cursor:default}
 
 /* an upload outside what the benchmark tested */
 .coverage{border-left:2px solid var(--amber);background:rgba(224,164,88,.06);
@@ -1286,8 +1293,8 @@ footer .sig{font-size:27px}
       }
     }
     if (!parts.length) return "";
-    const verdict = beyond.length === 0 ? parts.length > 1 ? "Neither difference is more than luck." : "That is within what luck produces." : `More than luck: the ${beyond.join(" and the ")}${narrow.length ? ", narrowly" : ""}.`;
-    return `Against ${what}, the order in use was better on ${parts.join(" and ")}. ${verdict}`;
+    const verdict2 = beyond.length === 0 ? parts.length > 1 ? "Neither difference is more than luck." : "That is within what luck produces." : `More than luck: the ${beyond.join(" and the ")}${narrow.length ? ", narrowly" : ""}.`;
+    return `Against ${what}, the order in use was better on ${parts.join(" and ")}. ${verdict2}`;
   }
   function comparisonTable(ranking) {
     if (!(ranking == null ? void 0 : ranking.chosen)) return "";
@@ -1337,11 +1344,11 @@ footer .sig{font-size:27px}
       if (beyondLuck(c)) beyond.push(task);
     }
     if (!parts.length) return "";
-    const verdict = beyond.length === 0 ? parts.length > 1 ? "Neither difference is more than luck on this many datasets." : "That is within what luck produces on this many datasets." : beyond.length === parts.length ? parts.length > 1 ? "Both differences are more than luck." : "That is more than luck." : `Only the ${beyond.join(" and ")} difference is more than luck${parts.length && Object.values(ranking.tasks).some((e) => {
+    const verdict2 = beyond.length === 0 ? parts.length > 1 ? "Neither difference is more than luck on this many datasets." : "That is within what luck produces on this many datasets." : beyond.length === parts.length ? parts.length > 1 ? "Both differences are more than luck." : "That is more than luck." : `Only the ${beyond.join(" and ")} difference is more than luck${parts.length && Object.values(ranking.tasks).some((e) => {
       var _a2;
       return beyondLuck((_a2 = e.against_chosen) == null ? void 0 : _a2.boosting) && e.against_chosen.boosting.p_holm >= 0.01;
     }) ? ", and only narrowly" : ""}.`;
-    return `Against always using boosting, the order in use was better on ${parts.join(" and ")}. ${verdict}`;
+    return `Against always using boosting, the order in use was better on ${parts.join(" and ")}. ${verdict2}`;
   }
   function rankChart(block, names) {
     const entries = Object.entries(block.ranks);
@@ -1459,7 +1466,7 @@ footer .sig{font-size:27px}
     const classification = head.classification, regression = head.regression;
     const rankedBy = (_a = ev.ranked_by) != null ? _a : "counting matched coordinates";
     const worse = classification.first > classification.boosting && regression.first > regression.boosting;
-    const verdict = `These are the numbers for the run as it happened, when models were ordered by ${esc(rankedBy)}. The four
+    const verdict2 = `These are the numbers for the run as it happened, when models were ordered by ${esc(rankedBy)}. The four
     shown contained the best available choice ${pct(classification.top4_was_best)} of the time on classification, and the
     model shown first trailed the best by ${num(classification.first)} on classification and ${num(regression.first)} on
     regression${worse ? ", which is worse than reaching for boosting" : ""}. The next table is the fairer test of the order
@@ -1467,7 +1474,7 @@ footer .sig{font-size:27px}
     body.innerHTML = `
     <h3 class="ev-h">How the advice did</h3>
     ${headlineTable(head)}
-    <p class="sect-note" style="margin-top:18px">${verdict}</p>
+    <p class="sect-note" style="margin-top:18px">${verdict2}</p>
 
     ${ev.ranking ? `<h3 class="ev-h">What the order is worth</h3>
     <p class="sect-note">The site used to show whichever model matched the most coordinates. It now shows them in the order
@@ -1943,12 +1950,24 @@ def report(results):
             print(f"  {row['status']:>15}  {row['code']:15} {row['name']}: {row.get('detail', '')}")
 
 
-def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else FILE
-    frame = pd.read_csv(path, **READ, dtype=str, keep_default_na=False)
+def load(source):
+    """The file as the page read it: every cell as text, under the page's column names.
+
+    \`source\` is a path, or an open text stream, which needs no encoding: the
+    page hands Python running in the browser its own decoded copy that way.
+    """
+    options = dict(READ)
+    if not isinstance(source, str):
+        options.pop("encoding", None)
+    frame = pd.read_csv(source, **options, dtype=str, keep_default_na=False)
     if len(frame.columns) == len(COLUMNS):
         frame.columns = COLUMNS   # the names the page gave them (blank or repeated headers renamed)
-    report(evaluate(frame, progress=lambda row: print(".", end="", flush=True)))
+    return frame
+
+
+def main():
+    path = sys.argv[1] if len(sys.argv) > 1 else FILE
+    report(evaluate(load(path), progress=lambda row: print(".", end="", flush=True)))
 
 
 if __name__ == "__main__":
@@ -1962,6 +1981,127 @@ if __name__ == "__main__":
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1e3);
+  }
+
+  // site/js/verify.js
+  var PYODIDE_VERSION = "314.0.7";
+  var PYODIDE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+  var MAX_BYTES = 20 * 1024 * 1024;
+  var PY_RUNNER = `
+import io
+import json
+import math
+
+
+def plain(row):
+    """JSON without NaN, which JSON.parse refuses."""
+    return {k: (None if isinstance(v, float) and not math.isfinite(v) else v) for k, v in row.items()}
+
+
+namespace = {"__name__": "dcn_shortlist"}
+exec(compile(SCRIPT, "dcn_shortlist.py", "exec"), namespace)
+frame = namespace["load"](io.StringIO(CSV))
+results = namespace["evaluate"](frame, progress=lambda row: report_row(json.dumps(plain(row))))
+json.dumps([plain(row) for row in results])
+`;
+  var WORKER_SOURCE = `
+let pyodide = null;
+self.onmessage = async (event) => {
+  const { indexURL, packages, script, csv, runner } = event.data;
+  const say = (text) => self.postMessage({ type: 'status', text });
+  try {
+    if (!pyodide) {
+      say('Downloading Python (Pyodide). The first time takes a while.');
+      const { loadPyodide } = await import(indexURL + 'pyodide.mjs');
+      pyodide = await loadPyodide({ indexURL });
+    }
+    say('Loading ' + packages.join(', ') + '.');
+    await pyodide.loadPackage(packages);
+    pyodide.globals.set('SCRIPT', script);
+    pyodide.globals.set('CSV', csv);
+    pyodide.globals.set('report_row', (text) => self.postMessage({ type: 'row', row: JSON.parse(text) }));
+    say('Cross-validating each model on your file.');
+    const out = await pyodide.runPythonAsync(runner);
+    self.postMessage({ type: 'done', results: JSON.parse(out) });
+  } catch (err) {
+    self.postMessage({ type: 'error', text: String((err && err.message) || err) });
+  }
+};
+`;
+  function packagesFor(needs = []) {
+    const extra = [...new Set(needs.filter((n) => n === "xgboost" || n === "lightgbm"))].sort();
+    return ["numpy", "pandas", "scikit-learn", ...extra];
+  }
+  function startWorker(WorkerImpl) {
+    if (WorkerImpl) return { worker: new WorkerImpl(), release: () => {
+    } };
+    const url = URL.createObjectURL(new Blob([WORKER_SOURCE], { type: "text/javascript" }));
+    return { worker: new Worker(url, { type: "module" }), release: () => URL.revokeObjectURL(url) };
+  }
+  function verifyInBrowser({
+    script,
+    csv,
+    needs = [],
+    onStatus = () => {
+    },
+    onRow = () => {
+    },
+    WorkerImpl = null,
+    indexURL = PYODIDE_URL
+  }) {
+    return new Promise((resolve, reject) => {
+      if (new Blob([csv]).size > MAX_BYTES) {
+        reject(new Error("The file is over 20 MB: too large to fit models on in a browser tab. Download the script instead."));
+        return;
+      }
+      const { worker, release } = startWorker(WorkerImpl);
+      const finish = () => {
+        worker.terminate();
+        release();
+      };
+      worker.onmessage = (event) => {
+        const msg = event.data;
+        if (msg.type === "status") onStatus(msg.text);
+        else if (msg.type === "row") onRow(msg.row);
+        else if (msg.type === "done") {
+          finish();
+          resolve(msg.results);
+        } else if (msg.type === "error") {
+          finish();
+          reject(new Error(lastLine(msg.text)));
+        }
+      };
+      worker.onerror = (event) => {
+        finish();
+        reject(new Error(event.message || "The Python worker could not start."));
+      };
+      worker.postMessage({ indexURL, packages: packagesFor(needs), script, csv, runner: PY_RUNNER });
+    });
+  }
+  function lastLine(text) {
+    const lines = String(text).trim().split("\n").filter((l) => l.trim());
+    return lines.length ? lines[lines.length - 1].trim() : "Python stopped without saying why.";
+  }
+  function verdict(results, firstCode) {
+    const shown = (x) => Math.round(x * 1e4);
+    const ok = results.filter((r) => r.status === "ok" && r.score != null).sort((a, b) => b.score - a.score);
+    if (!ok.length) return "No model finished on this file.";
+    const best = ok[0];
+    const first = ok.find((r) => r.code === firstCode);
+    if (!first) {
+      const why = results.some((r) => r.code === firstCode) ? "did not finish here" : "is not a model the script can run";
+      return `The page's first pick ${why}; the best of what ran was ${best.name} at ${best.score.toFixed(4)}.`;
+    }
+    const above = ok.filter((r) => shown(r.score) > shown(first.score));
+    const level = ok.filter((r) => r !== first && shown(r.score) === shown(first.score)).map((r) => r.name);
+    const tie = level.length ? `, level with ${level.join(" and ")}` : "";
+    if (!above.length) return `The page's first pick, ${first.name}, was the best of ${ok.length} on your file${tie}.`;
+    return `The page's first pick, ${first.name}, came ${ordinal(above.length + 1)} of ${ok.length} on your file${tie}, ${(best.score - first.score).toFixed(4)} below ${best.name}. Cross-validation on one file has its own luck: compare the gap with the spread beside each score.`;
+  }
+  function ordinal(n) {
+    var _a;
+    const suffix = n % 100 >= 11 && n % 100 <= 13 ? "th" : (_a = { 1: "st", 2: "nd", 3: "rd" }[n % 10]) != null ? _a : "th";
+    return `${n}${suffix}`;
   }
 
   // site/js/results.js
@@ -2107,6 +2247,7 @@ if __name__ == "__main__":
     plotSpace(T, sig, meta, neighbours);
   }
   function renderTakeHome(T, sig, task, profile, source, codes) {
+    var _a;
     const el = document.getElementById("takehome");
     if (!el) return;
     const { run } = scriptable(codes, task);
@@ -2115,28 +2256,85 @@ if __name__ == "__main__":
       return;
     }
     const names = Object.fromEntries(T.MODELS.map((m) => [m.c, m.n]));
-    el.innerHTML = `<p class="takehome-h">Take it home</p>
-    <p class="sect-note">A Python script that runs ${run.map((c) => {
-      var _a;
-      return esc((_a = names[c]) != null ? _a : c);
-    }).join(", ")} on your whole file,
-      with the preprocessing and cross-validation the benchmark used, and tuned boosting beside them: on the benchmark, a
-      small tuning budget was worth more than the choice among the top models. It needs pandas and scikit-learn.</p>
-    <button class="run takehome-btn" id="takehome-btn" type="button">Download the script</button>`;
-    document.getElementById("takehome-btn").addEventListener("click", () => {
-      var _a, _b;
-      const roles = columnRoles(profile, sig.target);
-      downloadScript(pythonScript({
-        fileName: (_a = source == null ? void 0 : source.fileName) != null ? _a : "data.csv",
+    const script = () => {
+      var _a2, _b;
+      return pythonScript({
+        fileName: (_a2 = source == null ? void 0 : source.fileName) != null ? _a2 : "data.csv",
         read: source == null ? void 0 : source.read,
         columns: (_b = source == null ? void 0 : source.columns) != null ? _b : profile.columns.map((c) => c.name),
         target: sig.target,
         task,
         ordered: sig.codes[1] === "A22",
-        ...roles,
+        ...columnRoles(profile, sig.target),
         shortlist: codes
-      }));
-    });
+      });
+    };
+    el.innerHTML = `<p class="takehome-h">Take it home</p>
+    <p class="sect-note">A Python script that runs ${run.map((c) => {
+      var _a2;
+      return esc((_a2 = names[c]) != null ? _a2 : c);
+    }).join(", ")} on your whole file,
+      with the preprocessing and cross-validation the benchmark used, and tuned boosting beside them: on the benchmark, a
+      small tuning budget was worth more than the choice among the top models. It needs pandas and scikit-learn.</p>
+    <div class="takehome-row">
+      <button class="run takehome-btn" id="takehome-btn" type="button">Download the script</button>
+      ${(source == null ? void 0 : source.text) ? '<button class="run takehome-btn ghost" id="verify-btn" type="button">Run it here</button>' : ""}
+    </div>
+    ${(source == null ? void 0 : source.text) ? `<p class="sect-note takehome-fine">\u201CRun it here\u201D runs the same script in this page: it downloads
+      Python (Pyodide ${esc(PYODIDE_VERSION)}, with pandas and scikit-learn, tens of megabytes) from cdn.jsdelivr.net the
+      first time. Your file is not uploaded anywhere; Python runs inside your browser. Tuned boosting alone fits 150
+      models, so on a large file this takes minutes.</p>
+    <div class="verify" id="verify-out" hidden></div>` : ""}`;
+    document.getElementById("takehome-btn").addEventListener("click", () => downloadScript(script()));
+    (_a = document.getElementById("verify-btn")) == null ? void 0 : _a.addEventListener("click", (event) => runHere(event.currentTarget, script(), source.text, run, codes[0]));
+  }
+  async function runHere(button, script, csv, run, firstCode) {
+    const out = document.getElementById("verify-out");
+    const rows = [];
+    const needs = run.map((c) => {
+      var _a;
+      return (_a = MODEL_CODE[c]) == null ? void 0 : _a.needs;
+    }).filter(Boolean);
+    const draw = (status2, done = false) => {
+      const sorted = done ? [...rows].sort((a, b) => {
+        var _a, _b;
+        return ((_a = b.score) != null ? _a : -Infinity) - ((_b = a.score) != null ? _b : -Infinity);
+      }) : rows;
+      out.innerHTML = `<p class="verify-status">${esc(status2)}</p>
+      ${rows.length ? `<table class="ev-table verify-table"><thead><tr><th>model</th><th>score</th><th>spread</th>
+        <th>seconds</th></tr></thead><tbody>${sorted.map((r) => {
+        var _a, _b;
+        return `<tr>
+        <td><span class="rec-code">${esc(r.code)}</span> ${esc(r.name)}</td>
+        <td>${r.status === "ok" ? r.score.toFixed(4) : esc(r.status)}</td>
+        <td>${r.status === "ok" && r.spread != null ? `\xB1 ${r.spread.toFixed(4)}` : esc((_a = r.detail) != null ? _a : "")}</td>
+        <td>${(_b = r.seconds) != null ? _b : ""}</td></tr>`;
+      }).join("")}</tbody></table>` : ""}`;
+    };
+    button.disabled = true;
+    out.hidden = false;
+    draw("Starting Python.");
+    let status = "";
+    try {
+      const results = await verifyInBrowser({
+        script,
+        csv,
+        needs,
+        onStatus: (text) => {
+          status = text;
+          draw(text);
+        },
+        onRow: (row) => {
+          rows.push(row);
+          draw(status);
+        }
+      });
+      draw(verdict(results, firstCode), true);
+    } catch (err) {
+      draw(`Could not run here: ${err.message} The downloaded script runs the same thing on your machine.`);
+    } finally {
+      button.disabled = false;
+    }
   }
   function renderCoverage(notes) {
     const el = document.getElementById("coverage");
@@ -2517,8 +2715,10 @@ if __name__ == "__main__":
     state.cols = head;
     state.rows = body;
     state.source = {
+      // The whole decoded file, for "Run it here", which uses every row.
       fileName,
       columns: head,
+      text,
       read: {
         sep: parsed.delimiter,
         encoding: /1250/.test(encoding) ? "cp1250" : /1252/.test(encoding) ? "cp1252" : "utf-8",

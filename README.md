@@ -102,6 +102,10 @@ python dcn_shortlist.py shipments.csv
 
 The script is held to the benchmark by `bench/tests/test_export.py`: it is generated with the site's own JavaScript, every estimator in it is compared with the benchmark's registry, and on the test fixtures it produces exactly the benchmark's scores.
 
+**Run it here** runs the same script without installing anything. The page downloads Python from cdn.jsdelivr.net ([Pyodide](https://pyodide.org) 314.0.7 with pandas and scikit-learn, about 40 MB, plus XGBoost or LightGBM when the shortlist has them), starts it in a Web Worker, and hands it the page's own copy of your file: nothing is uploaded anywhere. Each model's score appears as it finishes, and the page then says where its own first pick landed on your data. What runs is the downloaded script, through its own `load()` and `evaluate()` (`site/js/verify.js`).
+
+It was checked end to end in headless Chromium, with Pyodide 314.0.7's release files served locally in place of the CDN, on two test files: every score matched the same script run with CPython, to the fourth decimal, except XGBoost's on one file (0.4924 against 0.4965), because Pyodide ships XGBoost 2.1.4 and the benchmark ran 3.2.0; with 2.1.4 installed, CPython gives 0.4924 too. That run is also how a real defect was found: Pyodide 314 refuses to load in a classic worker, so the page starts a module worker. `bench/tests/test_export.py` runs the page's Python runner with CPython on every test run, and `tests/verify.test.js` checks the messages with a stand-in worker.
+
 ### What it was worth on real data
 
 The instrument publishes its own scoreboard, in **The evidence** tab: 195
@@ -140,6 +144,7 @@ disagree with the run behind it.
 ### Not done yet
 
 - **Recommendations are made at default settings.** Tuned boosting beats the site's first pick on classification (see above). Folding a tuning step into the advice, or recommending "tuned boosting" outright when nothing in the data argues against it, is the change the evidence points to.
+- **Run it here has been run in Chromium only**, with Pyodide's files served locally rather than from the CDN. Firefox and Safari support module workers and should work; they have not been tried. If it fails in yours, the downloaded script runs the same thing.
 - **TabPFN has not been run yet.** The runner supports it; its weights need a Prior Labs login this benchmark's environment could not reach. `bench/README.md` has the three commands to add it on your own machine.
 - **The order in use is a per-model prior, not yet a per-dataset one.** Both ways of making it depend on your data (interactions, and weighting toward the nearest benchmark datasets) are built, tested against the JavaScript, and judged leave-one-dataset-out, and neither beat the prior by more than luck on 195 datasets once families count once. With only 35 independent regression units, a per-dataset order needs more collected data to prove itself, not more of the same generators.
 - **The prior itself still counts a family's datasets one by one when it is fitted**, so on regression it leans toward what wins on Friedman's functions. Weighting a family once in the fit is the obvious change, and it should be declared before the next run rather than tried after this one.

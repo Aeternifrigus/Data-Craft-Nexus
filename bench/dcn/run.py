@@ -9,7 +9,14 @@ and nothing is lost. Each fit has a time budget; what runs out is recorded as
 a timeout rather than dropped, because "too slow to be worth recommending" is
 itself a finding.
 
+The baseline (default histogram boosting) runs with everything else. The
+references (tuned boosting, and TabPFN when it is installed) run too, with a
+larger budget of their own, since tuning is ten fits where a default is one.
+--models restricts a run to some codes, which is how a reference is added to
+an existing results file without refitting the rest:
+
   python -m dcn.run --task classification --limit 20 --out results/pilot.csv
+  python -m dcn.run --models BASE-TABPFN --out results/full.csv
 """
 from __future__ import annotations
 
@@ -31,7 +38,7 @@ from sklearn.preprocessing import LabelEncoder
 from . import datasets as ds
 from .csvread import parse_csv
 from .meta import meta_features
-from .models import BASELINE, BY_CODE, build_pipeline, runnable_codes
+from .models import BASELINE, BY_CODE, REFERENCE_BY_CODE, build_pipeline, runnable_codes
 from .profile import profile_data, signature
 from .recommend import conflict, load_taxonomy, rank_models
 
@@ -74,6 +81,8 @@ def profile_dataset(dataset: ds.Dataset) -> dict:
 
 def evaluate(dataset: ds.Dataset, spec, task: str, numeric, categorical, folds: int, budget: int,
              seed: int = 0) -> dict:
+    if spec.max_rows and len(dataset.frame) > spec.max_rows:
+        return {"status": "skipped", "detail": f"over the {spec.max_rows}-row limit this model runs with here"}
     X = dataset.frame.drop(columns=["target"])
     y = dataset.frame["target"].to_numpy()
     if task == "classification":
@@ -124,7 +133,16 @@ def main(argv=None) -> int:
     ap.add_argument("--seed", type=int, default=0, help="seed for subsampling")
     ap.add_argument("--seeds", type=int, default=1,
                     help="repeat every fit under this many cross-validation seeds, to measure the spread")
+    ap.add_argument("--reference-budget", type=int, default=600,
+                    help="seconds per reference per dataset: tuning fits a model ten times")
+    ap.add_argument("--models", default="",
+                    help="comma-separated codes to run (default: every taxonomy model, the baseline and "
+                         "every installed reference)")
     args = ap.parse_args(argv)
+    only = {c.strip() for c in args.models.split(",") if c.strip()}
+    unknown = only - set(BY_CODE) - set(REFERENCE_BY_CODE) - {BASELINE.code}
+    if unknown:
+        ap.error(f"not runnable here: {', '.join(sorted(unknown))} (is the library installed?)")
 
     taxonomy = load_taxonomy()
     out = Path(args.out)
@@ -147,9 +165,11 @@ def main(argv=None) -> int:
 
             for _, row in candidates.iterrows():
                 name = row.dataset
-                codes = [c for c in runnable_codes(task)]
+                codes = [c for c in runnable_codes(task)] + [BASELINE.code] + list(REFERENCE_BY_CODE)
+                if only:
+                    codes = [c for c in codes if c in only]
                 seeds = list(range(args.seeds))
-                if all((name, c, str(seed)) in already for c in codes + [BASELINE.code] for seed in seeds):
+                if all((name, c, str(seed)) in already for c in codes for seed in seeds):
                     continue
                 try:
                     dataset = ds.load(name)
@@ -174,12 +194,13 @@ def main(argv=None) -> int:
 
                 # Every model under every seed: repeating the split is what
                 # separates a real difference from the luck of one partition.
-                for code, seed in ((c, s) for c in codes + [BASELINE.code] for s in seeds):
+                for code, seed in ((c, s) for c in codes for s in seeds):
                     if (name, code, str(seed)) in already:
                         continue
-                    spec = BASELINE if code == BASELINE.code else BY_CODE[code]
+                    spec = BASELINE if code == BASELINE.code else BY_CODE.get(code) or REFERENCE_BY_CODE[code]
+                    budget = args.reference_budget if code in REFERENCE_BY_CODE else args.budget
                     result = evaluate(dataset, spec, task, measured["numeric"], measured["categorical"],
-                                      args.folds, args.budget, seed=seed)
+                                      args.folds, budget, seed=seed)
                     writer.writerow({
                         "seed": seed,
                         "dataset": name, "task": task, "rows": len(dataset.frame),

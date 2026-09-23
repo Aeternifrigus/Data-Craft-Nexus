@@ -71,6 +71,67 @@ reason, so coverage cannot quietly rot.
 `BASE-HGB`, histogram gradient boosting, is kept aside as the "just reach for
 boosting" baseline every recommendation will be measured against.
 
+## References
+
+`BASE-HGB`, default histogram boosting, is what every recommendation has been
+measured against. It is a low bar: a reviewer's first question is whether the
+order beats boosting that somebody bothered to tune, or a model built for small
+tables. Two references answer that. Neither is ever recommended; every code that
+starts with `BASE-` is outside the taxonomy.
+
+| code | what | where it runs |
+|---|---|---|
+| `BASE-HGB-TUNED` | histogram boosting, tuned: scikit-learn's defaults and 9 random configurations (learning rate, number of trees, tree and leaf size, regularisation, feature sampling), the best chosen by cross-validation inside each training fold | everywhere, as part of every run |
+| `BASE-TABPFN` | [TabPFN](https://github.com/PriorLabs/TabPFN), a model pretrained for small tables | only where it is installed and its weights can be downloaded |
+
+The tuning budget is small on purpose, and stated on the page: ten
+configurations, a standard practitioner's search, not a competition. Two
+lessons from building it:
+
+- **The defaults are a candidate.** scikit-learn's defaults are good, and a
+  random search that cannot pick them sometimes does worse than not tuning.
+- **Small data needs cross-validation to choose on.** A first version chose on
+  one 80/20 split of the training fold. On a 200-row dataset that is 40 rows to
+  judge ten configurations by, mostly noise, and tuned boosting lost to its own
+  defaults on 11 of the first 20 small datasets. Three-fold cross-validation
+  judges every configuration on every row of the training fold; only above
+  3,000 rows, where a fifth of them is a real validation set, is one split
+  used (`inner_splits`). Early stopping stays off, as scikit-learn leaves it
+  below 10,000 rows; the number of trees is tuned instead.
+
+References get their own time budget (`--reference-budget`, 600 seconds by
+default), since tuning fits a model thirty times. Run the tuning with one
+thread per process (`OMP_NUM_THREADS=1`): histogram boosting spends most of
+its time on thread coordination on small tables.
+
+### Running TabPFN on your own machine
+
+TabPFN's weights are downloaded from Hugging Face behind a Prior Labs login,
+which the environment that produced the committed results could not reach. It
+is added to an existing results file like this:
+
+```bash
+pip install tabpfn
+export TABPFN_TOKEN=...        # from your Prior Labs account; or let it open the browser
+cd bench
+python -m dcn.run --models BASE-TABPFN --out results/full.csv
+```
+
+Then re-run `dcn.analyze`, `dcn.learn` and `dcn.evidence` as below, and the
+evidence tab picks TabPFN up.
+
+Which weights, and what the licence allows:
+
+- `DCN_TABPFN_VERSION` picks the version, `v2` by default. TabPFN-2's weights
+  are under the Prior Labs License, Apache 2.0 with an attribution requirement.
+  The later versions (`v2.5`, `v2.6`, `v3`, `v3.5`) are stronger and under
+  non-commercial licences; check them before publishing results.
+- `DCN_TABPFN_MAX_ROWS` is the largest dataset TabPFN is run on, 1,000 by
+  default, which is what TabPFN-2 supports on a CPU. On a GPU, or with a later
+  version, raise it (the later versions allow 5,000 rows on a CPU). Larger
+  datasets are recorded as skipped with the reason, so TabPFN's comparisons are
+  made only on the datasets it ran on, and the page says how many.
+
 ## Running it
 
 ```bash

@@ -130,6 +130,7 @@ def knn_ranking(tmp_path_factory):
     from dcn.learn import build_frame, export
     results = pd.read_csv(ROOT / "bench" / "results" / "after-fixes.csv")
     meta = pd.read_csv(ROOT / "bench" / "results" / "meta.csv")
+    meta = meta.merge(results[["dataset", "task"]].drop_duplicates(), on=["dataset", "task"])
     path = tmp_path_factory.mktemp("ranking") / "ranking.json"
     frame = build_frame(results, TAXONOMY)
     return path, export(frame, TAXONOMY, path, "prior_knn", meta)

@@ -308,11 +308,13 @@ export function buildEvidence(T) {
 
   const head = ev.headline;
   const classification = head.classification, regression = head.regression;
-  const verdict = `These are the numbers for the run as it happened, when models were still ordered by counting matched
-    coordinates. That is what the next table replaced: the four shown contained the best available choice
-    ${pct(classification.top4_was_best)} of the time on classification, but the model shown first trailed the best by
-    ${num(classification.first)} on classification and ${num(regression.first)} on regression, which is worse than
-    reaching for boosting.`;
+  const rankedBy = ev.ranked_by ?? 'counting matched coordinates';
+  const worse = classification.first > classification.boosting && regression.first > regression.boosting;
+  const verdict = `These are the numbers for the run as it happened, when models were ordered by ${esc(rankedBy)}. The four
+    shown contained the best available choice ${pct(classification.top4_was_best)} of the time on classification, and the
+    model shown first trailed the best by ${num(classification.first)} on classification and ${num(regression.first)} on
+    regression${worse ? ', which is worse than reaching for boosting' : ''}. The next table is the fairer test of the order
+    the site uses now, because every number in it is leave-one-dataset-out.`;
 
   body.innerHTML = `
     <h3 class="ev-h">How the advice did</h3>
@@ -338,9 +340,8 @@ export function buildEvidence(T) {
 
     <h3 class="ev-h">Every model that ran</h3>
     <p class="sect-note">“Was best” counts datasets where this model scored highest of all that ran.
-      “Shown first” counts datasets where the instrument put it at the top <em>during that run</em>, when models were still
-      ordered by counting coordinates. That column is what the learned order replaced: Linear Regression led 17 regression
-      datasets and was the best model on one of them.</p>
+      “Shown first” counts datasets where the instrument put it at the top <em>during that run</em>, when models were
+      ordered by ${esc(ev.ranked_by ?? 'counting matched coordinates')}.</p>
     ${modelTable(ev.models)}
 
     <h3 class="ev-h">Every dataset</h3>

@@ -17,6 +17,9 @@ def is_missing(value) -> bool:
     return value is None or str(value).strip().lower() in MISSING_WORDS
 
 
+# A column with more than this share of values that look wrong is dirty (DIRTY_COLUMN in profile.js).
+DIRTY_COLUMN = 0.01
+
 @dataclass
 class Column:
     name: str
@@ -114,7 +117,9 @@ def measured_axes(profile: Profile, target: str | None) -> dict:
 
     miss = sum(c.missing for c in cols) / feat
     noise = sum(c.dirty_rate for c in cols) / feat
-    a6 = "A64" if noise > 0.01 else ("A62" if miss > 0.001 else "A61")
+    # Judged per column as well as on average, as in site/js/profile.js.
+    worst = max((c.dirty_rate for c in cols), default=0.0)
+    a6 = "A64" if noise > 0.01 or worst > DIRTY_COLUMN else ("A62" if miss > 0.001 else "A61")
 
     return {"a3": a3, "a4": a4, "a6": a6, "feat": feat, "sparsity": sparsity, "miss": miss, "noise": noise}
 

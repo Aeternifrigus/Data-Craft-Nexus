@@ -170,17 +170,20 @@ units, 13 of them from Friedman's functions. Medians are over units:
 
 | | 10% missing | 30% missing | junk text | wrong labels |
 |---|---|---|---|---|
-| the profiler noticed (flag) | 100% (A62) | 100% (A62) | 89% of 36 (A64) | cannot |
+| the profiler noticed (flag) | 100% (A62) | 100% (A62) | 100% of 36 (A64) | cannot |
 | median loss, classification | 0.027 | 0.069 | 0.011 | 0.017 |
 | median loss, regression | 0.101 | 0.268 | 0.039 | 0.043 |
 | first pick's regret, classification (0.016 clean) | 0.007 | 0.011 | 0.009 | 0.019 |
 | first pick's regret, regression (0.003 clean) | 0.009 | 0.049 | 0.008 | 0.033 |
 
-- The profiler sees missing cells every time. It missed the junk in 4 of the
-  36 tables that got some, because A64 is judged on the average over all
-  columns: junk in the few numeric columns of a mostly categorical table stays
-  under the threshold. Three of the four were read as having missing values
-  instead, since `n/a` and `-` are missing-value words; one as clean.
+- The profiler sees missing cells every time. It first missed the junk in 4
+  of the 36 tables that got some, because A64 was judged on the average over
+  all columns: junk in the few numeric columns of a mostly categorical table
+  stayed under the threshold. Three of the four were read as having missing
+  values instead, since `n/a` and `-` are missing-value words; one as clean.
+  A64 is now judged per column as well (more than 1% of a column's values
+  looking wrong), in the page and in the port: all 36 are flagged, and none of
+  the 196 clean benchmark datasets is.
 - Label noise cannot be seen in a file, and on classification it cost about
   what 10% of missing cells cost.
 - The order does not look at data quality: it is a fixed ranking per model,
@@ -597,5 +600,3 @@ choice. `tests/drift.test.js` recomputes every published rate from
 - an order that reads data quality: on regression with heavy gaps or noisy
   targets the fixed prior's first pick lost ground the linear models kept.
   Declare the rule before running it, as `choose()` does
-- judge A64 per column: averaged over all columns, junk in the few numeric
-  columns of a wide categorical table goes unflagged

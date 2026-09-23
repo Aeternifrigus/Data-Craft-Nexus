@@ -26,7 +26,10 @@ def load_taxonomy(root: Path = ROOT) -> dict:
     read = lambda name: json.loads((root / "site" / "taxonomy" / f"{name}.json").read_text())  # noqa: E731
     axes, math, models, drift, pipelines, instrument = (read(n) for n in
                                                         ("axes", "math", "models", "drift", "pipelines", "instrument"))
+    evidence_path = root / "site" / "taxonomy" / "evidence.json"
     return {
+        # What the benchmarks measured, as the site reads it (taxonomy.js).
+        "EVIDENCE": json.loads(evidence_path.read_text()) if evidence_path.exists() else None,
         "AXES": axes["axes"], "CODES": axes["codes"],
         "MATH_DOMAINS": math["domains"], "MATH": math["formulas"],
         "MODEL_DOMAINS": models["domains"], "MODELS": models["models"],
@@ -186,9 +189,21 @@ def pipeline_conflict(pipeline: dict, ops: dict | None) -> str | None:
     return f"belongs to a different part of the work than {stage['label']}"
 
 
+def drift_codes(codes: list[str]) -> list[str]:
+    """A mixed table (A38) has numeric and categorical columns: checkers for either apply."""
+    return list(dict.fromkeys([*codes, "A31", "A32"])) if "A38" in codes else codes
+
+
+def drift_measure(taxonomy: dict, code: str) -> dict | None:
+    """What the drift benchmark measured for a checker, or None: driftMeasure() in recommend.js."""
+    return (((taxonomy.get("EVIDENCE") or {}).get("drift") or {}).get("checkers") or {}).get(code)
+
+
 def rank_drifts(taxonomy: dict, sig: dict, limit: int = 4) -> Ranking:
-    codes = match_codes(sig)
+    """Usable checkers, measured ones first by net score, the rest by coordinates matched."""
+    codes = drift_codes(match_codes(sig))
     ops = sig.get("ops")
+    measured = bool(((taxonomy.get("EVIDENCE") or {}).get("drift") or {}).get("checkers"))
     usable, ruled_out = [], []
     for checker in taxonomy["DRIFTS"]:
         hits = [f for f in checker["fits"] if f in codes]
@@ -198,10 +213,26 @@ def rank_drifts(taxonomy: dict, sig: dict, limit: int = 4) -> Ranking:
         if why:
             ruled_out.append({"c": checker["c"], "n": checker["n"], "why": why})
             continue
-        usable.append({**checker, "hits": hits, "score": len(hits), "of": len(checker["fits"])})
-    usable.sort(key=lambda d: -d["score"])
-    top = usable[0]["score"] if usable else 0
-    return Ranking(usable[:limit], len(usable), sum(1 for d in usable if d["score"] == top), top, ruled_out)
+        measure = drift_measure(taxonomy, checker["c"]) if measured else None
+        usable.append({**checker, "hits": hits, "score": len(hits), "of": len(checker["fits"]),
+                       "measure": measure, "evidence_score": measure["net"] if measure else None})
+
+    def sort_key(d):
+        if measured:
+            known = d["evidence_score"] is not None
+            return (0 if known else 1, -(d["evidence_score"] if known else 0), -d["score"])
+        return (0, 0, -d["score"])
+
+    usable.sort(key=sort_key)
+    top = usable[0] if usable else None
+    if top is None:
+        tied = 0
+    elif measured and top["evidence_score"] is not None:
+        tied = sum(1 for d in usable
+                   if d["evidence_score"] is not None and abs(d["evidence_score"] - top["evidence_score"]) < 1e-9)
+    else:
+        tied = sum(1 for d in usable if d["evidence_score"] is None and d["score"] == top["score"])
+    return Ranking(usable[:limit], len(usable), tied, top["score"] if top else 0, ruled_out)
 
 
 def rank_pipelines(taxonomy: dict, sig: dict, task: str, limit: int = 3) -> Ranking:

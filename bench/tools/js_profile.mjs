@@ -64,7 +64,10 @@ for (const path of process.argv.slice(2)) {
           rankedBy: models.rankedBy,
           tied: models.tied, candidates: models.candidates,
           ruledOut: models.ruledOut.map(m => `${m.c}:${m.why}`),
-          drifts: rankDrifts(T, sig).items.map(d => d.c),
+          drifts: (() => {
+            const r = rankDrifts(T, sig);
+            return { tied: r.tied, items: r.items.map(d => d.c + (d.evidenceScore == null ? '' : `@${d.evidenceScore.toFixed(3)}`)) };
+          })(),
           pipelines: rankPipelines(T, sig, t).items.map(p => `${p.c}:${p.score}`),
         };
       }

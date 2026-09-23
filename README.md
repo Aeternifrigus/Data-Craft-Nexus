@@ -44,7 +44,7 @@ Three further questions decide which drift checkers and pipelines can be used at
 - **Do the true answers arrive later?** Everything that watches the error rate needs labels to come back. Without them you can only watch the data itself move.
 - **Which part are you building?** Filters the pipelines to the part of the work you are in, or shows all of them.
 
-Whatever those answers exclude is listed with its reason, the same way models are.
+Whatever those answers exclude is listed with its reason, the same way models are. What is left is ordered by what the drift benchmark measured (below): the share of injected drift each checker caught, minus how often it fired when nothing had changed.
 
 A63 (missing not at random) is never reported. Whether a gap depends on the value that is missing cannot be decided from the file alone.
 
@@ -141,6 +141,16 @@ The numbers on the page are generated from `bench/results/`, and a test
 recomputes them from that data on every run, so the page cannot quietly
 disagree with the run behind it.
 
+### What the drift checkers were worth
+
+The drift checkers get a benchmark of their own (`bench/dcn/drift.py`): 18 real datasets, each cut five ways into a 500-row reference window and a 250-row current window, and seven scenarios per cut: nothing changes, one feature shifts by 0.3 standard deviations, its spread widens by half, its link to the other features is broken while every feature looks the same on its own, the rows are drawn with a bias, the class mix changes, or the labels change meaning while the features stay put. Every checker ran as its card says, at its card's threshold.
+
+- **The best all-rounders test each feature's whole distribution:** Anderson-Darling, chi-square on binned values and Cramér-von Mises caught 46% to 57% of the injected drift, with 1% to 7% false alarms.
+- **Some drift is invisible feature by feature.** Adversarial validation caught 76% of broken correlations; the single-feature tests caught at most 13%. Only the checkers that watch the model's errors saw labels change meaning (error drift 94%, EDDM 98%), and they paid for it with false alarms on 26% and 41% of quiet windows.
+- **Convention is cautious, and some cards overpromise.** PSI above 0.25 never fired on a quiet window but caught half the shifts; Jensen-Shannon at 0.1 almost never fired; Mahalanobis distance, whose card calls its chi-square p-value principled, fired on 24% of quiet windows. At river's defaults, Page-Hinkley and KSWIN caught almost nothing in 250 rows.
+
+It also found five defects, now fixed: six drift cards linked to the wrong function, error drift claimed to work without labels, mixed tables (most real files) were never offered a distribution test, SciPy's Cramér-von Mises test calls two samples of one mostly-zero column different at p < 10⁻⁹, and river's FHDDM, fed errors as its documentation says, fires when the model gets better. The full table is in the evidence tab and in [`bench/README.md`](bench/README.md#drift-checkers).
+
 ### Not done yet
 
 - **Recommendations are made at default settings.** Tuned boosting beats the site's first pick on classification (see above). Folding a tuning step into the advice, or recommending "tuned boosting" outright when nothing in the data argues against it, is the change the evidence points to.
@@ -149,6 +159,7 @@ disagree with the run behind it.
 - **The order in use is a per-model prior, not yet a per-dataset one.** Both ways of making it depend on your data (interactions, and weighting toward the nearest benchmark datasets) are built, tested against the JavaScript, and judged leave-one-dataset-out, and neither beat the prior by more than luck on 195 datasets once families count once. With only 35 independent regression units, a per-dataset order needs more collected data to prove itself, not more of the same generators.
 - **The prior itself still counts a family's datasets one by one when it is fitted**, so on regression it leans toward what wins on Friedman's functions. Weighting a family once in the fit is the obvious change, and it should be declared before the next run rather than tried after this one.
 - **The benchmark found a rule that throws away winners:** models that need numeric features (A31) are ruled out on all-categorical tables (A32), yet with one-hot encoding they won on 9 datasets, by up to 0.13 R² on solar_flare.
+- **Drift was injected at one strength per kind**, on classification datasets, with 500- and 250-row windows, so the rates hold for that setting. Detectors tuned to their stream would beat river's defaults.
 - **Only classification and regression are benchmarked.** Forecasting, survival, grouping, anomalies, compression and generation still fall back to counting coordinates.
 - Image, audio, graph and spatial data cannot be detected from a CSV, so those models are reachable in the reference but never recommended from an upload.
 - Separability (A55/A56) and weak or self-supervised labelling (A13 to A15) are not measured yet.
@@ -214,6 +225,8 @@ npm test             # Node 20+
 - `tests/taxonomy.test.js`: every code a model, drift checker or pipeline points at must exist.
 - `tests/build.test.js`: the built page is self-contained, carries exactly the taxonomy in `site/`, and is up to date.
 - `tests/export.test.js`: what the generated script carries: the page's reading of the file, the column roles, every runnable model's estimator, and the models it cannot run, named.
+- `tests/verify.test.js`: "Run it here": the messages between the page and its Python worker, with a stand-in worker.
+- `tests/drift.test.js`: drift checkers ordered by what they measured, and every published rate recomputed from `bench/results/drift.csv`.
 - `tests/check_links.test.js`: the link checker against a fake network. A connection that resets and then answers passes, a 404 fails on the first answer, and no host gets more than two requests at once. `npm run check:links` runs the real check, which needs the internet and runs in CI.
 - `tests/recommend.snapshot.test.js`: runs every fixture in `tests/fixtures/` through every target, task and order answer, and compares what gets recommended with `tests/snapshots/recommendations.json`. When a change to the profiler or the ranking is intended, run `npm run test:update` and review the snapshot diff in the commit.
 
@@ -233,6 +246,11 @@ site/                  the source
     html.js            escaping
     profile.js         measures the axes (no DOM)
     recommend.js       rules out and ranks models, drift checkers, pipelines (no DOM)
+    ranking.js         the learned order, fitted by the benchmark
+    nearest.js         meta-features, and the benchmark datasets nearest to yours
+    evidence.js        "The evidence" view, and the measured line on each card
+    export.js          the take-home Python script
+    verify.js          "Run it here": that script in a Pyodide worker
     results.js         renders the recommendations and the 3D plot
     drawer.js          the definition drawer
     library.js         "The reference" view

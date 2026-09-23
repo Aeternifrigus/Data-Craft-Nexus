@@ -91,6 +91,34 @@ export function caution(model, sig) {
   return null;
 }
 
+// Measured items first, best first; the rest by coordinates matched. An item
+// the benchmark never ran sits below every item it did, rather than being
+// given a number it has not earned.
+function ordered(ranked, limit, byEvidence) {
+  ranked.sort((a, b) => {
+    if (byEvidence) {
+      const left = a.evidenceScore, right = b.evidenceScore;
+      if (left != null && right == null) return -1;
+      if (left == null && right != null) return 1;
+      if (left != null && right != null && Math.abs(left - right) > 1e-9) return right - left;
+    }
+    return b.score - a.score;
+  });
+
+  const top = ranked.length ? ranked[0] : null;
+  const tied = top == null ? 0 : ranked.filter(x => (byEvidence && top.evidenceScore != null)
+    ? x.evidenceScore != null && Math.abs(x.evidenceScore - top.evidenceScore) < 1e-9
+    : x.evidenceScore == null && x.score === top.score).length;
+
+  return {
+    items: ranked.slice(0, limit),
+    candidates: ranked.length,
+    tied,
+    topScore: top ? top.score : 0,
+    rankedBy: byEvidence ? 'evidence' : 'coordinates',
+  };
+}
+
 function scored(list, codes, limit, T, sig, task, meta = null) {
   // The learned order when the benchmark covered this task, coordinates
   // otherwise. Coordinates stay on every card either way: they say what the
@@ -100,37 +128,13 @@ function scored(list, codes, limit, T, sig, task, meta = null) {
   const features = learned ? rankingFeatures(sig) : null;
   const neighbours = learned ? rankingNeighbours(T, task, meta) : null;
 
-  const ranked = list
-    .map(x => {
-      const own = x.data || x.fits;
-      const hits = own.filter(d => codes.includes(d));
-      const evidence = learned ? learnedScore(T, x, task, features, neighbours) : null;
-      return { ...x, hits, score: hits.length, of: own.length, evidenceScore: evidence };
-    })
-    .sort((a, b) => {
-      if (learned) {
-        // A model the benchmark never ran sits below every model it did,
-        // rather than being given a number it has not earned.
-        const left = a.evidenceScore, right = b.evidenceScore;
-        if (left != null && right == null) return -1;
-        if (left == null && right != null) return 1;
-        if (left != null && right != null && Math.abs(left - right) > 1e-9) return right - left;
-      }
-      return b.score - a.score;
-    });
-
-  const top = ranked.length ? ranked[0] : null;
-  const tied = top == null ? 0 : ranked.filter(x => (learned && top.evidenceScore != null)
-    ? x.evidenceScore != null && Math.abs(x.evidenceScore - top.evidenceScore) < 1e-9
-    : x.evidenceScore == null && x.score === top.score).length;
-
-  return {
-    items: ranked.slice(0, limit),
-    candidates: ranked.length,
-    tied,
-    topScore: top ? top.score : 0,
-    rankedBy: learned ? 'evidence' : 'coordinates',
-  };
+  const ranked = list.map(x => {
+    const own = x.data || x.fits;
+    const hits = own.filter(d => codes.includes(d));
+    const evidence = learned ? learnedScore(T, x, task, features, neighbours) : null;
+    return { ...x, hits, score: hits.length, of: own.length, evidenceScore: evidence };
+  });
+  return ordered(ranked, limit, learned);
 }
 
 // `meta` is the dataset's meta-features (nearest.js), which the neighbour
@@ -145,11 +149,38 @@ export function rankModels(T, sig, task, limit = 4, meta = null) {
   return out;
 }
 
+// A mixed table (A38) has numeric and categorical columns, so a checker made
+// for either kind of column applies to it, as a model for either does.
+export function driftCodes(codes) {
+  return codes.includes('A38') ? [...new Set([...codes, 'A31', 'A32'])] : codes;
+}
+
+// What the drift benchmark (bench/dcn/drift.py) measured for a checker, or
+// null when it did not run it.
+export function driftMeasure(T, code) {
+  return T.EVIDENCE?.drift?.checkers?.[code] ?? null;
+}
+
+// Why the drift benchmark did not run a checker, or null.
+export function driftUnmeasured(T, code) {
+  return T.EVIDENCE?.drift?.not_measured?.[code] ?? null;
+}
+
+// Drift checkers the data and the way it will run allow, ordered by what the
+// drift benchmark measured: the share of injected drifts each caught, minus
+// the share of quiet windows it fired on. Checkers it could not run follow,
+// by coordinates matched, and so does everything when there is no benchmark.
 export function rankDrifts(T, sig, limit = 4) {
-  const codes = matchCodes(sig);
+  const codes = driftCodes(matchCodes(sig));
   const matching = T.DRIFTS.filter(d => d.fits.some(f => codes.includes(f)));
   const usable = matching.filter(d => !operatingConflict(d, sig.ops));
-  const out = scored(usable, codes, limit);   // no benchmark for drift checkers yet
+  const measured = Boolean(T.EVIDENCE?.drift?.checkers);
+  const ranked = usable.map(d => {
+    const hits = d.fits.filter(f => codes.includes(f));
+    const measure = measured ? driftMeasure(T, d.c) : null;
+    return { ...d, hits, score: hits.length, of: d.fits.length, measure, evidenceScore: measure ? measure.net : null };
+  });
+  const out = ordered(ranked, limit, measured);
   out.ruledOut = matching.filter(d => operatingConflict(d, sig.ops))
     .map(d => ({ c: d.c, n: d.n, why: operatingConflict(d, sig.ops) }));
   return out;

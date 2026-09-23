@@ -134,8 +134,8 @@
    "thr": "No natural scale, since it is unbounded. Thresholds must be calibrated empirically against a stable baseline period, which is a real operational cost.",
    "fail": "Asymmetric and unbounded: it goes to infinity wherever the current distribution assigns zero probability but the reference does not. Requires smoothing to remain finite. The asymmetry means KL(P||Q) and KL(Q||P) give different answers, so direction must be chosen deliberately.",
    "ref": {
-    "label": "scipy.stats.wasserstein_distance",
-    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wasserstein_distance.html"
+    "label": "scipy.stats.entropy",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.entropy.html"
    },
    "needs": {
     "modes": [
@@ -198,8 +198,8 @@
    "thr": "Reported in the feature's own units, which is its practical advantage: a Wasserstein distance of 500 PLN is directly interpretable to a business stakeholder in a way a KS statistic is not. Thresholds should therefore be set in domain terms.",
    "fail": "Because it is unit-scaled, thresholds cannot transfer across features without normalization. Computationally heavier than KS, and expensive in high dimensions.",
    "ref": {
-    "label": "scipy.stats.entropy",
-    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.entropy.html"
+    "label": "scipy.stats.wasserstein_distance",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wasserstein_distance.html"
    },
    "needs": {
     "modes": [
@@ -229,8 +229,8 @@
    "thr": "Converted to a p-value via the F distribution. Same alpha-direction logic as DR-M1.",
    "fail": "Assumes roughly equal variance across groups and approximate normality. Tells you that some segment differs, never which, which is why it functions as step one of DR-RS rather than a complete answer.",
    "ref": {
-    "label": "Alibi Detect on GitHub",
-    "url": "https://github.com/SeldonIO/alibi-detect"
+    "label": "scipy.stats.f_oneway",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.f_oneway.html"
    },
    "needs": {
     "modes": [
@@ -260,8 +260,8 @@
    "thr": "Set relative to the model's validated baseline error, commonly a relative increase (say 20 percent above baseline MAE) sustained across a window rather than a single spike.",
    "fail": "Requires ground-truth labels, which always arrive late. In credit or churn contexts that lag can be months, meaning the model has been degrading unnoticed the entire time. This lag is the entire reason unsupervised feature-drift tests exist. Also tells you performance dropped without indicating why.",
    "ref": {
-    "label": "scipy.stats.anderson_ksamp",
-    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.anderson_ksamp.html"
+    "label": "Evidently on GitHub",
+    "url": "https://github.com/evidentlyai/evidently"
    },
    "needs": {
     "modes": [
@@ -270,10 +270,9 @@
     ],
     "labels": [
      "immediate",
-     "delayed",
-     "none"
+     "delayed"
     ],
-    "note": "compares a window of feature values against a reference"
+    "note": "compares the model's predictions with the true labels, so it needs labels to arrive"
    }
   },
   {
@@ -292,8 +291,8 @@
    "thr": "Alpha, conventionally 0.05. Direction matters and is commonly inverted by mistake: raising alpha makes the test fire more often, lowering it makes the test stricter.",
    "fail": "Testing many features simultaneously inflates false positives dramatically: at alpha 0.05 across 100 features, roughly 5 will flag by chance alone. This requires correction (Bonferroni or FDR), which is exactly what DR-MH exists to handle. Also never tells you the probability that drift occurred, only the probability of the data under no-drift.",
    "ref": {
-    "label": "scipy.stats.mannwhitneyu",
-    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html"
+    "label": "scipy.stats.false_discovery_control",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.false_discovery_control.html"
    },
    "needs": {
     "modes": [
@@ -324,8 +323,8 @@
    "thr": "Significance established by permutation testing: shuffle the combined samples repeatedly to build a null distribution of MMD values, then compare the observed value against it.",
    "fail": "Kernel bandwidth strongly determines sensitivity, commonly set by the median heuristic but not reliably optimal. Permutation testing is computationally expensive. Detects that the joint distribution moved without indicating which features caused it.",
    "ref": {
-    "label": "scipy.stats.cramervonmises_2samp",
-    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.cramervonmises_2samp.html"
+    "label": "Alibi Detect on GitHub",
+    "url": "https://github.com/SeldonIO/alibi-detect"
    },
    "needs": {
     "modes": [

@@ -34,6 +34,7 @@ dcn/csvread.py   CSV reading, ported from site/js/csv.js
 dcn/stats.py     PSI and JavaScript number semantics
 dcn/dates.py     the shared date shapes
 dcn/profile.py   the profiler, ported from site/js/profile.js
+dcn/drift.py     the drift checker benchmark
 tools/           the JavaScript side of the agreement test
 tests/           the agreement test and its awkward CSVs
 ```
@@ -402,6 +403,115 @@ The page and the benchmark compute the neighbour order the same way:
 `tests/test_agreement.py` fits it on the committed run, points the JavaScript
 at it, and compares both rankings on every fixture.
 
+## Drift checkers
+
+The site recommends drift checkers too, and until now it could only say which
+ones match the data's coordinates. `dcn/drift.py` puts them through the same
+kind of test the models get: drift of a known kind is injected into real data,
+and every checker is asked whether it sees it.
+
+A case is one PMLB classification dataset (2,000 rows or more, at least one
+continuous feature, no missing values, one per family: 18 datasets), shuffled
+and cut into a model's training rows, a reference window of 500 rows and a
+current window of 250. Each dataset is cut five ways, and each cut gets seven
+scenarios, 630 cases in all:
+
+| scenario | what changes in the current window |
+|---|---|
+| `none` | nothing. Any alarm is a false alarm |
+| `shift` | one continuous feature moves by 0.3 of its standard deviation |
+| `scale` | its spread widens by half, around the same centre |
+| `correlation` | the feature most correlated with another is shuffled between rows: each feature looks exactly as before on its own, but the relationship is gone |
+| `selection` | rows are drawn more often the higher one feature is, the way a change in who shows up changes the data |
+| `label_shift` | the most common class is drawn half as often |
+| `concept` | the features stay exactly as they were, but where one feature is above its median, 30% of the labels change |
+
+Every checker runs as its card says, at the threshold the card states. Tests
+on single features run on every feature, Bonferroni-corrected, which is what
+DR-M9's card says multi-feature use needs. Where a card leaves the threshold to
+the user (KL, and Wasserstein, whose card says to set it in each feature's own
+units), it is calibrated on the reference window: the 95th percentile of the
+same number between random parts of the reference. The checkers that watch a
+model's errors are given gradient boosting's error stream, reference rows then
+current rows, and count only if they fire on the current rows. The streaming
+detectors run at river's defaults, which is how most people meet them. Five
+cards are not run, each with its reason in the evidence: DR-M9 is not a
+checker on its own, DR-M11 has no implementation among the dependencies,
+river does not ship DR-C8, and DR-DL1 and DR-DL2 are made for images and audio.
+
+The score, declared before the run and what the site orders drift checkers by:
+the share of the six kinds of drift caught, on average, minus the false alarm
+rate. Every rate is a mean over datasets of each dataset's own rate, so a
+dataset counts once.
+
+```bash
+OMP_NUM_THREADS=1 python -m dcn.drift --reps 5 --out results/drift.csv   # about half an hour
+python -m dcn.drift --rerun DR-M12 --out results/drift.csv              # recompute one checker on the same cases
+```
+
+What it found, as a share of cases (the full table is in the evidence tab):
+
+| checker | false alarms | shifted feature | wider spread | broken correlation | who is sampled | class mix | label meaning | net |
+|---|---|---|---|---|---|---|---|---|
+| DR-M13 Anderson-Darling | 7% | 96% | 89% | 13% | 99% | 33% | 9% | 0.50 |
+| DR-M3 chi-square on binned values | 1% | 70% | 89% | 9% | 92% | 17% | 4% | 0.46 |
+| DR-M12 Cramér-von Mises | 2% | 91% | 57% | 7% | 98% | 22% | 3% | 0.44 |
+| DR-M14 energy distance | 2% | 56% | 26% | 33% | 99% | 38% | 7% | 0.41 |
+| DR-CV1 adversarial validation | 0% | 73% | 78% | 76% | 17% | 0% | 0% | 0.41 |
+| DR-M1 Kolmogorov-Smirnov | 7% | 84% | 62% | 3% | 96% | 17% | 1% | 0.37 |
+| DR-M2 PSI above 0.25 | 0% | 50% | 61% | 0% | 63% | 0% | 0% | 0.29 |
+| DR-MV1 Mahalanobis | 24% | 96% | 53% | 18% | 96% | 43% | 18% | 0.29 |
+| DR-M8 error drift | 26% | 41% | 32% | 54% | 24% | 40% | 94% | 0.22 |
+| DR-C1 DDM | 16% | 17% | 11% | 32% | 8% | 13% | 81% | 0.12 |
+| DR-M5 Jensen-Shannon above 0.1 | 0% | 17% | 13% | 0% | 3% | 0% | 0% | 0.06 |
+| DR-C3 Page-Hinkley | 0% | 0% | 0% | 6% | 0% | 0% | 0% | 0.01 |
+
+- Tests on the whole distribution of each feature did best: Anderson-Darling,
+  chi-square and Cramér-von Mises caught 46% to 57% of the injected drift, with
+  1% to 7% false alarms.
+- No test on single features can see a broken correlation or a change in what
+  the labels mean, by construction. Adversarial validation caught 76% of the
+  broken correlations with no false alarm, and only the checkers that watch
+  the model's errors caught changed labels (error drift 94%, EDDM 98%, DDM
+  81%), at a price: they fired on 26%, 41% and 16% of the windows where
+  nothing had changed. Error drift's 20% rule is too tight for 250 rows.
+- Conventional thresholds are cautious. PSI above 0.25 never fired falsely
+  but caught half of the 0.3 standard deviation shifts, and Jensen-Shannon at
+  the card's 0.1 on the divergence almost never fired at all.
+- Mahalanobis distance fired on 24% of the quiet windows: the chi-square its
+  card calls a principled p-value assumes Gaussian features.
+- At river's defaults, 250 rows after a change are too few for most streaming
+  detectors: Page-Hinkley and KSWIN caught almost nothing, ADWIN and HDDM_A
+  about 40% of the changed labels.
+
+The benchmark also found five things wrong, all fixed:
+
+- Six drift cards linked to the wrong function: KL and Wasserstein had each
+  other's, ANOVA pointed at Alibi Detect, error drift at `anderson_ksamp`, MMD
+  at `cramervonmises_2samp`, and the p-value card at `mannwhitneyu`.
+- Error drift (DR-M8) claimed to work without labels. It compares predictions
+  with the truth, so it now needs them, like every checker that watches errors.
+- A mixed table, numbers and categories together, which is most real files,
+  was never offered a distribution test: only checkers for numeric (A31) or
+  categorical (A32) columns exist, and A38 matched neither. They now fit it.
+- `scipy.stats.cramervonmises_2samp` (1.17) gives tied values their average
+  rank and then treats the ranks as distinct, so on a column that is mostly
+  zeros it calls two samples of the same data different at p < 1e-9. The
+  benchmark computes the statistic from the empirical CDFs, and on columns
+  with few values takes the p-value from permutations, because there the
+  limiting distribution fires too often: on a two-valued column, more than
+  fifty times too often at p < 0.001.
+- river's FHDDM is documented to take 1 for an error, but fires when the
+  stream's mean falls, so given errors it fires when the model gets better.
+  It is given correct predictions, which is the paper's reading.
+
+What it cannot say: each kind of drift was injected at one strength, so the
+rates are for that strength; the windows are 500 and 250 rows; the datasets are
+classification only; detectors tuned for their stream would do better than
+river's defaults; and the net score weights the six kinds equally, which is a
+choice. `tests/drift.test.js` recomputes every published rate from
+`results/drift.csv`.
+
 ## What is in results/
 
 | file | one row per | what it holds |
@@ -415,6 +525,7 @@ at it, and compares both rankings on every fixture.
 | `summary.json` | full run | the recorded headline, plus which models were ruled out and why |
 | `delta.csv` | dataset | the two 40-dataset runs side by side and the change |
 | `seeds.csv` | dataset, model and seed | an early three-seed check on seven datasets |
+| `drift.csv` | dataset, cut, scenario and drift checker | whether it fired, its statistic, and the seconds it took |
 
 ## Next
 

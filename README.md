@@ -26,6 +26,7 @@ The footer of the live page says which commit it was built from. If that is not 
 2. **Declare your intent** — what to predict, what kind of answer, whether order matters
 3. **Read the specimen** — get the full six-axis signature
 4. **Prescriptions** — models, drift checkers, and pipelines that fit, and what your data rules out
+5. **Take it with you**: the shortlist as a Python script for your whole file, run here in the browser, or the whole reading saved as a Markdown file
 
 ### What is measured, and what is asked
 
@@ -199,6 +200,7 @@ The full written notes are in [`docs/taxonomy/`](docs/taxonomy): [Data](docs/tax
 - **Mermaid flowcharts** — every pipeline renders its diagram inline
 - **Full library** — search the entire taxonomy
 - **Reads real exports**: comma, semicolon, tab or pipe separated; quoted fields; UTF-8 or Windows-1250; decimal commas like `1.234,56`
+- **Save this reading**: the signature, what fits, what was ruled out and why, and every measured line, as a Markdown file to keep or send on. The file's rows are not in it
 - **100% client-side** — nothing is uploaded. Everything runs in your browser.
 
 ---
@@ -234,6 +236,7 @@ npm test             # Node 20+
 - `tests/verify.test.js`: "Run it here": the messages between the page and its Python worker, with a stand-in worker.
 - `tests/drift.test.js`: drift checkers ordered by what they measured, and every published rate recomputed from `bench/results/drift.csv`.
 - `tests/messy.test.js`: which damaged run a messy upload is told about, and that every one is published.
+- `tests/report.test.js`: what a saved reading says, that no row of the file gets into it, and that odd names cannot break it.
 - `tests/check_links.test.js`: the link checker against a fake network. A connection that resets and then answers passes, a 404 fails on the first answer, and no host gets more than two requests at once. `npm run check:links` runs the real check, which needs the internet and runs in CI.
 - `tests/recommend.snapshot.test.js`: runs every fixture in `tests/fixtures/` through every target, task and order answer, and compares what gets recommended with `tests/snapshots/recommendations.json`. When a change to the profiler or the ranking is intended, run `npm run test:update` and review the snapshot diff in the commit.
 
@@ -257,6 +260,7 @@ site/                  the source
     nearest.js         meta-features, and the benchmark datasets nearest to yours
     evidence.js        "The evidence" view, and the measured line on each card
     export.js          the take-home Python script
+    report.js          "Save this reading": the findings as Markdown
     verify.js          "Run it here": that script in a Pyodide worker
     results.js         renders the recommendations and the 3D plot
     drawer.js          the definition drawer

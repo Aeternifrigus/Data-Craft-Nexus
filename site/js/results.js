@@ -9,6 +9,7 @@ import { rankingProvenance } from './ranking.js';
 import { coverageNotes, metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
 import { MODEL_CODE, columnRoles, downloadScript, pythonScript, scriptable } from './export.js';
 import { PYODIDE_VERSION, verdict, verifyInBrowser } from './verify.js';
+import { downloadReading, readingFileName, readingMarkdown } from './report.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
@@ -116,7 +117,8 @@ export function renderResults(T, sig, task, profile, source = null) {
   const drifts = rankDrifts(T, sig);
   const driftMsg = sig.drift
     ? `Worst shift between the first and second half of your file: PSI ${sig.drift.psi.toFixed(2)} on ${sig.drift.column}${sig.drift.scope === 'target' ? ' (the target itself)' : ''}, ${sig.drift.psi > 0.25 ? 'above' : 'below'} the 0.25 cutoff in DR-M2.`
-    : 'Drift across the file could not be measured: too few rows, or no column steady enough to compare. These are matched on modality and scale only.';
+    : `Drift across the file could not be measured: too few rows, or no column steady enough to compare.${
+      drifts.rankedBy === 'evidence' ? '' : ' These are matched on modality and scale only.'}`;
   const driftOrder = drifts.rankedBy === 'evidence'
     ? ' Ordered by what the drift benchmark measured: the share of injected drift each checker caught, minus how often it fired when nothing had changed.'
     : '';
@@ -168,6 +170,18 @@ export function renderResults(T, sig, task, profile, source = null) {
 
   renderRuledOut('pipeline-ruled', pipelines.ruledOut, 'pipelines');
 
+  renderSaveBar(() => readingMarkdown({
+    T, sig, task, fileName: source?.fileName ?? 'data.csv', date: new Date().toISOString().slice(0, 10),
+    build: document.querySelector('meta[name="dcn-build"]')?.content?.split(' ')[0] ?? null,
+    lead, leadText: lead ? leadSentence(T, lead) : '', models, drifts, pipelines,
+    notes: { models: document.getElementById('model-note').textContent,
+      drifts: document.getElementById('drift-note').textContent },
+    sentences: Object.fromEntries([
+      ...models.items.map(m => [m.c, evidenceSentence(evidenceFor(T, m.c, task))]),
+      ...drifts.items.filter(d => d.measure).map(d => [d.c, driftSentence(d.measure, driftDatasets)]),
+    ].filter(([, text]) => text)),
+  }), readingFileName(source?.fileName));
+
   pipelines.items.forEach(p => {
     const el = document.getElementById('diagram-' + p.c);
     if (el && p.flowchart) {
@@ -183,6 +197,15 @@ export function renderResults(T, sig, task, profile, source = null) {
   renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
   renderNeighbours(T, neighbours, task);
   plotSpace(T, sig, meta, neighbours);
+}
+
+// "Save this reading": the page's findings as a Markdown file.
+function renderSaveBar(make, name) {
+  const el = document.getElementById('savebar');
+  if (!el) return;
+  el.innerHTML = `<button class="link" id="save-reading" type="button">Save this reading</button>
+    <span class="savebar-note">as a Markdown file: the signature, what fits, what was ruled out and why. Your rows stay here.</span>`;
+  document.getElementById('save-reading').addEventListener('click', () => downloadReading(make(), name));
 }
 
 // Tuned boosting, before the order's picks, when it earned that place.

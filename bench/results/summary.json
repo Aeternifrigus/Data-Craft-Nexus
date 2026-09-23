@@ -1,7 +1,7 @@
 {
  "datasets": 195,
- "model_runs": 5250,
- "failed_runs": 28,
+ "model_runs": 5446,
+ "failed_runs": 29,
  "metric": {
   "classification": "balanced accuracy",
   "regression": "R\u00b2"

@@ -1,9 +1,9 @@
 {
- "run": "195 PMLB datasets, 5250 model runs",
+ "run": "195 PMLB datasets, 5446 model runs",
  "source": "PMLB (Penn Machine Learning Benchmarks)",
  "source_url": "https://github.com/EpistasisLab/pmlb",
  "how": "Every runnable model was fitted on every dataset, five-fold cross-validated, including the models the instrument rules out. Regret is how far a choice landed below the best model that ran.",
- "model_runs": 5250,
+ "model_runs": 5446,
  "ranked_by": "the per-model prior fitted on the earlier 40-dataset run, which had already seen 40 of these datasets",
  "not_runnable": {
   "EN5": "CatBoost is not installed here; it would need its own build",
@@ -248,6 +248,17 @@
       ],
       "was_best": 0.149,
       "within_one_point": 0.362
+     },
+     "tuned": {
+      "label": "always use boosting, tuned",
+      "units": 94,
+      "median_regret": 0.0118,
+      "ci": [
+       0.0078,
+       0.0171
+      ],
+      "was_best": 0.213,
+      "within_one_point": 0.468
      }
     },
     "against_chosen": {
@@ -262,7 +273,7 @@
        0.0364
       ],
       "p": 9.303e-07,
-      "p_holm": 1.861e-06
+      "p_holm": 2.791e-06
      },
      "boosting": {
       "units": 94,
@@ -276,6 +287,19 @@
       ],
       "p": 0.5227,
       "p_holm": 0.5227
+     },
+     "tuned": {
+      "units": 94,
+      "wins": 30,
+      "ties": 7,
+      "losses": 57,
+      "median_difference": -0.0024,
+      "ci": [
+       -0.0045,
+       -0.0001
+      ],
+      "p": 0.008213,
+      "p_holm": 0.01643
      }
     },
     "ceiling": {
@@ -283,46 +307,55 @@
       "units": 94,
       "median_gap": 0.0456,
       "ci": [
-       0.0305,
-       0.0559
+       0.0317,
+       0.0581
       ],
       "at_ceiling": 0.117
      },
      "prior": {
       "units": 94,
-      "median_gap": 0.0156,
+      "median_gap": 0.0162,
       "ci": [
-       0.0121,
-       0.0198
-      ],
-      "at_ceiling": 0.138
-     },
-     "prior_fit": {
-      "units": 94,
-      "median_gap": 0.015,
-      "ci": [
-       0.0098,
-       0.0205
+       0.0125,
+       0.0213
       ],
       "at_ceiling": 0.106
      },
+     "prior_fit": {
+      "units": 94,
+      "median_gap": 0.0165,
+      "ci": [
+       0.0121,
+       0.021
+      ],
+      "at_ceiling": 0.085
+     },
      "prior_knn": {
       "units": 94,
-      "median_gap": 0.0159,
+      "median_gap": 0.017,
       "ci": [
-       0.0097,
-       0.0213
+       0.0126,
+       0.0224
       ],
-      "at_ceiling": 0.138
+      "at_ceiling": 0.106
      },
      "boosting": {
       "units": 94,
-      "median_gap": 0.0139,
+      "median_gap": 0.0145,
       "ci": [
-       0.0109,
-       0.0209
+       0.0112,
+       0.0228
       ],
-      "at_ceiling": 0.149
+      "at_ceiling": 0.117
+     },
+     "tuned": {
+      "units": 94,
+      "median_gap": 0.0118,
+      "ci": [
+       0.008,
+       0.018
+      ],
+      "at_ceiling": 0.191
      }
     }
    },
@@ -385,6 +418,17 @@
       ],
       "was_best": 0.029,
       "within_one_point": 0.371
+     },
+     "tuned": {
+      "label": "always use boosting, tuned",
+      "units": 35,
+      "median_regret": 0.0062,
+      "ci": [
+       0.0016,
+       0.0166
+      ],
+      "was_best": 0.229,
+      "within_one_point": 0.571
      }
     },
     "against_chosen": {
@@ -399,7 +443,7 @@
        0.2844
       ],
       "p": 1.135e-05,
-      "p_holm": 2.27e-05
+      "p_holm": 3.404e-05
      },
      "boosting": {
       "units": 35,
@@ -412,7 +456,20 @@
        0.0271
       ],
       "p": 0.04567,
-      "p_holm": 0.04567
+      "p_holm": 0.09133
+     },
+     "tuned": {
+      "units": 35,
+      "wins": 16,
+      "ties": 0,
+      "losses": 19,
+      "median_difference": -0.0019,
+      "ci": [
+       -0.0052,
+       0.0027
+      ],
+      "p": 0.5499,
+      "p_holm": 0.5499
      }
     },
     "ceiling": {
@@ -427,39 +484,48 @@
      },
      "prior": {
       "units": 35,
-      "median_gap": 0.0119,
+      "median_gap": 0.0132,
       "ci": [
-       0.002,
+       0.003,
        0.0276
       ],
-      "at_ceiling": 0.114
+      "at_ceiling": 0.086
      },
      "prior_fit": {
       "units": 35,
-      "median_gap": 0.0119,
+      "median_gap": 0.0137,
       "ci": [
-       0.0025,
+       0.0037,
        0.0275
       ],
-      "at_ceiling": 0.2
+      "at_ceiling": 0.143
      },
      "prior_knn": {
       "units": 35,
-      "median_gap": 0.0119,
+      "median_gap": 0.0132,
       "ci": [
-       0.0014,
+       0.002,
        0.0275
       ],
-      "at_ceiling": 0.257
+      "at_ceiling": 0.2
      },
      "boosting": {
       "units": 35,
       "median_gap": 0.0212,
       "ci": [
-       0.0095,
+       0.0111,
        0.0547
       ],
       "at_ceiling": 0.029
+     },
+     "tuned": {
+      "units": 35,
+      "median_gap": 0.0065,
+      "ci": [
+       0.0024,
+       0.0166
+      ],
+      "at_ceiling": 0.2
      }
     }
    }
@@ -473,66 +539,75 @@
    "alpha": 0.05,
    "friedman": {
     "datasets": 94,
-    "models": 18,
-    "chi2": 332.881,
-    "p": 1.77e-60
+    "models": 19,
+    "chi2": 370.903,
+    "p": 1.044e-67
    },
-   "critical_difference": 2.7167,
+   "critical_difference": 2.8869,
    "ranks": {
-    "EN4": 6.4947,
-    "NN2": 6.7553,
-    "BASE-HGB": 7.0053,
-    "TR3": 7.1223,
-    "EN3": 7.5638,
-    "TR2": 7.6649,
-    "EN6": 7.8298,
-    "EN2": 8.6755,
-    "EN7": 9.0426,
-    "SV2": 9.0532,
-    "LM2": 9.4628,
-    "SV1": 9.9309,
-    "DR4": 9.9521,
-    "TR1": 11.8245,
-    "PR1": 12.7021,
-    "EN1": 12.8777,
-    "IB1": 13.1596,
-    "NN1": 13.883
+    "BASE-HGB-TUNED": 6.117,
+    "EN4": 7.1383,
+    "NN2": 7.383,
+    "TR3": 7.6968,
+    "BASE-HGB": 7.7074,
+    "EN3": 8.3032,
+    "TR2": 8.3138,
+    "EN6": 8.4362,
+    "EN2": 9.367,
+    "SV2": 9.6968,
+    "EN7": 9.7234,
+    "LM2": 10.1064,
+    "SV1": 10.6064,
+    "DR4": 10.6064,
+    "TR1": 12.7128,
+    "PR1": 13.5,
+    "EN1": 13.7553,
+    "IB1": 14.0532,
+    "NN1": 14.7766
    },
    "tied_with_best": [
+    "BASE-HGB-TUNED",
     "EN4",
     "NN2",
-    "BASE-HGB",
     "TR3",
+    "BASE-HGB",
     "EN3",
     "TR2",
-    "EN6",
-    "EN2",
-    "EN7",
-    "SV2"
+    "EN6"
    ],
    "cliques": [
     [
+     "BASE-HGB-TUNED",
      "EN4",
      "NN2",
-     "BASE-HGB",
      "TR3",
+     "BASE-HGB",
+     "EN3",
+     "TR2",
+     "EN6"
+    ],
+    [
+     "EN4",
+     "NN2",
+     "TR3",
+     "BASE-HGB",
      "EN3",
      "TR2",
      "EN6",
      "EN2",
-     "EN7",
-     "SV2"
+     "SV2",
+     "EN7"
     ],
     [
      "NN2",
-     "BASE-HGB",
      "TR3",
+     "BASE-HGB",
      "EN3",
      "TR2",
      "EN6",
      "EN2",
-     "EN7",
      "SV2",
+     "EN7",
      "LM2"
     ],
     [
@@ -540,8 +615,8 @@
      "TR2",
      "EN6",
      "EN2",
-     "EN7",
      "SV2",
+     "EN7",
      "LM2",
      "SV1",
      "DR4"
@@ -561,16 +636,17 @@
     ]
    ],
    "names": {
+    "BASE-HGB-TUNED": "Histogram Gradient Boosting, tuned",
     "EN4": "LightGBM",
     "NN2": "MLP (Feedforward)",
-    "BASE-HGB": "Histogram Gradient Boosting (baseline)",
     "TR3": "Extra Trees",
+    "BASE-HGB": "Histogram Gradient Boosting (baseline)",
     "EN3": "XGBoost",
     "TR2": "Random Forest",
     "EN6": "Stacking",
     "EN2": "Gradient Boosting (GBM)",
-    "EN7": "Voting Ensemble",
     "SV2": "Kernel SVM (RBF/Poly)",
+    "EN7": "Voting Ensemble",
     "LM2": "Logistic Regression",
     "SV1": "SVM (linear)",
     "DR4": "LDA (Linear Discriminant Analysis)",
@@ -587,65 +663,70 @@
    "alpha": 0.05,
    "friedman": {
     "datasets": 35,
-    "models": 20,
-    "chi2": 217.964,
-    "p": 8.82e-36
+    "models": 21,
+    "chi2": 231.896,
+    "p": 4.987e-38
    },
-   "critical_difference": 5.0117,
+   "critical_difference": 5.2937,
    "ranks": {
-    "EN2": 5.4571,
-    "TR3": 5.9571,
-    "EN6": 6.4,
-    "TR2": 6.4857,
-    "BASE-HGB": 8.2143,
-    "EN4": 8.3143,
-    "EN7": 8.4,
-    "EN3": 9.3857,
-    "LM6": 9.6,
-    "LM7": 10.3,
-    "LM3": 10.5857,
-    "NN2": 10.7714,
-    "EN1": 11.1429,
-    "LM1": 11.4714,
-    "IB1": 12.0571,
-    "TR1": 12.9714,
-    "SV2": 13.7143,
-    "SV1": 15.1714,
-    "LM4": 16.2571,
-    "LM5": 17.3429
+    "BASE-HGB-TUNED": 5.9714,
+    "EN2": 6.0,
+    "TR3": 6.5857,
+    "EN6": 7.0,
+    "TR2": 7.1143,
+    "BASE-HGB": 9.0286,
+    "EN7": 9.1143,
+    "EN4": 9.1857,
+    "EN3": 10.2714,
+    "LM6": 10.2857,
+    "LM7": 10.9286,
+    "LM3": 11.1857,
+    "NN2": 11.5143,
+    "EN1": 12.0,
+    "LM1": 12.1,
+    "IB1": 12.9714,
+    "TR1": 13.8,
+    "SV2": 14.5714,
+    "SV1": 16.0,
+    "LM4": 17.1143,
+    "LM5": 18.2571
    },
    "tied_with_best": [
+    "BASE-HGB-TUNED",
     "EN2",
     "TR3",
     "EN6",
     "TR2",
     "BASE-HGB",
-    "EN4",
     "EN7",
+    "EN4",
     "EN3",
     "LM6",
-    "LM7"
+    "LM7",
+    "LM3"
    ],
    "cliques": [
     [
+     "BASE-HGB-TUNED",
      "EN2",
      "TR3",
      "EN6",
      "TR2",
      "BASE-HGB",
-     "EN4",
      "EN7",
+     "EN4",
      "EN3",
      "LM6",
-     "LM7"
+     "LM7",
+     "LM3"
     ],
     [
      "TR3",
      "EN6",
      "TR2",
      "BASE-HGB",
-     "EN4",
      "EN7",
+     "EN4",
      "EN3",
      "LM6",
      "LM7",
@@ -656,20 +737,8 @@
      "EN6",
      "TR2",
      "BASE-HGB",
-     "EN4",
      "EN7",
-     "EN3",
-     "LM6",
-     "LM7",
-     "LM3",
-     "NN2",
-     "EN1"
-    ],
-    [
-     "TR2",
-     "BASE-HGB",
      "EN4",
-     "EN7",
      "EN3",
      "LM6",
      "LM7",
@@ -680,8 +749,8 @@
     ],
     [
      "BASE-HGB",
-     "EN4",
      "EN7",
+     "EN4",
      "EN3",
      "LM6",
      "LM7",
@@ -716,6 +785,7 @@
      "SV1"
     ],
     [
+     "EN1",
      "LM1",
      "IB1",
      "TR1",
@@ -724,6 +794,7 @@
      "LM4"
     ],
     [
+     "IB1",
      "TR1",
      "SV2",
      "SV1",
@@ -732,13 +803,14 @@
     ]
    ],
    "names": {
+    "BASE-HGB-TUNED": "Histogram Gradient Boosting, tuned",
     "EN2": "Gradient Boosting (GBM)",
     "TR3": "Extra Trees",
     "EN6": "Stacking",
     "TR2": "Random Forest",
     "BASE-HGB": "Histogram Gradient Boosting (baseline)",
-    "EN4": "LightGBM",
     "EN7": "Voting Ensemble",
+    "EN4": "LightGBM",
     "EN3": "XGBoost",
     "LM6": "Polynomial Regression",
     "LM7": "Bayesian Linear Regression",
@@ -759,8 +831,8 @@
   "classification": {
    "datasets": 20,
    "seeds": 3,
-   "score_spread": 0.0037,
-   "score_spread_p90": 0.0155,
+   "score_spread": 0.0034,
+   "score_spread_p90": 0.015,
    "same_best": 0.3,
    "compared": 20,
    "flips": 10
@@ -768,9 +840,9 @@
   "regression": {
    "datasets": 20,
    "seeds": 3,
-   "score_spread": 0.0051,
-   "score_spread_p90": 0.0177,
-   "same_best": 0.5,
+   "score_spread": 0.0047,
+   "score_spread_p90": 0.0171,
+   "same_best": 0.3,
    "compared": 20,
    "flips": 4
   }
@@ -794,7 +866,7 @@
    "tasks": {
     "classification": {
      "datasets": 94,
-     "was_best": 2,
+     "was_best": 1,
      "recommended_first": 0,
      "median_regret": 0.0736,
      "median_seconds": 0.62,
@@ -823,7 +895,7 @@
     },
     "regression": {
      "datasets": 101,
-     "was_best": 23,
+     "was_best": 10,
      "recommended_first": 101,
      "median_regret": 0.0082,
      "median_seconds": 0.85,
@@ -836,7 +908,7 @@
    "tasks": {
     "classification": {
      "datasets": 94,
-     "was_best": 4,
+     "was_best": 2,
      "recommended_first": 0,
      "median_regret": 0.0186,
      "median_seconds": 0.75,
@@ -844,7 +916,7 @@
     },
     "regression": {
      "datasets": 101,
-     "was_best": 2,
+     "was_best": 1,
      "recommended_first": 0,
      "median_regret": 0.0325,
      "median_seconds": 2.36,
@@ -857,7 +929,7 @@
    "tasks": {
     "classification": {
      "datasets": 94,
-     "was_best": 7,
+     "was_best": 4,
      "recommended_first": 0,
      "median_regret": 0.0156,
      "median_seconds": 0.99,
@@ -865,7 +937,7 @@
     },
     "regression": {
      "datasets": 101,
-     "was_best": 9,
+     "was_best": 4,
      "recommended_first": 0,
      "median_regret": 0.011,
      "median_seconds": 1.51,
@@ -1006,7 +1078,7 @@
    "tasks": {
     "regression": {
      "datasets": 101,
-     "was_best": 7,
+     "was_best": 6,
      "recommended_first": 0,
      "median_regret": 0.5463,
      "median_seconds": 0.13,
@@ -1045,7 +1117,7 @@
    "tasks": {
     "classification": {
      "datasets": 94,
-     "was_best": 10,
+     "was_best": 9,
      "recommended_first": 0,
      "median_regret": 0.0162,
      "median_seconds": 5.12,
@@ -1053,7 +1125,7 @@
     },
     "regression": {
      "datasets": 101,
-     "was_best": 11,
+     "was_best": 10,
      "recommended_first": 0,
      "median_regret": 0.1507,
      "median_seconds": 3.04,
@@ -1163,7 +1235,7 @@
    "tasks": {
     "classification": {
      "datasets": 94,
-     "was_best": 5,
+     "was_best": 4,
      "recommended_first": 94,
      "median_regret": 0.0121,
      "median_seconds": 1.91,
@@ -1171,7 +1243,7 @@
     },
     "regression": {
      "datasets": 101,
-     "was_best": 27,
+     "was_best": 16,
      "recommended_first": 0,
      "median_regret": 0.008,
      "median_seconds": 2.31,
@@ -1218,7 +1290,8 @@
     "NN2": 0.8464,
     "EN3": 0.7801,
     "EN4": 0.7898,
-    "BASE-HGB": 0.7898
+    "BASE-HGB": 0.7898,
+    "BASE-HGB-TUNED": 0.7946
    },
    "best": {
     "model": "NN2",
@@ -1271,7 +1344,8 @@
     "NN2": 0.3795,
     "EN3": 0.3498,
     "EN4": 0.3622,
-    "BASE-HGB": 0.3622
+    "BASE-HGB": 0.3622,
+    "BASE-HGB-TUNED": 0.3818
    },
    "best": {
     "model": "EN6",
@@ -1324,7 +1398,8 @@
     "NN2": 0.5265,
     "EN3": 0.5031,
     "EN4": 0.5141,
-    "BASE-HGB": 0.5141
+    "BASE-HGB": 0.5141,
+    "BASE-HGB-TUNED": 0.5367
    },
    "best": {
     "model": "LM3",
@@ -1377,7 +1452,8 @@
     "NN2": 0.345,
     "EN3": 0.3341,
     "EN4": 0.3347,
-    "BASE-HGB": 0.3347
+    "BASE-HGB": 0.3347,
+    "BASE-HGB-TUNED": 0.3358
    },
    "best": {
     "model": "EN6",
@@ -1430,7 +1506,8 @@
     "NN2": 0.4294,
     "EN3": 0.3572,
     "EN4": 0.4281,
-    "BASE-HGB": 0.4283
+    "BASE-HGB": 0.4283,
+    "BASE-HGB-TUNED": 0.4431
    },
    "best": {
     "model": "EN2",
@@ -1483,7 +1560,8 @@
     "NN2": 0.977,
     "EN3": 0.9793,
     "EN4": 0.9827,
-    "BASE-HGB": 0.9811
+    "BASE-HGB": 0.9811,
+    "BASE-HGB-TUNED": 0.9828
    },
    "best": {
     "model": "EN4",
@@ -1536,7 +1614,8 @@
     "NN2": 0.9682,
     "EN3": 0.9769,
     "EN4": 0.9782,
-    "BASE-HGB": 0.9792
+    "BASE-HGB": 0.9792,
+    "BASE-HGB-TUNED": 0.9827
    },
    "best": {
     "model": "TR3",
@@ -1589,7 +1668,8 @@
     "NN2": 0.6703,
     "EN3": 0.6202,
     "EN4": 0.6593,
-    "BASE-HGB": 0.6591
+    "BASE-HGB": 0.6591,
+    "BASE-HGB-TUNED": 0.6638
    },
    "best": {
     "model": "NN2",
@@ -1642,7 +1722,8 @@
     "NN2": 0.9713,
     "EN3": 0.9725,
     "EN4": 0.976,
-    "BASE-HGB": 0.9741
+    "BASE-HGB": 0.9741,
+    "BASE-HGB-TUNED": 0.9736
    },
    "best": {
     "model": "EN4",
@@ -1695,7 +1776,8 @@
     "NN2": 0.7565,
     "EN3": 0.8024,
     "EN4": 0.8507,
-    "BASE-HGB": 0.8507
+    "BASE-HGB": 0.8507,
+    "BASE-HGB-TUNED": 0.8507
    },
    "best": {
     "model": "EN2",
@@ -1748,7 +1830,8 @@
     "NN2": 0.7778,
     "EN3": 0.8543,
     "EN4": 0.687,
-    "BASE-HGB": 0.7152
+    "BASE-HGB": 0.7152,
+    "BASE-HGB-TUNED": 0.7834
    },
    "best": {
     "model": "EN2",
@@ -1801,7 +1884,8 @@
     "NN2": 0.8886,
     "EN3": 0.888,
     "EN4": 0.9006,
-    "BASE-HGB": 0.9007
+    "BASE-HGB": 0.9007,
+    "BASE-HGB-TUNED": 0.9047
    },
    "best": {
     "model": "TR3",
@@ -1854,7 +1938,8 @@
     "NN2": 0.7978,
     "EN3": 0.7663,
     "EN4": 0.7888,
-    "BASE-HGB": 0.7897
+    "BASE-HGB": 0.7897,
+    "BASE-HGB-TUNED": 0.7916
    },
    "best": {
     "model": "NN2",
@@ -1907,7 +1992,8 @@
     "NN2": 0.7327,
     "EN3": 0.6667,
     "EN4": 0.7076,
-    "BASE-HGB": 0.7076
+    "BASE-HGB": 0.7076,
+    "BASE-HGB-TUNED": 0.6949
    },
    "best": {
     "model": "LM3",
@@ -1960,7 +2046,8 @@
     "NN2": 0.1854,
     "EN3": 0.3506,
     "EN4": 0.4568,
-    "BASE-HGB": 0.4588
+    "BASE-HGB": 0.4588,
+    "BASE-HGB-TUNED": 0.4586
    },
    "best": {
     "model": "BASE-HGB",
@@ -2013,7 +2100,8 @@
     "NN2": 0.7911,
     "EN3": 0.7377,
     "EN4": 0.7604,
-    "BASE-HGB": 0.7622
+    "BASE-HGB": 0.7622,
+    "BASE-HGB-TUNED": 0.7689
    },
    "best": {
     "model": "EN6",
@@ -2066,7 +2154,8 @@
     "NN2": 0.448,
     "EN3": 0.5553,
     "EN4": 0.5697,
-    "BASE-HGB": 0.5736
+    "BASE-HGB": 0.5736,
+    "BASE-HGB-TUNED": 0.5712
    },
    "best": {
     "model": "TR2",
@@ -2119,7 +2208,8 @@
     "NN2": 0.0225,
     "EN3": 0.8791,
     "EN4": 0.7357,
-    "BASE-HGB": 0.7357
+    "BASE-HGB": 0.7357,
+    "BASE-HGB-TUNED": 0.9178
    },
    "best": {
     "model": "LM6",
@@ -2172,7 +2262,8 @@
     "NN2": 0.0196,
     "EN3": 0.906,
     "EN4": 0.7141,
-    "BASE-HGB": 0.7141
+    "BASE-HGB": 0.7141,
+    "BASE-HGB-TUNED": 0.9119
    },
    "best": {
     "model": "EN3",
@@ -2225,7 +2316,8 @@
     "NN2": 0.8521,
     "EN3": 0.9403,
     "EN4": 0.9525,
-    "BASE-HGB": 0.9551
+    "BASE-HGB": 0.9551,
+    "BASE-HGB-TUNED": 0.9575
    },
    "best": {
     "model": "SV1",
@@ -2278,7 +2370,8 @@
     "NN2": 0.8575,
     "EN3": 0.9491,
     "EN4": 0.6674,
-    "BASE-HGB": 0.7061
+    "BASE-HGB": 0.7061,
+    "BASE-HGB-TUNED": 0.8092
    },
    "best": {
     "model": "LM6",
@@ -2331,7 +2424,8 @@
     "NN2": 0.9713,
     "EN3": 0.9725,
     "EN4": 0.976,
-    "BASE-HGB": 0.9741
+    "BASE-HGB": 0.9741,
+    "BASE-HGB-TUNED": 0.9736
    },
    "best": {
     "model": "EN4",
@@ -2384,7 +2478,8 @@
     "NN2": 0.977,
     "EN3": 0.9793,
     "EN4": 0.9827,
-    "BASE-HGB": 0.9811
+    "BASE-HGB": 0.9811,
+    "BASE-HGB-TUNED": 0.9828
    },
    "best": {
     "model": "EN4",
@@ -2437,7 +2532,8 @@
     "NN2": 0.8872,
     "EN3": 0.7565,
     "EN4": 0.8361,
-    "BASE-HGB": 0.8436
+    "BASE-HGB": 0.8436,
+    "BASE-HGB-TUNED": 0.8223
    },
    "best": {
     "model": "NN2",
@@ -2490,7 +2586,8 @@
     "NN2": -0.1975,
     "EN3": 0.8738,
     "EN4": 0.8927,
-    "BASE-HGB": 0.8911
+    "BASE-HGB": 0.8911,
+    "BASE-HGB-TUNED": 0.9067
    },
    "best": {
     "model": "EN4",
@@ -2543,7 +2640,8 @@
     "NN2": -0.1129,
     "EN3": 0.8533,
     "EN4": 0.879,
-    "BASE-HGB": 0.8758
+    "BASE-HGB": 0.8758,
+    "BASE-HGB-TUNED": 0.8893
    },
    "best": {
     "model": "EN2",
@@ -2596,7 +2694,8 @@
     "NN2": -0.195,
     "EN3": 0.8995,
     "EN4": 0.9204,
-    "BASE-HGB": 0.9174
+    "BASE-HGB": 0.9174,
+    "BASE-HGB-TUNED": 0.9281
    },
    "best": {
     "model": "EN2",
@@ -2649,7 +2748,8 @@
     "NN2": -0.1085,
     "EN3": 0.8475,
     "EN4": 0.873,
-    "BASE-HGB": 0.88
+    "BASE-HGB": 0.88,
+    "BASE-HGB-TUNED": 0.9005
    },
    "best": {
     "model": "BASE-HGB",
@@ -2702,7 +2802,8 @@
     "NN2": 0.2405,
     "EN3": 0.9033,
     "EN4": 0.9263,
-    "BASE-HGB": 0.9253
+    "BASE-HGB": 0.9253,
+    "BASE-HGB-TUNED": 0.9376
    },
    "best": {
     "model": "EN4",
@@ -2755,7 +2856,8 @@
     "NN2": -0.0846,
     "EN3": 0.9061,
     "EN4": 0.9168,
-    "BASE-HGB": 0.9126
+    "BASE-HGB": 0.9126,
+    "BASE-HGB-TUNED": 0.9281
    },
    "best": {
     "model": "EN2",
@@ -2808,7 +2910,8 @@
     "NN2": -0.1886,
     "EN3": 0.9057,
     "EN4": 0.9193,
-    "BASE-HGB": 0.9202
+    "BASE-HGB": 0.9202,
+    "BASE-HGB-TUNED": 0.9371
    },
    "best": {
     "model": "EN2",
@@ -2861,7 +2964,8 @@
     "NN2": 0.5592,
     "EN3": 0.8295,
     "EN4": 0.8809,
-    "BASE-HGB": 0.8802
+    "BASE-HGB": 0.8802,
+    "BASE-HGB-TUNED": 0.8942
    },
    "best": {
     "model": "EN2",
@@ -2914,7 +3018,8 @@
     "NN2": 0.2402,
     "EN3": 0.9086,
     "EN4": 0.9144,
-    "BASE-HGB": 0.914
+    "BASE-HGB": 0.914,
+    "BASE-HGB-TUNED": 0.935
    },
    "best": {
     "model": "TR3",
@@ -2967,7 +3072,8 @@
     "NN2": 0.9127,
     "EN3": 0.9291,
     "EN4": 0.9376,
-    "BASE-HGB": 0.9351
+    "BASE-HGB": 0.9351,
+    "BASE-HGB-TUNED": 0.9465
    },
    "best": {
     "model": "EN2",
@@ -3020,7 +3126,8 @@
     "NN2": 0.9185,
     "EN3": 0.863,
     "EN4": 0.896,
-    "BASE-HGB": 0.896
+    "BASE-HGB": 0.896,
+    "BASE-HGB-TUNED": 0.9112
    },
    "best": {
     "model": "NN2",
@@ -3073,7 +3180,8 @@
     "NN2": 0.8504,
     "EN3": 0.8378,
     "EN4": 0.8492,
-    "BASE-HGB": 0.855
+    "BASE-HGB": 0.855,
+    "BASE-HGB-TUNED": 0.8693
    },
    "best": {
     "model": "TR3",
@@ -3126,7 +3234,8 @@
     "NN2": 0.9407,
     "EN3": 0.9023,
     "EN4": 0.924,
-    "BASE-HGB": 0.924
+    "BASE-HGB": 0.924,
+    "BASE-HGB-TUNED": 0.9306
    },
    "best": {
     "model": "NN2",
@@ -3179,7 +3288,8 @@
     "NN2": 0.7502,
     "EN3": 0.8547,
     "EN4": 0.8948,
-    "BASE-HGB": 0.895
+    "BASE-HGB": 0.895,
+    "BASE-HGB-TUNED": 0.9064
    },
    "best": {
     "model": "EN2",
@@ -3232,7 +3342,8 @@
     "NN2": 0.9487,
     "EN3": 0.9351,
     "EN4": 0.9445,
-    "BASE-HGB": 0.9446
+    "BASE-HGB": 0.9446,
+    "BASE-HGB-TUNED": 0.9536
    },
    "best": {
     "model": "NN2",
@@ -3285,7 +3396,8 @@
     "NN2": 0.9014,
     "EN3": 0.8475,
     "EN4": 0.8704,
-    "BASE-HGB": 0.8883
+    "BASE-HGB": 0.8883,
+    "BASE-HGB-TUNED": 0.8933
    },
    "best": {
     "model": "NN2",
@@ -3338,7 +3450,8 @@
     "NN2": 0.5106,
     "EN3": 0.8159,
     "EN4": 0.8355,
-    "BASE-HGB": 0.8364
+    "BASE-HGB": 0.8364,
+    "BASE-HGB-TUNED": 0.8351
    },
    "best": {
     "model": "TR3",
@@ -3391,7 +3504,8 @@
     "NN2": 0.381,
     "EN3": 0.5995,
     "EN4": 0.7948,
-    "BASE-HGB": 0.7834
+    "BASE-HGB": 0.7834,
+    "BASE-HGB-TUNED": 0.7894
    },
    "best": {
     "model": "EN4",
@@ -3444,7 +3558,8 @@
     "NN2": 0.8718,
     "EN3": 0.88,
     "EN4": 0.9066,
-    "BASE-HGB": 0.9
+    "BASE-HGB": 0.9,
+    "BASE-HGB-TUNED": 0.9181
    },
    "best": {
     "model": "TR3",
@@ -3497,7 +3612,8 @@
     "NN2": 0.1998,
     "EN3": 0.7801,
     "EN4": 0.8191,
-    "BASE-HGB": 0.8282
+    "BASE-HGB": 0.8282,
+    "BASE-HGB-TUNED": 0.8349
    },
    "best": {
     "model": "EN2",
@@ -3550,7 +3666,8 @@
     "NN2": 0.9132,
     "EN3": 0.9198,
     "EN4": 0.9327,
-    "BASE-HGB": 0.9344
+    "BASE-HGB": 0.9344,
+    "BASE-HGB-TUNED": 0.9439
    },
    "best": {
     "model": "BASE-HGB",
@@ -3603,7 +3720,8 @@
     "NN2": -0.2382,
     "EN3": 0.9061,
     "EN4": 0.916,
-    "BASE-HGB": 0.9163
+    "BASE-HGB": 0.9163,
+    "BASE-HGB-TUNED": 0.9317
    },
    "best": {
     "model": "BASE-HGB",
@@ -3656,7 +3774,8 @@
     "NN2": 0.9104,
     "EN3": 0.9187,
     "EN4": 0.9284,
-    "BASE-HGB": 0.9231
+    "BASE-HGB": 0.9231,
+    "BASE-HGB-TUNED": 0.9367
    },
    "best": {
     "model": "TR3",
@@ -3709,7 +3828,8 @@
     "NN2": 0.9435,
     "EN3": 0.896,
     "EN4": 0.915,
-    "BASE-HGB": 0.9167
+    "BASE-HGB": 0.9167,
+    "BASE-HGB-TUNED": 0.9224
    },
    "best": {
     "model": "SV2",
@@ -3762,7 +3882,8 @@
     "NN2": 0.9459,
     "EN3": 0.9357,
     "EN4": 0.9464,
-    "BASE-HGB": 0.9455
+    "BASE-HGB": 0.9455,
+    "BASE-HGB-TUNED": 0.9522
    },
    "best": {
     "model": "TR3",
@@ -3815,7 +3936,8 @@
     "NN2": 0.9134,
     "EN3": 0.8199,
     "EN4": 0.8382,
-    "BASE-HGB": 0.8444
+    "BASE-HGB": 0.8444,
+    "BASE-HGB-TUNED": 0.8557
    },
    "best": {
     "model": "NN2",
@@ -3868,7 +3990,8 @@
     "NN2": 0.6312,
     "EN3": 0.8359,
     "EN4": 0.8085,
-    "BASE-HGB": 0.8133
+    "BASE-HGB": 0.8133,
+    "BASE-HGB-TUNED": 0.8334
    },
    "best": {
     "model": "EN3",
@@ -3921,7 +4044,8 @@
     "NN2": -0.1071,
     "EN3": 0.8481,
     "EN4": 0.8462,
-    "BASE-HGB": 0.8489
+    "BASE-HGB": 0.8489,
+    "BASE-HGB-TUNED": 0.8749
    },
    "best": {
     "model": "BASE-HGB",
@@ -3974,7 +4098,8 @@
     "NN2": 0.8935,
     "EN3": 0.8881,
     "EN4": 0.9012,
-    "BASE-HGB": 0.9063
+    "BASE-HGB": 0.9063,
+    "BASE-HGB-TUNED": 0.924
    },
    "best": {
     "model": "TR3",
@@ -4027,7 +4152,8 @@
     "NN2": -0.0865,
     "EN3": 0.897,
     "EN4": 0.9161,
-    "BASE-HGB": 0.916
+    "BASE-HGB": 0.916,
+    "BASE-HGB-TUNED": 0.9332
    },
    "best": {
     "model": "EN2",
@@ -4080,7 +4206,8 @@
     "NN2": -0.2144,
     "EN3": 0.9032,
     "EN4": 0.9248,
-    "BASE-HGB": 0.9258
+    "BASE-HGB": 0.9258,
+    "BASE-HGB-TUNED": 0.9346
    },
    "best": {
     "model": "BASE-HGB",
@@ -4133,7 +4260,8 @@
     "NN2": -0.1983,
     "EN3": 0.8995,
     "EN4": 0.9131,
-    "BASE-HGB": 0.9145
+    "BASE-HGB": 0.9145,
+    "BASE-HGB-TUNED": 0.9276
    },
    "best": {
     "model": "EN2",
@@ -4186,7 +4314,8 @@
     "NN2": 0.9183,
     "EN3": 0.9203,
     "EN4": 0.9254,
-    "BASE-HGB": 0.9271
+    "BASE-HGB": 0.9271,
+    "BASE-HGB-TUNED": 0.9423
    },
    "best": {
     "model": "TR3",
@@ -4239,7 +4368,8 @@
     "NN2": -0.1763,
     "EN3": 0.8625,
     "EN4": 0.8799,
-    "BASE-HGB": 0.88
+    "BASE-HGB": 0.88,
+    "BASE-HGB-TUNED": 0.8881
    },
    "best": {
     "model": "EN2",
@@ -4292,7 +4422,8 @@
     "NN2": 0.7902,
     "EN3": 0.8885,
     "EN4": 0.9009,
-    "BASE-HGB": 0.8975
+    "BASE-HGB": 0.8975,
+    "BASE-HGB-TUNED": 0.9221
    },
    "best": {
     "model": "TR3",
@@ -4345,7 +4476,8 @@
     "NN2": 0.9411,
     "EN3": 0.9264,
     "EN4": 0.9397,
-    "BASE-HGB": 0.9396
+    "BASE-HGB": 0.9396,
+    "BASE-HGB-TUNED": 0.9496
    },
    "best": {
     "model": "TR3",
@@ -4398,7 +4530,8 @@
     "NN2": 0.9297,
     "EN3": 0.878,
     "EN4": 0.8935,
-    "BASE-HGB": 0.8942
+    "BASE-HGB": 0.8942,
+    "BASE-HGB-TUNED": 0.9167
    },
    "best": {
     "model": "NN2",
@@ -4451,7 +4584,8 @@
     "NN2": 0.6733,
     "EN3": 0.7959,
     "EN4": 0.8743,
-    "BASE-HGB": 0.8773
+    "BASE-HGB": 0.8773,
+    "BASE-HGB-TUNED": 0.8826
    },
    "best": {
     "model": "BASE-HGB",
@@ -4504,7 +4638,8 @@
     "NN2": 0.7794,
     "EN3": 0.7244,
     "EN4": 0.823,
-    "BASE-HGB": 0.8274
+    "BASE-HGB": 0.8274,
+    "BASE-HGB-TUNED": 0.842
    },
    "best": {
     "model": "BASE-HGB",
@@ -4557,7 +4692,8 @@
     "NN2": -0.1556,
     "EN3": 0.8432,
     "EN4": 0.8616,
-    "BASE-HGB": 0.8632
+    "BASE-HGB": 0.8632,
+    "BASE-HGB-TUNED": 0.8672
    },
    "best": {
     "model": "EN2",
@@ -4610,7 +4746,8 @@
     "NN2": 0.8385,
     "EN3": 0.8854,
     "EN4": 0.9091,
-    "BASE-HGB": 0.9087
+    "BASE-HGB": 0.9087,
+    "BASE-HGB-TUNED": 0.918
    },
    "best": {
     "model": "TR3",
@@ -4663,7 +4800,8 @@
     "NN2": -0.5021,
     "EN3": 0.8411,
     "EN4": 0.8891,
-    "BASE-HGB": 0.8877
+    "BASE-HGB": 0.8877,
+    "BASE-HGB-TUNED": 0.8948
    },
    "best": {
     "model": "EN2",
@@ -4716,7 +4854,8 @@
     "NN2": -0.3382,
     "EN3": 0.7335,
     "EN4": 0.759,
-    "BASE-HGB": 0.7734
+    "BASE-HGB": 0.7734,
+    "BASE-HGB-TUNED": 0.7653
    },
    "best": {
     "model": "TR3",
@@ -4769,7 +4908,8 @@
     "NN2": -0.0717,
     "EN3": 0.849,
     "EN4": 0.8535,
-    "BASE-HGB": 0.8585
+    "BASE-HGB": 0.8585,
+    "BASE-HGB-TUNED": 0.8735
    },
    "best": {
     "model": "EN2",
@@ -4822,7 +4962,8 @@
     "NN2": 0.8335,
     "EN3": 0.897,
     "EN4": 0.8926,
-    "BASE-HGB": 0.8999
+    "BASE-HGB": 0.8999,
+    "BASE-HGB-TUNED": 0.9088
    },
    "best": {
     "model": "EN2",
@@ -4875,7 +5016,8 @@
     "NN2": 0.1998,
     "EN3": 0.7685,
     "EN4": 0.8567,
-    "BASE-HGB": 0.8505
+    "BASE-HGB": 0.8505,
+    "BASE-HGB-TUNED": 0.848
    },
    "best": {
     "model": "EN2",
@@ -4928,7 +5070,8 @@
     "NN2": -0.0084,
     "EN3": 0.7454,
     "EN4": 0.8379,
-    "BASE-HGB": 0.8414
+    "BASE-HGB": 0.8414,
+    "BASE-HGB-TUNED": 0.8305
    },
    "best": {
     "model": "BASE-HGB",
@@ -4981,7 +5124,8 @@
     "NN2": 0.9198,
     "EN3": 0.8558,
     "EN4": 0.8937,
-    "BASE-HGB": 0.8957
+    "BASE-HGB": 0.8957,
+    "BASE-HGB-TUNED": 0.9022
    },
    "best": {
     "model": "SV2",
@@ -5034,7 +5178,8 @@
     "NN2": 0.5635,
     "EN3": 0.752,
     "EN4": 0.8459,
-    "BASE-HGB": 0.845
+    "BASE-HGB": 0.845,
+    "BASE-HGB-TUNED": 0.8578
    },
    "best": {
     "model": "EN2",
@@ -5087,7 +5232,8 @@
     "NN2": 0.5845,
     "EN3": 0.6711,
     "EN4": 0.7957,
-    "BASE-HGB": 0.7911
+    "BASE-HGB": 0.7911,
+    "BASE-HGB-TUNED": 0.8152
    },
    "best": {
     "model": "EN4",
@@ -5140,7 +5286,8 @@
     "NN2": 0.8751,
     "EN3": 0.8011,
     "EN4": 0.8797,
-    "BASE-HGB": 0.8714
+    "BASE-HGB": 0.8714,
+    "BASE-HGB-TUNED": 0.8786
    },
    "best": {
     "model": "EN4",
@@ -5193,7 +5340,8 @@
     "NN2": 0.361,
     "EN3": 0.8408,
     "EN4": 0.8491,
-    "BASE-HGB": 0.8574
+    "BASE-HGB": 0.8574,
+    "BASE-HGB-TUNED": 0.8661
    },
    "best": {
     "model": "TR3",
@@ -5246,7 +5394,8 @@
     "NN2": -0.2071,
     "EN3": 0.7314,
     "EN4": 0.7611,
-    "BASE-HGB": 0.7578
+    "BASE-HGB": 0.7578,
+    "BASE-HGB-TUNED": 0.7943
    },
    "best": {
     "model": "EN2",
@@ -5299,7 +5448,8 @@
     "NN2": 0.5758,
     "EN3": 0.4711,
     "EN4": 0.4546,
-    "BASE-HGB": 0.4509
+    "BASE-HGB": 0.4509,
+    "BASE-HGB-TUNED": 0.5302
    },
    "best": {
     "model": "LM6",
@@ -5352,7 +5502,8 @@
     "NN2": -171.834,
     "EN3": 0.9699,
     "EN4": 0.9697,
-    "BASE-HGB": 0.968
+    "BASE-HGB": 0.968,
+    "BASE-HGB-TUNED": 0.9748
    },
    "best": {
     "model": "TR3",
@@ -5405,7 +5556,8 @@
     "NN2": 0.683,
     "EN3": 0.7951,
     "EN4": 0.7991,
-    "BASE-HGB": 0.8051
+    "BASE-HGB": 0.8051,
+    "BASE-HGB-TUNED": 0.782
    },
    "best": {
     "model": "LM4",
@@ -5458,7 +5610,8 @@
     "NN2": -1.8627,
     "EN3": 0.6251,
     "EN4": 0.7503,
-    "BASE-HGB": 0.7493
+    "BASE-HGB": 0.7493,
+    "BASE-HGB-TUNED": 0.7543
    },
    "best": {
     "model": "LM6",
@@ -5509,7 +5662,8 @@
     "NN2": 0.637,
     "EN3": 0.5554,
     "EN4": 0.5826,
-    "BASE-HGB": 0.5752
+    "BASE-HGB": 0.5752,
+    "BASE-HGB-TUNED": 0.5925
    },
    "best": {
     "model": "SV1",
@@ -5560,7 +5714,8 @@
     "NN2": 0.5912,
     "EN3": 0.588,
     "EN4": 0.5879,
-    "BASE-HGB": 0.6113
+    "BASE-HGB": 0.6113,
+    "BASE-HGB-TUNED": 0.6079
    },
    "best": {
     "model": "EN6",
@@ -5611,7 +5766,8 @@
     "NN2": 1.0,
     "EN3": 1.0,
     "EN4": 1.0,
-    "BASE-HGB": 1.0
+    "BASE-HGB": 1.0,
+    "BASE-HGB-TUNED": 1.0
    },
    "best": {
     "model": "TR2",
@@ -5662,7 +5818,8 @@
     "NN2": 0.5717,
     "EN3": 0.6869,
     "EN4": 0.6543,
-    "BASE-HGB": 0.5028
+    "BASE-HGB": 0.5028,
+    "BASE-HGB-TUNED": 0.6252
    },
    "best": {
     "model": "TR1",
@@ -5713,7 +5870,8 @@
     "NN2": 0.4977,
     "EN3": 0.6541,
     "EN4": 0.5921,
-    "BASE-HGB": 0.5754
+    "BASE-HGB": 0.5754,
+    "BASE-HGB-TUNED": 0.6331
    },
    "best": {
     "model": "TR1",
@@ -5764,7 +5922,8 @@
     "NN2": 0.684,
     "EN3": 0.8767,
     "EN4": 0.8912,
-    "BASE-HGB": 0.8696
+    "BASE-HGB": 0.8696,
+    "BASE-HGB-TUNED": 0.7462
    },
    "best": {
     "model": "EN2",
@@ -5815,7 +5974,8 @@
     "NN2": 0.5868,
     "EN3": 0.7348,
     "EN4": 0.7362,
-    "BASE-HGB": 0.7441
+    "BASE-HGB": 0.7441,
+    "BASE-HGB-TUNED": 0.7298
    },
    "best": {
     "model": "DR4",
@@ -5866,7 +6026,8 @@
     "NN2": 0.9929,
     "EN3": 0.9702,
     "EN4": 0.9764,
-    "BASE-HGB": 0.9855
+    "BASE-HGB": 0.9855,
+    "BASE-HGB-TUNED": 0.9969
    },
    "best": {
     "model": "LM2",
@@ -5917,7 +6078,8 @@
     "NN2": 0.2042,
     "EN3": 0.2053,
     "EN4": 0.2078,
-    "BASE-HGB": 0.2147
+    "BASE-HGB": 0.2147,
+    "BASE-HGB-TUNED": 0.2056
    },
    "best": {
     "model": "EN7",
@@ -5968,7 +6130,8 @@
     "NN2": 0.2,
     "EN3": 0.3625,
     "EN4": 0.3875,
-    "BASE-HGB": 0.365
+    "BASE-HGB": 0.365,
+    "BASE-HGB-TUNED": 0.39
    },
    "best": {
     "model": "EN6",
@@ -6019,7 +6182,8 @@
     "NN2": 0.9168,
     "EN3": 0.9439,
     "EN4": 0.9689,
-    "BASE-HGB": 0.8959
+    "BASE-HGB": 0.8959,
+    "BASE-HGB-TUNED": 0.973
    },
    "best": {
     "model": "EN1",
@@ -6070,7 +6234,8 @@
     "NN2": 0.9251,
     "EN3": 0.9777,
     "EN4": 0.9831,
-    "BASE-HGB": 0.9817
+    "BASE-HGB": 0.9817,
+    "BASE-HGB-TUNED": 0.935
    },
    "best": {
     "model": "TR1",
@@ -6123,7 +6288,8 @@
     "NN2": -2.5874,
     "EN3": 0.9009,
     "EN4": 0.8738,
-    "BASE-HGB": 0.8689
+    "BASE-HGB": 0.8689,
+    "BASE-HGB-TUNED": 0.9055
    },
    "best": {
     "model": "EN2",
@@ -6174,7 +6340,8 @@
     "NN2": 1.0,
     "EN3": 0.6915,
     "EN4": 0.6768,
-    "BASE-HGB": 0.6599
+    "BASE-HGB": 0.6599,
+    "BASE-HGB-TUNED": 0.7563
    },
    "best": {
     "model": "NN2",
@@ -6225,7 +6392,8 @@
     "NN2": 0.899,
     "EN3": 0.8891,
     "EN4": 0.8938,
-    "BASE-HGB": 0.8931
+    "BASE-HGB": 0.8931,
+    "BASE-HGB-TUNED": 0.8991
    },
    "best": {
     "model": "NN2",
@@ -6276,7 +6444,8 @@
     "NN2": 0.8825,
     "EN3": 0.881,
     "EN4": 0.9016,
-    "BASE-HGB": 0.8905
+    "BASE-HGB": 0.8905,
+    "BASE-HGB-TUNED": 0.8926
    },
    "best": {
     "model": "EN4",
@@ -6327,7 +6496,8 @@
     "NN2": 0.6196,
     "EN3": 0.6171,
     "EN4": 0.6055,
-    "BASE-HGB": 0.5962
+    "BASE-HGB": 0.5962,
+    "BASE-HGB-TUNED": 0.61
    },
    "best": {
     "model": "TR2",
@@ -6378,7 +6548,8 @@
     "NN2": 0.9727,
     "EN3": 0.9575,
     "EN4": 0.9588,
-    "BASE-HGB": 0.96
+    "BASE-HGB": 0.96,
+    "BASE-HGB-TUNED": 0.9698
    },
    "best": {
     "model": "LM2",
@@ -6429,7 +6600,8 @@
     "NN2": 0.9618,
     "EN3": 0.9485,
     "EN4": 0.9525,
-    "BASE-HGB": 0.9557
+    "BASE-HGB": 0.9557,
+    "BASE-HGB-TUNED": 0.9536
    },
    "best": {
     "model": "IB1",
@@ -6480,7 +6652,8 @@
     "NN2": 0.5955,
     "EN3": 0.5739,
     "EN4": 0.5825,
-    "BASE-HGB": 0.5998
+    "BASE-HGB": 0.5998,
+    "BASE-HGB-TUNED": 0.5803
    },
    "best": {
     "model": "DR4",
@@ -6531,7 +6704,8 @@
     "NN2": 0.6108,
     "EN3": 0.5865,
     "EN4": 0.5778,
-    "BASE-HGB": 0.5815
+    "BASE-HGB": 0.5815,
+    "BASE-HGB-TUNED": 0.57
    },
    "best": {
     "model": "DR4",
@@ -6582,7 +6756,8 @@
     "NN2": 0.9701,
     "EN3": 0.969,
     "EN4": 0.987,
-    "BASE-HGB": 0.9793
+    "BASE-HGB": 0.9793,
+    "BASE-HGB-TUNED": 0.9838
    },
    "best": {
     "model": "EN4",
@@ -6633,7 +6808,8 @@
     "NN2": 0.7376,
     "EN3": 0.9491,
     "EN4": 0.9508,
-    "BASE-HGB": 0.9701
+    "BASE-HGB": 0.9701,
+    "BASE-HGB-TUNED": 0.9411
    },
    "best": {
     "model": "BASE-HGB",
@@ -6684,7 +6860,8 @@
     "NN2": 0.9943,
     "EN3": 0.9953,
     "EN4": 0.9953,
-    "BASE-HGB": 0.9959
+    "BASE-HGB": 0.9959,
+    "BASE-HGB-TUNED": 0.9962
    },
    "best": {
     "model": "BASE-HGB",
@@ -6735,7 +6912,8 @@
     "NN2": 0.8509,
     "EN3": 0.8558,
     "EN4": 0.8554,
-    "BASE-HGB": 0.8552
+    "BASE-HGB": 0.8552,
+    "BASE-HGB-TUNED": 0.8661
    },
    "best": {
     "model": "EN3",
@@ -6786,7 +6964,8 @@
     "EN3": 0.5528,
     "EN4": 0.5326,
     "NN2": 0.5594,
-    "BASE-HGB": 0.5376
+    "BASE-HGB": 0.5376,
+    "BASE-HGB-TUNED": 0.5367
    },
    "best": {
     "model": "NN2",
@@ -6837,7 +7016,8 @@
     "NN2": 0.654,
     "EN3": 0.9776,
     "EN4": 0.9879,
-    "BASE-HGB": 0.971
+    "BASE-HGB": 0.971,
+    "BASE-HGB-TUNED": 0.9822
    },
    "best": {
     "model": "PR1",
@@ -6888,7 +7068,8 @@
     "NN2": 0.9531,
     "EN3": 0.9453,
     "EN4": 0.9452,
-    "BASE-HGB": 0.9513
+    "BASE-HGB": 0.9513,
+    "BASE-HGB-TUNED": 0.9525
    },
    "best": {
     "model": "EN1",
@@ -6939,7 +7120,8 @@
     "NN2": 0.4869,
     "EN3": 0.4914,
     "EN4": 0.4925,
-    "BASE-HGB": 0.4863
+    "BASE-HGB": 0.4863,
+    "BASE-HGB-TUNED": 0.4894
    },
    "best": {
     "model": "EN7",
@@ -6990,7 +7172,8 @@
     "NN2": 0.8447,
     "EN3": 0.8574,
     "EN4": 0.8549,
-    "BASE-HGB": 0.8594
+    "BASE-HGB": 0.8594,
+    "BASE-HGB-TUNED": 0.8648
    },
    "best": {
     "model": "TR2",
@@ -7041,7 +7224,8 @@
     "NN2": 0.6729,
     "EN3": 0.6786,
     "EN4": 0.6883,
-    "BASE-HGB": 0.6688
+    "BASE-HGB": 0.6688,
+    "BASE-HGB-TUNED": 0.6757
    },
    "best": {
     "model": "PR1",
@@ -7092,7 +7276,8 @@
     "NN2": 0.9674,
     "EN3": 0.9583,
     "EN4": 0.9472,
-    "BASE-HGB": 0.9588
+    "BASE-HGB": 0.9588,
+    "BASE-HGB-TUNED": 0.9607
    },
    "best": {
     "model": "EN7",
@@ -7143,7 +7328,8 @@
     "NN2": 0.5926,
     "EN3": 0.7084,
     "EN4": 0.7416,
-    "BASE-HGB": 0.732
+    "BASE-HGB": 0.732,
+    "BASE-HGB-TUNED": 0.7595
    },
    "best": {
     "model": "EN4",
@@ -7194,7 +7380,8 @@
     "NN2": 0.8309,
     "EN3": 0.8132,
     "EN4": 0.8064,
-    "BASE-HGB": 0.8047
+    "BASE-HGB": 0.8047,
+    "BASE-HGB-TUNED": 0.7835
    },
    "best": {
     "model": "DR4",
@@ -7247,7 +7434,8 @@
     "NN2": 0.6425,
     "EN3": 0.99,
     "EN4": 0.9405,
-    "BASE-HGB": 0.9443
+    "BASE-HGB": 0.9443,
+    "BASE-HGB-TUNED": 0.998
    },
    "best": {
     "model": "TR3",
@@ -7300,7 +7488,8 @@
     "NN2": 0.5727,
     "EN3": 0.9603,
     "EN4": 0.6797,
-    "BASE-HGB": 0.68
+    "BASE-HGB": 0.68,
+    "BASE-HGB-TUNED": 0.9954
    },
    "best": {
     "model": "TR3",
@@ -7351,7 +7540,8 @@
     "NN2": 0.571,
     "EN3": 0.547,
     "EN4": 0.5557,
-    "BASE-HGB": 0.5413
+    "BASE-HGB": 0.5413,
+    "BASE-HGB-TUNED": 0.5663
    },
    "best": {
     "model": "SV2",
@@ -7402,7 +7592,8 @@
     "NN2": 0.7806,
     "EN3": 0.7906,
     "EN4": 0.8112,
-    "BASE-HGB": 0.8066
+    "BASE-HGB": 0.8066,
+    "BASE-HGB-TUNED": 0.7943
    },
    "best": {
     "model": "LM2",
@@ -7453,7 +7644,8 @@
     "NN2": 0.7794,
     "EN3": 0.7688,
     "EN4": 0.7888,
-    "BASE-HGB": 0.7715
+    "BASE-HGB": 0.7715,
+    "BASE-HGB-TUNED": 0.7701
    },
    "best": {
     "model": "EN6",
@@ -7504,7 +7696,8 @@
     "NN2": 0.5794,
     "EN3": 0.5583,
     "EN4": 0.5519,
-    "BASE-HGB": 0.5475
+    "BASE-HGB": 0.5475,
+    "BASE-HGB-TUNED": 0.5705
    },
    "best": {
     "model": "PR1",
@@ -7555,7 +7748,8 @@
     "NN2": 0.3542,
     "EN3": 0.3498,
     "EN4": 0.3568,
-    "BASE-HGB": 0.344
+    "BASE-HGB": 0.344,
+    "BASE-HGB-TUNED": 0.3561
    },
    "best": {
     "model": "PR1",
@@ -7606,7 +7800,8 @@
     "NN2": 0.5712,
     "EN3": 0.5859,
     "EN4": 0.5726,
-    "BASE-HGB": 0.6185
+    "BASE-HGB": 0.6185,
+    "BASE-HGB-TUNED": 0.5759
    },
    "best": {
     "model": "BASE-HGB",
@@ -7657,7 +7852,8 @@
     "NN2": 0.7087,
     "EN3": 0.7216,
     "EN4": 0.7248,
-    "BASE-HGB": 0.7306
+    "BASE-HGB": 0.7306,
+    "BASE-HGB-TUNED": 0.725
    },
    "best": {
     "model": "PR1",
@@ -7708,7 +7904,8 @@
     "NN2": 0.8265,
     "EN3": 0.8722,
     "EN4": 0.8801,
-    "BASE-HGB": 0.8869
+    "BASE-HGB": 0.8869,
+    "BASE-HGB-TUNED": 0.8966
    },
    "best": {
     "model": "BASE-HGB",
@@ -7759,7 +7956,8 @@
     "NN2": 0.8932,
     "EN3": 0.9085,
     "EN4": 0.9193,
-    "BASE-HGB": 0.9191
+    "BASE-HGB": 0.9191,
+    "BASE-HGB-TUNED": 0.9254
    },
    "best": {
     "model": "EN2",
@@ -7810,7 +8008,8 @@
     "NN2": 1.0,
     "EN3": 0.9852,
     "EN4": 0.9834,
-    "BASE-HGB": 0.9833
+    "BASE-HGB": 0.9833,
+    "BASE-HGB-TUNED": 0.9915
    },
    "best": {
     "model": "LM2",
@@ -7861,7 +8060,8 @@
     "NN2": 0.9918,
     "EN3": 0.993,
     "EN4": 0.993,
-    "BASE-HGB": 0.9927
+    "BASE-HGB": 0.9927,
+    "BASE-HGB-TUNED": 0.9931
    },
    "best": {
     "model": "TR1",
@@ -7912,7 +8112,8 @@
     "NN2": 0.6494,
     "EN3": 0.6854,
     "EN4": 0.6942,
-    "BASE-HGB": 0.6979
+    "BASE-HGB": 0.6979,
+    "BASE-HGB-TUNED": 0.71
    },
    "best": {
     "model": "DR4",
@@ -7963,7 +8164,8 @@
     "NN2": 0.7257,
     "EN3": 0.7244,
     "EN4": 0.7282,
-    "BASE-HGB": 0.7238
+    "BASE-HGB": 0.7238,
+    "BASE-HGB-TUNED": 0.7272
    },
    "best": {
     "model": "EN7",
@@ -8013,7 +8215,8 @@
     "NN2": 0.9007,
     "EN3": 0.9021,
     "EN4": 0.9144,
-    "BASE-HGB": 0.9169
+    "BASE-HGB": 0.9169,
+    "BASE-HGB-TUNED": 0.9163
    },
    "best": {
     "model": "TR3",
@@ -8064,7 +8267,8 @@
     "NN2": 0.8385,
     "EN3": 0.8344,
     "EN4": 0.8408,
-    "BASE-HGB": 0.8378
+    "BASE-HGB": 0.8378,
+    "BASE-HGB-TUNED": 0.8417
    },
    "best": {
     "model": "TR2",
@@ -8114,7 +8318,8 @@
     "NN2": 0.829,
     "EN3": 0.828,
     "EN4": 0.8445,
-    "BASE-HGB": 0.846
+    "BASE-HGB": 0.846,
+    "BASE-HGB-TUNED": 0.838
    },
    "best": {
     "model": "BASE-HGB",
@@ -8164,7 +8369,8 @@
     "NN2": 0.96,
     "EN3": 0.951,
     "EN4": 0.963,
-    "BASE-HGB": 0.959
+    "BASE-HGB": 0.959,
+    "BASE-HGB-TUNED": 0.9635
    },
    "best": {
     "model": "SV2",
@@ -8215,7 +8421,8 @@
     "NN2": 0.7495,
     "EN3": 0.7005,
     "EN4": 0.6865,
-    "BASE-HGB": 0.6955
+    "BASE-HGB": 0.6955,
+    "BASE-HGB-TUNED": 0.696
    },
    "best": {
     "model": "EN6",
@@ -8265,7 +8472,8 @@
     "NN2": 0.8098,
     "EN3": 0.7837,
     "EN4": 0.7917,
-    "BASE-HGB": 0.7912
+    "BASE-HGB": 0.7912,
+    "BASE-HGB-TUNED": 0.797
    },
    "best": {
     "model": "EN6",
@@ -8316,7 +8524,8 @@
     "NN2": 1.0,
     "EN3": 1.0,
     "EN4": 1.0,
-    "BASE-HGB": 1.0
+    "BASE-HGB": 1.0,
+    "BASE-HGB-TUNED": 1.0
    },
    "best": {
     "model": "LM2",
@@ -8367,7 +8576,8 @@
     "NN2": 1.0,
     "EN3": 1.0,
     "EN4": 1.0,
-    "BASE-HGB": 1.0
+    "BASE-HGB": 1.0,
+    "BASE-HGB-TUNED": 1.0
    },
    "best": {
     "model": "TR2",
@@ -8418,7 +8628,8 @@
     "NN2": 1.0,
     "EN3": 0.9669,
     "EN4": 0.8789,
-    "BASE-HGB": 0.9194
+    "BASE-HGB": 0.9194,
+    "BASE-HGB-TUNED": 0.9814
    },
    "best": {
     "model": "NN2",
@@ -8469,7 +8680,8 @@
     "NN2": 0.9836,
     "EN3": 0.9802,
     "EN4": 0.9766,
-    "BASE-HGB": 0.9766
+    "BASE-HGB": 0.9766,
+    "BASE-HGB-TUNED": 0.9819
    },
    "best": {
     "model": "EN6",
@@ -8520,7 +8732,8 @@
     "NN2": 0.854,
     "EN3": 0.7422,
     "EN4": 0.7647,
-    "BASE-HGB": 0.7664
+    "BASE-HGB": 0.7664,
+    "BASE-HGB-TUNED": 0.7833
    },
    "best": {
     "model": "NN2",
@@ -8571,7 +8784,8 @@
     "NN2": 1.0,
     "EN3": 1.0,
     "EN4": 1.0,
-    "BASE-HGB": 1.0
+    "BASE-HGB": 1.0,
+    "BASE-HGB-TUNED": 1.0
    },
    "best": {
     "model": "TR1",
@@ -8622,7 +8836,8 @@
     "NN2": 0.9203,
     "EN3": 0.9063,
     "EN4": 0.907,
-    "BASE-HGB": 0.8981
+    "BASE-HGB": 0.8981,
+    "BASE-HGB-TUNED": 0.8959
    },
    "best": {
     "model": "PR1",
@@ -8675,7 +8890,8 @@
     "NN2": 0.8136,
     "EN3": 0.9975,
     "EN4": 0.9933,
-    "BASE-HGB": 0.9937
+    "BASE-HGB": 0.9937,
+    "BASE-HGB-TUNED": 0.9972
    },
    "best": {
     "model": "TR3",
@@ -8728,7 +8944,8 @@
     "NN2": 0.6996,
     "EN3": 0.9536,
     "EN4": 0.9052,
-    "BASE-HGB": 0.9119
+    "BASE-HGB": 0.9119,
+    "BASE-HGB-TUNED": 0.9649
    },
    "best": {
     "model": "EN6",
@@ -8779,7 +8996,8 @@
     "NN2": 0.9907,
     "EN3": 0.9881,
     "EN4": 0.9972,
-    "BASE-HGB": 0.9951
+    "BASE-HGB": 0.9951,
+    "BASE-HGB-TUNED": 0.9978
    },
    "best": {
     "model": "EN4",
@@ -8829,7 +9047,8 @@
     "EN3": 0.9761,
     "NN2": 0.9827,
     "EN4": 0.9801,
-    "BASE-HGB": 0.9811
+    "BASE-HGB": 0.9811,
+    "BASE-HGB-TUNED": 0.9829
    },
    "best": {
     "model": "EN6",
@@ -8880,7 +9099,8 @@
     "NN2": 0.8166,
     "EN3": 0.8314,
     "EN4": 0.8185,
-    "BASE-HGB": 0.8158
+    "BASE-HGB": 0.8158,
+    "BASE-HGB-TUNED": 0.8073
    },
    "best": {
     "model": "TR2",
@@ -8931,7 +9151,8 @@
     "NN2": 1.0,
     "EN3": 0.9976,
     "EN4": 0.9528,
-    "BASE-HGB": 0.9691
+    "BASE-HGB": 0.9691,
+    "BASE-HGB-TUNED": 1.0
    },
    "best": {
     "model": "NN2",
@@ -8982,7 +9203,8 @@
     "NN2": 0.9911,
     "EN3": 0.9852,
     "EN4": 0.9887,
-    "BASE-HGB": 0.9875
+    "BASE-HGB": 0.9875,
+    "BASE-HGB-TUNED": 0.9878
    },
    "best": {
     "model": "SV2",
@@ -9033,7 +9255,8 @@
     "NN2": 0.9973,
     "EN3": 0.9805,
     "EN4": 0.9881,
-    "BASE-HGB": 0.983
+    "BASE-HGB": 0.983,
+    "BASE-HGB-TUNED": 0.9831
    },
    "best": {
     "model": "NN2",
@@ -9084,7 +9307,8 @@
     "NN2": 0.8268,
     "EN3": 0.8657,
     "EN4": 0.8683,
-    "BASE-HGB": 0.8681
+    "BASE-HGB": 0.8681,
+    "BASE-HGB-TUNED": 0.8735
    },
    "best": {
     "model": "TR3",
@@ -9135,7 +9359,8 @@
     "NN2": 0.995,
     "EN3": 0.95,
     "EN4": 0.95,
-    "BASE-HGB": 0.895
+    "BASE-HGB": 0.895,
+    "BASE-HGB-TUNED": 0.955
    },
    "best": {
     "model": "DR4",
@@ -9186,7 +9411,8 @@
     "NN2": 0.86,
     "EN3": 0.836,
     "EN4": 0.852,
-    "BASE-HGB": 0.848
+    "BASE-HGB": 0.848,
+    "BASE-HGB-TUNED": 0.852
    },
    "best": {
     "model": "LM2",
@@ -9237,7 +9463,8 @@
     "NN2": 0.5715,
     "EN3": 0.5736,
     "EN4": 0.5457,
-    "BASE-HGB": 0.5691
+    "BASE-HGB": 0.5691,
+    "BASE-HGB-TUNED": 0.548
    },
    "best": {
     "model": "NN1",
@@ -9288,7 +9515,8 @@
     "NN2": 0.9646,
     "EN3": 0.9635,
     "EN4": 0.9666,
-    "BASE-HGB": 0.9696
+    "BASE-HGB": 0.9696,
+    "BASE-HGB-TUNED": 0.9716
    },
    "best": {
     "model": "PR1",
@@ -9339,7 +9567,8 @@
     "NN2": 0.6237,
     "EN3": 0.6094,
     "EN4": 0.6319,
-    "BASE-HGB": 0.6173
+    "BASE-HGB": 0.6173,
+    "BASE-HGB-TUNED": 0.5921
    },
    "best": {
     "model": "LM2",
@@ -9390,7 +9619,8 @@
     "NN2": 0.889,
     "EN3": 0.8895,
     "EN4": 0.894,
-    "BASE-HGB": 0.8966
+    "BASE-HGB": 0.8966,
+    "BASE-HGB-TUNED": 0.9001
    },
    "best": {
     "model": "BASE-HGB",
@@ -9441,7 +9671,8 @@
     "NN2": 0.3663,
     "EN3": 0.373,
     "EN4": 0.3852,
-    "BASE-HGB": 0.376
+    "BASE-HGB": 0.376,
+    "BASE-HGB-TUNED": 0.3954
    },
    "best": {
     "model": "PR1",
@@ -9492,7 +9723,8 @@
     "NN2": 0.9753,
     "EN3": 0.9823,
     "EN4": 0.9823,
-    "BASE-HGB": 0.984
+    "BASE-HGB": 0.984,
+    "BASE-HGB-TUNED": 0.9835
    },
    "best": {
     "model": "BASE-HGB",
@@ -9545,7 +9777,8 @@
     "NN2": -0.2133,
     "EN3": -0.383,
     "EN4": 0.0025,
-    "BASE-HGB": 0.0024
+    "BASE-HGB": 0.0024,
+    "BASE-HGB-TUNED": 0.041
    },
    "best": {
     "model": "LM7",
@@ -9596,7 +9829,8 @@
     "NN2": 0.8487,
     "EN3": 0.8393,
     "EN4": 0.8534,
-    "BASE-HGB": 0.8527
+    "BASE-HGB": 0.8527,
+    "BASE-HGB-TUNED": 0.8928
    },
    "best": {
     "model": "EN4",
@@ -9647,7 +9881,8 @@
     "NN2": 0.9485,
     "EN3": 0.9564,
     "EN4": 0.9571,
-    "BASE-HGB": 0.9611
+    "BASE-HGB": 0.9611,
+    "BASE-HGB-TUNED": 0.9623
    },
    "best": {
     "model": "PR1",
@@ -9698,7 +9933,8 @@
     "NN2": 0.9416,
     "EN3": 0.952,
     "EN4": 0.9551,
-    "BASE-HGB": 0.9534
+    "BASE-HGB": 0.9534,
+    "BASE-HGB-TUNED": 0.9547
    },
    "best": {
     "model": "EN4",
@@ -9749,7 +9985,8 @@
     "NN2": 0.7282,
     "EN3": 0.6983,
     "EN4": 0.6916,
-    "BASE-HGB": 0.7027
+    "BASE-HGB": 0.7027,
+    "BASE-HGB-TUNED": 0.7074
    },
    "best": {
     "model": "NN2",
@@ -9800,7 +10037,8 @@
     "NN2": 0.8877,
     "EN3": 0.9073,
     "EN4": 0.8929,
-    "BASE-HGB": 0.8969
+    "BASE-HGB": 0.8969,
+    "BASE-HGB-TUNED": 0.8988
    },
    "best": {
     "model": "EN3",
@@ -9851,7 +10089,8 @@
     "NN2": 0.9523,
     "EN3": 0.9645,
     "EN4": 0.9627,
-    "BASE-HGB": 0.9643
+    "BASE-HGB": 0.9643,
+    "BASE-HGB-TUNED": 0.9665
    },
    "best": {
     "model": "EN3",
@@ -9904,7 +10143,8 @@
     "NN2": 0.9978,
     "EN3": 0.9972,
     "EN4": 0.9785,
-    "BASE-HGB": 0.9762
+    "BASE-HGB": 0.9762,
+    "BASE-HGB-TUNED": 0.9976
    },
    "best": {
     "model": "TR3",
@@ -9957,7 +10197,8 @@
     "NN2": 0.9937,
     "EN3": 0.9923,
     "EN4": 0.9833,
-    "BASE-HGB": 0.9837
+    "BASE-HGB": 0.9837,
+    "BASE-HGB-TUNED": 0.9944
    },
    "best": {
     "model": "LM6",
@@ -10010,7 +10251,8 @@
     "NN2": 0.7982,
     "EN3": 0.9693,
     "EN4": 0.9565,
-    "BASE-HGB": 0.9629
+    "BASE-HGB": 0.9629,
+    "BASE-HGB-TUNED": 0.985
    },
    "best": {
     "model": "EN2",
@@ -10063,7 +10305,8 @@
     "NN2": 0.8245,
     "EN3": 0.8314,
     "EN4": 0.804,
-    "BASE-HGB": 0.9373
+    "BASE-HGB": 0.9373,
+    "BASE-HGB-TUNED": 0.9842
    },
    "best": {
     "model": "TR3",
@@ -10116,7 +10359,8 @@
     "NN2": 0.1133,
     "EN3": 0.9571,
     "EN4": 0.9292,
-    "BASE-HGB": 0.9352
+    "BASE-HGB": 0.9352,
+    "BASE-HGB-TUNED": 0.9548
    },
    "best": {
     "model": "TR3",
@@ -10169,7 +10413,8 @@
     "NN2": 0.7951,
     "EN3": 0.9291,
     "EN4": 0.8921,
-    "BASE-HGB": 0.8888
+    "BASE-HGB": 0.8888,
+    "BASE-HGB-TUNED": 0.9217
    },
    "best": {
     "model": "TR3",
@@ -10222,7 +10467,8 @@
     "NN2": -0.6323,
     "EN3": -5.8072,
     "EN4": -9.3359,
-    "BASE-HGB": -6.7168
+    "BASE-HGB": -6.7168,
+    "BASE-HGB-TUNED": -3.4299
    },
    "best": {
     "model": "LM6",
@@ -10275,7 +10521,8 @@
     "NN2": 0.8114,
     "EN3": 0.7152,
     "EN4": -2.6217,
-    "BASE-HGB": -2.0182
+    "BASE-HGB": -2.0182,
+    "BASE-HGB-TUNED": 0.505
    },
    "best": {
     "model": "LM6",
@@ -10328,7 +10575,8 @@
     "NN2": 0.9865,
     "EN3": 0.9027,
     "EN4": 0.5293,
-    "BASE-HGB": 0.5315
+    "BASE-HGB": 0.5315,
+    "BASE-HGB-TUNED": 0.7433
    },
    "best": {
     "model": "NN2",
@@ -10381,7 +10629,8 @@
     "NN2": 0.9899,
     "EN3": 0.9904,
     "EN4": 0.9861,
-    "BASE-HGB": 0.9869
+    "BASE-HGB": 0.9869,
+    "BASE-HGB-TUNED": 0.9904
    },
    "best": {
     "model": "TR3",
@@ -10434,7 +10683,8 @@
     "NN2": 0.6245,
     "EN3": 0.8607,
     "EN4": 0.7465,
-    "BASE-HGB": 0.7409
+    "BASE-HGB": 0.7409,
+    "BASE-HGB-TUNED": 0.8455
    },
    "best": {
     "model": "TR3",
@@ -10487,7 +10737,8 @@
     "NN2": 0.4201,
     "EN3": 0.9695,
     "EN4": 0.9131,
-    "BASE-HGB": 0.9225
+    "BASE-HGB": 0.9225,
+    "BASE-HGB-TUNED": 0.915
    },
    "best": {
     "model": "TR3",
@@ -10540,7 +10791,8 @@
     "NN2": 0.9282,
     "EN3": 0.9168,
     "EN4": 0.7725,
-    "BASE-HGB": 0.7719
+    "BASE-HGB": 0.7719,
+    "BASE-HGB-TUNED": 0.9181
    },
    "best": {
     "model": "TR3",
@@ -10593,7 +10845,8 @@
     "NN2": 0.9694,
     "EN3": 0.9994,
     "EN4": 0.998,
-    "BASE-HGB": 0.9983
+    "BASE-HGB": 0.9983,
+    "BASE-HGB-TUNED": 0.9998
    },
    "best": {
     "model": "LM1",
@@ -10643,7 +10896,8 @@
     "NN2": 0.9974,
     "EN3": 0.9818,
     "EN4": 0.9848,
-    "BASE-HGB": 0.9862
+    "BASE-HGB": 0.9862,
+    "BASE-HGB-TUNED": 0.9884
    },
    "best": {
     "model": "NN2",
@@ -10694,7 +10948,8 @@
     "NN2": 0.9945,
     "EN3": 0.9963,
     "EN4": 1.0,
-    "BASE-HGB": 1.0
+    "BASE-HGB": 1.0,
+    "BASE-HGB-TUNED": 1.0
    },
    "best": {
     "model": "EN2",
@@ -10745,7 +11000,8 @@
     "NN2": 0.977,
     "EN3": 0.9814,
     "EN4": 0.9862,
-    "BASE-HGB": 0.9836
+    "BASE-HGB": 0.9836,
+    "BASE-HGB-TUNED": 0.994
    },
    "best": {
     "model": "TR3",
@@ -10796,7 +11052,8 @@
     "NN2": 0.7292,
     "EN3": 0.7462,
     "EN4": 0.7479,
-    "BASE-HGB": 0.7549
+    "BASE-HGB": 0.7549,
+    "BASE-HGB-TUNED": 0.7536
    },
    "best": {
     "model": "BASE-HGB",
@@ -10847,7 +11104,8 @@
     "NN2": 0.9058,
     "EN3": 0.9252,
     "EN4": 0.9278,
-    "BASE-HGB": 0.9208
+    "BASE-HGB": 0.9208,
+    "BASE-HGB-TUNED": 0.9239
    },
    "best": {
     "model": "TR3",
@@ -10898,7 +11156,8 @@
     "NN2": 0.9702,
     "EN3": 0.9696,
     "EN4": 0.9704,
-    "BASE-HGB": 0.9712
+    "BASE-HGB": 0.9712,
+    "BASE-HGB-TUNED": 0.9728
    },
    "best": {
     "model": "PR1",
@@ -10949,7 +11208,8 @@
     "NN2": 0.8548,
     "EN3": 0.7591,
     "EN4": 0.7558,
-    "BASE-HGB": 0.7581
+    "BASE-HGB": 0.7581,
+    "BASE-HGB-TUNED": 0.7719
    },
    "best": {
     "model": "NN2",
@@ -11000,7 +11260,8 @@
     "NN2": 0.9727,
     "EN3": 0.9111,
     "EN4": 0.9455,
-    "BASE-HGB": 0.9525
+    "BASE-HGB": 0.9525,
+    "BASE-HGB-TUNED": 0.9394
    },
    "best": {
     "model": "TR3",
@@ -11051,7 +11312,8 @@
     "NN2": 0.8355,
     "BASE-HGB": 0.8461,
     "EN3": 0.8451,
-    "EN4": 0.8444
+    "EN4": 0.8444,
+    "BASE-HGB-TUNED": 0.8441
    },
    "best": {
     "model": "LM2",
@@ -11102,7 +11364,8 @@
     "NN2": 0.8325,
     "EN3": 0.8495,
     "EN4": 0.8543,
-    "BASE-HGB": 0.8531
+    "BASE-HGB": 0.8531,
+    "BASE-HGB-TUNED": 0.8542
    },
    "best": {
     "model": "SV1",
@@ -11153,7 +11416,8 @@
     "NN2": 0.338,
     "EN3": 0.3566,
     "EN4": 0.3643,
-    "BASE-HGB": 0.355
+    "BASE-HGB": 0.355,
+    "BASE-HGB-TUNED": 0.3604
    },
    "best": {
     "model": "EN4",
@@ -11204,7 +11468,8 @@
     "NN2": 0.2962,
     "EN3": 0.3912,
     "EN4": 0.3875,
-    "BASE-HGB": 0.3871
+    "BASE-HGB": 0.3871,
+    "BASE-HGB-TUNED": 0.3899
    },
    "best": {
     "model": "EN3",
@@ -11255,7 +11520,8 @@
     "NN2": 1.0,
     "EN3": 1.0,
     "EN4": 1.0,
-    "BASE-HGB": 1.0
+    "BASE-HGB": 1.0,
+    "BASE-HGB-TUNED": 1.0
    },
    "best": {
     "model": "TR1",
@@ -11306,7 +11572,8 @@
     "NN2": 0.5177,
     "EN3": 0.5063,
     "EN4": 0.4633,
-    "BASE-HGB": 0.4787
+    "BASE-HGB": 0.4787,
+    "BASE-HGB-TUNED": 0.5229
    },
    "best": {
     "model": "DR4",

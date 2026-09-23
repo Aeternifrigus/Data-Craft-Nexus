@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { buildPage, buildStamp } from '../scripts/build.mjs';
+import { COPIED, buildPage, buildStamp } from '../scripts/build.mjs';
 import { TAXONOMY_FILES } from '../site/js/taxonomy.js';
 
 const page = await buildPage();
@@ -35,6 +35,18 @@ test('nothing inside the page closes a script tag early', () => {
 test('dist/index.html is up to date with site/', () => {
   const committed = fs.readFileSync(new URL('dist/index.html', root), 'utf8');
   assert.ok(committed === page, 'dist/index.html is stale: run `npm run build`');
+});
+
+test('the share image a link preview asks for is published beside the page', () => {
+  const m = page.match(/<meta property="og:image" content="https:\/\/aeternifrigus\.github\.io\/Data-Craft-Nexus\/([^"]+)">/);
+  assert.ok(m, 'og:image is missing or points somewhere other than the live site');
+  assert.ok(COPIED.includes(m[1]), `the build does not copy ${m[1]} into dist/`);
+  const source = fs.readFileSync(new URL(`site/${m[1]}`, root));
+  const built = fs.readFileSync(new URL(`dist/${m[1]}`, root));
+  assert.ok(source.equals(built), `dist/${m[1]} is stale: run \`npm run build\``);
+  // PNG header: width and height, which the page also declares.
+  assert.equal(source.readUInt32BE(16), Number(page.match(/og:image:width" content="(\d+)"/)[1]));
+  assert.equal(source.readUInt32BE(20), Number(page.match(/og:image:height" content="(\d+)"/)[1]));
 });
 
 test('the deployed page names its commit out of sight, for the deploy check', async () => {

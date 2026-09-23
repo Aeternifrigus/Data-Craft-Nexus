@@ -5,7 +5,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseCSV } from '../site/js/csv.js';
 import { profileData } from '../site/js/profile.js';
-import { distance, metaFeatures, nearestDatasets, performanceOn, winnerAmong } from '../site/js/nearest.js';
+import { coverageNotes, distance, metaFeatures, nearestDatasets, performanceOn, quantile, winnerAmong }
+  from '../site/js/nearest.js';
 import { loadTaxonomyFromDisk } from './helpers.js';
 
 const T = loadTaxonomyFromDisk();
@@ -81,4 +82,47 @@ test('how a model did on the neighbours is counted from their recorded scores', 
   const winner = winnerAmong(neighbours);
   assert.ok(winner.wins >= 1 && winner.of === neighbours.length);
   assert.ok(neighbours.some(d => d.best.model === winner.model));
+});
+
+test('what the benchmark covered can be recomputed from the datasets on the page', () => {
+  const ev = T.EVIDENCE;
+  for (const [task, cov] of Object.entries(ev.coverage)) {
+    const rows = ev.datasets.filter(d => d.task === task && d.meta);
+    assert.equal(cov.datasets, rows.length, task);
+    assert.equal(cov.min_rows, Math.min(...rows.map(d => d.rows)), `${task}: smallest dataset`);
+    const nearest = rows.map(d => Math.min(...rows.filter(o => o !== d)
+      .map(o => distance(d.meta, o.meta, ev.meta_features, ev.meta_scale))));
+    assert.ok(Math.abs(quantile(nearest, 0.95) - cov.nearest_p95) < 1e-3,
+      `${task}: page says ${cov.nearest_p95}, datasets give ${quantile(nearest, 0.95)}`);
+  }
+});
+
+test('a tiny upload is told it is outside what was tested', () => {
+  const meta = measure('site/sample.csv', 'delayed');
+  const neighbours = nearestDatasets(T, meta, 'category');
+  const notes = coverageNotes(T, meta, 20, 'category', neighbours);
+  const rows = notes.find(n => n.kind === 'rows');
+  assert.ok(rows, 'twenty rows is below the smallest benchmark dataset');
+  assert.match(rows.text, /20 rows/);
+  assert.match(rows.text, new RegExp(String(T.EVIDENCE.coverage.classification.min_rows)));
+});
+
+test('an upload like a benchmark dataset gets no warning', () => {
+  const d = T.EVIDENCE.datasets.find(x => x.task === 'regression' && x.meta);
+  const neighbours = nearestDatasets(T, d.meta, 'number');
+  assert.equal(neighbours[0].distance, 0, 'it is its own nearest neighbour');
+  assert.deepEqual(coverageNotes(T, d.meta, d.rows, 'number', neighbours), []);
+});
+
+test('an upload far from everything is told so, and a task without a benchmark says nothing', () => {
+  const d = T.EVIDENCE.datasets.find(x => x.task === 'classification' && x.meta);
+  const far = { ...d.meta, log_features: d.meta.log_features + 10, missing_share: 0.9 };
+  const notes = coverageNotes(T, far, d.rows, 'category', nearestDatasets(T, far, 'category'));
+  assert.deepEqual(notes.map(n => n.kind), ['far']);
+  assert.deepEqual(coverageNotes(T, far, 5, 'group', []), []);
+});
+
+test('quantile matches numpy on a small case', () => {
+  assert.equal(quantile([1, 2, 3, 4], 0.5), 2.5);
+  assert.ok(Math.abs(quantile([0, 10], 0.95) - 9.5) < 1e-12);
 });

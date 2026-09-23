@@ -70,6 +70,50 @@ export function nearestDatasets(T, meta, task, limit = 6) {
     .slice(0, limit);
 }
 
+// When an upload is outside what the benchmark tested, say so before the
+// numbers do the talking. Two checks, both against what evidence.py recorded
+// about the benchmark itself (evidence.json, "coverage"):
+//
+//   rows   fewer rows than the smallest dataset tested. Cross-validated scores
+//          on a handful of rows are mostly noise, so nothing measured on
+//          hundreds of rows transfers with any confidence.
+//   far    the nearest benchmark dataset is further away than 95% of the
+//          benchmark datasets are from their own nearest neighbour, so there is
+//          nothing like this upload among the datasets the advice was tested on.
+export function coverageNotes(T, meta, rows, task, neighbours) {
+  const benchTask = task === 'category' ? 'classification' : task === 'number' ? 'regression' : null;
+  const cov = benchTask ? T.EVIDENCE?.coverage?.[benchTask] : null;
+  if (!cov || !meta) return [];
+  const notes = [];
+  if (rows != null && cov.min_rows != null && rows < cov.min_rows) {
+    notes.push({
+      kind: 'rows',
+      text: `Your file has ${rows} rows, and the smallest ${benchTask} dataset the benchmark tested had ${cov.min_rows}. ` +
+        'Scores measured on this few rows are mostly noise, so treat the order below as a starting point, not a measurement.',
+    });
+  }
+  const nearest = neighbours?.[0]?.distance;
+  if (nearest != null && cov.nearest_p95 != null && nearest > cov.nearest_p95) {
+    notes.push({
+      kind: 'far',
+      text: `The closest benchmark dataset is ${nearest.toFixed(2)} away, and 95% of benchmark datasets have a neighbour ` +
+        `within ${cov.nearest_p95.toFixed(2)}. Nothing the benchmark tested is much like your data, so the measured lines ` +
+        'below describe other data more than yours.',
+    });
+  }
+  return notes;
+}
+
+// The 95th percentile the way numpy computes it by default (linear), so the
+// threshold can be recomputed on the page and checked against evidence.json.
+export function quantile(values, q) {
+  const sorted = [...values].sort((a, b) => a - b);
+  if (!sorted.length) return NaN;
+  const pos = (sorted.length - 1) * q;
+  const lo = Math.floor(pos), hi = Math.ceil(pos);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+}
+
 // What a model did on those neighbours: how often it was the best choice
 // there, and how far below the best it typically landed.
 export function performanceOn(neighbours, code) {

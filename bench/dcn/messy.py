@@ -20,7 +20,8 @@ measure again, rank.
 
 It also looks at the datasets in the full run that arrived with missing
 values of their own (natural): whether the order's leave-one-dataset-out
-regret there differs from the rest.
+regret there differs from the rest. And it tests an order that reads data
+quality (quality_order), by the rule that decides which order ships.
 
   python -m dcn.messy --messy results/messy.csv --clean results/full.csv
 """
@@ -39,7 +40,7 @@ from .corrupt import CONDITIONS, damage
 from .models import BASELINE
 from .recommend import load_taxonomy, rank_models
 from .run import TASK_CODE, profile_dataset
-from .significance import bootstrap_ci, by_family, family_of
+from .significance import bootstrap_ci, by_family, family_of, holm, paired
 
 MAX_ROWS = 5000     # the runner's default
 FLAG = {"missing_10": "A62", "missing_30": "A62", "dirty_5": "A64", "labels_10": None}
@@ -208,6 +209,61 @@ def natural(lodo_path: Path, full: pd.DataFrame, chosen_key: str) -> dict | None
     return out
 
 
+def quality_order(messy: pd.DataFrame, clean: pd.DataFrame, taxonomy: dict | None = None) -> dict:
+    """Would an order that reads data quality pick better on damaged data?
+
+    Declared before it was run: for each kind of damage, rank the models by
+    their average percentile rank on the other datasets' damaged runs (a prior
+    fitted on damaged data), and compare its first pick with the fixed order's
+    (the prior fitted on the other datasets' clean runs), leave-one-dataset-out
+    with families held out whole. Both pick among the models the page offered
+    on the damaged file. It would replace the fixed order for a kind of damage
+    by the rule choose() applies to orders: no worse median regret on either
+    task, and better by more than luck on at least one. Label noise cannot be
+    seen in a file, so no order could act on it; it is reported, not decided.
+    """
+    from .learn import build_frame, fit_prior
+    from .models import is_reference
+    taxonomy = taxonomy or load_taxonomy()
+    clean_frame = build_frame(clean, taxonomy)
+    out = {}
+    for condition, runs in messy.groupby("condition"):
+        ok = runs[(runs.status == "ok") & ~runs.model.map(is_reference)].copy()
+        ok["pct"] = ok.groupby(["dataset", "task"]).score.rank(pct=True)
+        rows = []
+        for (dataset, task), group in ok.groupby(["dataset", "task"]):
+            family = family_of(dataset)
+            others = ok[(ok.task == task) & (ok.dataset.map(family_of) != family)]
+            damaged_prior = others.groupby("model").pct.mean()
+            prior = fit_prior(clean_frame[(clean_frame.task == task) & (clean_frame.dataset.map(family_of) != family)])
+            offered = group[group.eligible.astype(str) == "True"]
+            if offered.empty:
+                continue
+            by_model = dict(zip(group.model, group.score))
+            best = group.score.max()
+            fixed = max(offered.model, key=lambda m: prior.get(m, 0.5))
+            quality = max(offered.model, key=lambda m: damaged_prior.get(m, 0.5))
+            rows.append({"dataset": dataset, "task": task, "fixed": best - by_model[fixed],
+                         "quality": best - by_model[quality]})
+        table = pd.DataFrame(rows)
+        tasks, no_worse, tests = {}, True, {}
+        for task, group in table.groupby("task"):
+            units = by_family(group, ["fixed", "quality"])
+            tests[task] = paired(units.quality.to_numpy(), units.fixed.to_numpy())
+            if units.quality.median() > units.fixed.median() + 1e-9:
+                no_worse = False
+            tasks[task] = {"units": int(len(units)), "fixed": round(float(units.fixed.median()), 4),
+                           "quality": round(float(units.quality.median()), 4)}
+        adjusted = holm({task: t["p"] for task, t in tests.items()})
+        better = [task for task, t in tests.items() if adjusted[task] < 0.05 and t["wins"] > t["losses"]]
+        for task, t in tests.items():
+            tasks[task].update(wins=t["wins"], losses=t["losses"], ties=t["ties"],
+                               p_holm=float(f"{adjusted[task]:.4g}"))
+        out[condition] = {"tasks": tasks, "no_worse": no_worse, "better_on": better,
+                          "replaces": bool(no_worse and better and FLAG[condition])}
+    return out
+
+
 def evidence(messy_path: Path, clean_path: Path, taxonomy: dict | None = None,
              picks_cache: Path | None = None) -> dict:
     messy, clean = load(messy_path, clean_path)
@@ -223,6 +279,7 @@ def evidence(messy_path: Path, clean_path: Path, taxonomy: dict | None = None,
     block = analyse(messy, clean, chosen)
     full = pd.read_csv(clean_path)
     block["natural"] = natural(clean_path.parent / "ranking-lodo.csv", full, ranking.get("chosen", "prior"))
+    block["quality_order"] = quality_order(messy, full, taxonomy)
     counts = " and ".join(f"{n} {task}" for task, n in block["datasets"].items())
     block["how"] = (f"{counts} benchmark datasets, damaged on purpose and run again with every model: cells "
                     "blanked at random, junk text in numeric columns, and training labels swapped for other rows' "
@@ -252,6 +309,8 @@ def main(argv=None) -> int:
             print("    least hurt: " + ", ".join(f"{m} {v['median']:.4f}" for m, v in models[:4]))
             print("    most hurt:  " + ", ".join(f"{m} {v['median']:.4f}" for m, v in models[-4:]))
     print(json.dumps(block["natural"], indent=1))
+    for condition, entry in block["quality_order"].items():
+        print(condition, "replaces" if entry["replaces"] else "does not replace", entry["tasks"])
     return 0
 
 

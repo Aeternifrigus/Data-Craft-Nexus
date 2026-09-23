@@ -60,3 +60,23 @@ def test_the_published_block_is_the_committed_run():
         pytest.skip("no messy run committed")
     again = M.evidence(RESULTS / "messy.csv", RESULTS / "full.csv", picks_cache=RESULTS / "messy-picks.csv")
     assert json.loads(json.dumps(again)) == evidence["messy"]
+
+
+def test_an_order_learned_from_damaged_runs_picks_what_survives_the_damage():
+    """Clean, model A is always best; damaged, B is. The quality order learns that from the other datasets."""
+    names = [f"d{i}" for i in range(12)]
+    def frame(condition, a, b):
+        rows = []
+        for i, name in enumerate(names):
+            for model, score in (("LM2", a + 0.001 * i), ("TR1", b + 0.001 * i), ("PR1", 0.5)):
+                rows.append({"dataset": name, "task": "classification", "model": model, "seed": 0,
+                             "condition": condition, "score": score, "status": "ok", "eligible": True,
+                             "signature": "A11 A21 A31 A41 A51 A61", "rows": 500, "features": 5})
+        return pd.DataFrame(rows)
+    clean, damaged = frame("clean", 0.9, 0.8), frame("missing_30", 0.6, 0.7)
+    out = M.quality_order(damaged, clean)["missing_30"]
+    task = out["tasks"]["classification"]
+    assert task["fixed"] == pytest.approx(0.1) and task["quality"] == pytest.approx(0.0)
+    assert task["wins"] == 12 and out["replaces"]
+    # Label noise cannot be seen in a file, so no order could act on it.
+    assert not M.quality_order(frame("labels_10", 0.6, 0.7), clean)["labels_10"]["replaces"]

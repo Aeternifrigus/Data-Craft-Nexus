@@ -166,6 +166,20 @@ function messySection(T) {
       ${num(natural.boosting_regret_complete)}. On ${natural.units} units that is no evidence of a difference either way,
       and these gaps are the ones real files have, not blanked at random.`
     : '';
+  const quality = messy.quality_order;
+  const qualityText = quality
+    ? `Would an order that reads data quality do better? For each kind of damage, one was fitted on the other datasets'
+      damaged runs and compared with the order in use, leave-one-dataset-out, by the rule that decides which order ships.
+      ${(() => {
+        const parts = Object.keys(MESSY_CONDITIONS).filter(c => quality[c]?.tasks?.classification).map(c => {
+          const t = quality[c].tasks.classification;
+          return `${MESSY_CONDITIONS[c].short}: better on ${t.wins}, worse on ${t.losses} classification datasets`;
+        }).join('; ');
+        return parts.charAt(0).toUpperCase() + parts.slice(1);
+      })()}. ${Object.values(quality).some(e => e.replaces)
+        ? 'Where it passed, the page uses it.'
+        : 'It passed nowhere, so a messy file gets the same order as a clean one.'}`
+    : '';
   return `<h3 class="ev-h">When the data is messy</h3>
     <p class="sect-note">${esc(messy.how)} Regret is measured against the best model on the same data, clean or damaged,
       and a model that failed on the damaged data counts as the worst one there. The order in use is a fixed ranking per
@@ -174,6 +188,7 @@ function messySection(T) {
     ${messyTable(messy, 'classification')}
     <div style="height:18px"></div>
     ${messyTable(messy, 'regression')}
+    ${qualityText ? `<p class="sect-note" style="margin-top:14px">${esc(qualityText)}</p>` : ''}
     ${naturalText ? `<p class="sect-note" style="margin-top:14px">${naturalText}</p>` : ''}`;
 }
 

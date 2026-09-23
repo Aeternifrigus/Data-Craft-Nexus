@@ -1199,7 +1199,7 @@ footer .sig{font-size:27px}
   }
 
   // site/js/evidence.js
-  var pct = (x) => `${Math.round(x * 100)}%`;
+  var pct = (x) => `${Math.round(Math.round(x * 1e3) / 10)}%`;
   var num = (x, digits = 3) => x == null || Number.isNaN(x) ? "\u2014" : x.toFixed(digits);
   function evidenceFor(T, code, task) {
     var _a, _b;

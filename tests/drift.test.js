@@ -75,6 +75,11 @@ test('error drift needs labels, like every checker that watches errors', () => {
   assert.match(r.ruledOut.find(d => d.c === 'DR-M8').why, /labels/);
 });
 
+test('a share is rounded from its published decimals, not from a float just below them', () => {
+  const m = { false_alarm: 0.115, caught_mean: 0.565, caught: Object.fromEntries(Object.keys(DRIFT_SCENARIOS).map(s => [s, 1])) };
+  assert.match(driftSentence(m, 18), /caught 57% of the injected drift, and fired on 12% of the windows/);
+});
+
 test('a card says what was caught, and what was not seen at all', () => {
   const m = { false_alarm: 0.02, caught_mean: 0.4,
     caught: { shift: 0.9, scale: 0.6, correlation: 0.05, selection: 1, label_shift: 0.3, concept: 0.02 } };

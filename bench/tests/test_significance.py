@@ -7,7 +7,7 @@ import pytest
 from scipy import stats
 
 from dcn.significance import (average_ranks, bootstrap_ci, cliques, collapse_seeds, critical_difference,
-                              friedman, holm, model_ranking, paired)
+                              friedman, holm, model_ranking, paired, seed_stability)
 
 
 @pytest.mark.parametrize("k,q", [(2, 1.960), (3, 2.343), (4, 2.569), (5, 2.728), (10, 3.164)])
@@ -121,3 +121,24 @@ def test_model_ranking_reports_who_cannot_be_separated_from_the_best():
     assert list(out["ranks"])[-1] == "weak"
     assert "weak" not in out["tied_with_best"]
     assert "close" in out["tied_with_best"]
+
+
+def test_seed_stability_counts_flips_and_changing_winners():
+    rows = []
+    # d1: the same best model under both seeds, and the pick beats the reference both times.
+    # d2: the winner changes with the seed, and so does the pick against the reference.
+    for seed, scores in [(0, {"a": 0.9, "b": 0.8, "BASE-HGB": 0.7}), (1, {"a": 0.91, "b": 0.8, "BASE-HGB": 0.72})]:
+        rows += [{"dataset": "d1", "task": "classification", "model": m, "seed": seed, "score": s, "status": "ok"}
+                 for m, s in scores.items()]
+    for seed, scores in [(0, {"a": 0.9, "b": 0.8, "BASE-HGB": 0.85}), (1, {"a": 0.8, "b": 0.9, "BASE-HGB": 0.85})]:
+        rows += [{"dataset": "d2", "task": "classification", "model": m, "seed": seed, "score": s, "status": "ok"}
+                 for m, s in scores.items()]
+    # d3 ran once, so it says nothing about seeds.
+    rows += [{"dataset": "d3", "task": "classification", "model": "a", "seed": 0, "score": 0.5, "status": "ok"}]
+    picks = pd.DataFrame([{"dataset": "d1", "task": "classification", "prior_model": "a"},
+                          {"dataset": "d2", "task": "classification", "prior_model": "a"}])
+    out = seed_stability(pd.DataFrame(rows), picks, "prior")["classification"]
+    assert out["datasets"] == 2 and out["seeds"] == 2
+    assert out["same_best"] == 0.5
+    assert (out["compared"], out["flips"]) == (2, 1)
+    assert out["score_spread"] > 0

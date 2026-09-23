@@ -6,8 +6,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseCSV } from '../site/js/csv.js';
-import { averageRanks, beyondLuck, boostingVerdict, choiceNote, evidenceFor, evidenceSentence, formatP, rankChart }
-  from '../site/js/evidence.js';
+import { averageRanks, beyondLuck, boostingVerdict, choiceNote, evidenceFor, evidenceSentence, formatP, rankChart,
+  seedsNote } from '../site/js/evidence.js';
 import { loadTaxonomyFromDisk } from './helpers.js';
 
 const T = loadTaxonomyFromDisk();
@@ -167,4 +167,16 @@ test('the page says how the order in use was chosen, and it agrees with ranking.
   for (const [task, entry] of Object.entries(EV.ranking.tasks)) {
     assert.deepEqual(Object.keys(entry.against_chosen).sort(), ['boosting', 'current'], task);
   }
+});
+
+test('what the seeds show is self-consistent, and said in words', () => {
+  for (const [task, s] of Object.entries(EV.seeds ?? {})) {
+    assert.ok(s.seeds >= 2, task);
+    assert.ok(s.flips <= s.compared && s.compared <= s.datasets, task);
+    assert.ok(s.same_best >= 0 && s.same_best <= 1, task);
+  }
+  assert.equal(seedsNote({}), '');
+  const note = seedsNote({ classification: { datasets: 5, seeds: 3, score_spread: 0.01, same_best: 0.6, compared: 4, flips: 1 } });
+  assert.match(note, /5 classification datasets run under 3 seeds/);
+  assert.match(note, /1 of 4/);
 });

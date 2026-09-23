@@ -220,6 +220,22 @@ export function rankChart(block, names) {
   </div>`;
 }
 
+// What the luck of one cross-validation split does, on the datasets that were
+// run under several seeds.
+export function seedsNote(seeds, metrics = {}) {
+  const parts = Object.entries(seeds ?? {}).filter(([, s]) => s.datasets).map(([task, s]) => {
+    const flips = s.compared
+      ? ` The order in use's first pick and boosting swapped places between seeds on ${s.flips} of ${s.compared}.`
+      : '';
+    return `On ${s.datasets} ${task} datasets run under ${s.seeds} seeds, a model's score moved by a median of
+      ${num(s.score_spread)}${metrics[task] ? ` ${metrics[task]}` : ''} from one split to another, and the best model was the
+      same under every seed on ${pct(s.same_best)} of them.${flips}`;
+  });
+  if (!parts.length) return '';
+  return `${parts.join(' ')} That is why every comparison above is made across datasets rather than within one, and why
+    a single dataset's winner is weak evidence on its own.`;
+}
+
 function significanceSection(ev) {
   const blocks = ev.significance;
   if (!blocks) return '';
@@ -316,6 +332,9 @@ export function buildEvidence(T) {
     <p class="sect-note" style="margin-top:14px">${esc(choiceNote(ev.ranking))}</p>` : ''}
 
     ${significanceSection(ev)}
+    ${(() => { const metrics = Object.fromEntries(Object.entries(ev.headline ?? {}).map(([k, v]) => [k, v.metric]));
+      const note = seedsNote(ev.seeds, metrics);
+      return note ? `<h3 class="ev-h">How much is the luck of the split</h3><p class="sect-note">${esc(note)}</p>` : ''; })()}
 
     <h3 class="ev-h">Every model that ran</h3>
     <p class="sect-note">“Was best” counts datasets where this model scored highest of all that ran.

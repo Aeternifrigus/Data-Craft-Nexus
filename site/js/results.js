@@ -7,7 +7,8 @@ import { paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotC
 import { evidenceFor, evidenceSentence } from './evidence.js';
 import { rankingProvenance } from './ranking.js';
 import { coverageNotes, metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
-import { columnRoles, downloadScript, pythonScript, scriptable } from './export.js';
+import { MODEL_CODE, columnRoles, downloadScript, pythonScript, scriptable } from './export.js';
+import { PYODIDE_VERSION, verdict, verifyInBrowser } from './verify.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
@@ -183,18 +184,59 @@ function renderTakeHome(T, sig, task, profile, source, codes) {
     return;
   }
   const names = Object.fromEntries(T.MODELS.map(m => [m.c, m.n]));
+  const script = () => pythonScript({
+    fileName: source?.fileName ?? 'data.csv', read: source?.read, columns: source?.columns ?? profile.columns.map(c => c.name),
+    target: sig.target, task, ordered: sig.codes[1] === 'A22', ...columnRoles(profile, sig.target), shortlist: codes,
+  });
   el.innerHTML = `<p class="takehome-h">Take it home</p>
     <p class="sect-note">A Python script that runs ${run.map(c => esc(names[c] ?? c)).join(', ')} on your whole file,
       with the preprocessing and cross-validation the benchmark used, and tuned boosting beside them: on the benchmark, a
       small tuning budget was worth more than the choice among the top models. It needs pandas and scikit-learn.</p>
-    <button class="run takehome-btn" id="takehome-btn" type="button">Download the script</button>`;
-  document.getElementById('takehome-btn').addEventListener('click', () => {
-    const roles = columnRoles(profile, sig.target);
-    downloadScript(pythonScript({
-      fileName: source?.fileName ?? 'data.csv', read: source?.read, columns: source?.columns ?? profile.columns.map(c => c.name),
-      target: sig.target, task, ordered: sig.codes[1] === 'A22', ...roles, shortlist: codes,
-    }));
-  });
+    <div class="takehome-row">
+      <button class="run takehome-btn" id="takehome-btn" type="button">Download the script</button>
+      ${source?.text ? '<button class="run takehome-btn ghost" id="verify-btn" type="button">Run it here</button>' : ''}
+    </div>
+    ${source?.text ? `<p class="sect-note takehome-fine">“Run it here” runs the same script in this page: it downloads
+      Python (Pyodide ${esc(PYODIDE_VERSION)}, with pandas and scikit-learn, tens of megabytes) from cdn.jsdelivr.net the
+      first time. Your file is not uploaded anywhere; Python runs inside your browser. Tuned boosting alone fits 150
+      models, so on a large file this takes minutes.</p>
+    <div class="verify" id="verify-out" hidden></div>` : ''}`;
+  document.getElementById('takehome-btn').addEventListener('click', () => downloadScript(script()));
+  document.getElementById('verify-btn')?.addEventListener('click', (event) =>
+    runHere(event.currentTarget, script(), source.text, run, codes[0]));
+}
+
+// "Run it here": the script in a Pyodide worker, results as they arrive.
+async function runHere(button, script, csv, run, firstCode) {
+  const out = document.getElementById('verify-out');
+  const rows = [];
+  const needs = run.map(c => MODEL_CODE[c]?.needs).filter(Boolean);
+  const draw = (status, done = false) => {
+    const sorted = done ? [...rows].sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity)) : rows;
+    out.innerHTML = `<p class="verify-status">${esc(status)}</p>
+      ${rows.length ? `<table class="ev-table verify-table"><thead><tr><th>model</th><th>score</th><th>spread</th>
+        <th>seconds</th></tr></thead><tbody>${sorted.map(r => `<tr>
+        <td><span class="rec-code">${esc(r.code)}</span> ${esc(r.name)}</td>
+        <td>${r.status === 'ok' ? r.score.toFixed(4) : esc(r.status)}</td>
+        <td>${r.status === 'ok' && r.spread != null ? `± ${r.spread.toFixed(4)}` : esc(r.detail ?? '')}</td>
+        <td>${r.seconds ?? ''}</td></tr>`).join('')}</tbody></table>` : ''}`;
+  };
+  button.disabled = true;
+  out.hidden = false;
+  draw('Starting Python.');
+  let status = '';
+  try {
+    const results = await verifyInBrowser({
+      script, csv, needs,
+      onStatus: (text) => { status = text; draw(text); },
+      onRow: (row) => { rows.push(row); draw(status); },
+    });
+    draw(verdict(results, firstCode), true);
+  } catch (err) {
+    draw(`Could not run here: ${err.message} The downloaded script runs the same thing on your machine.`);
+  } finally {
+    button.disabled = false;
+  }
 }
 
 // Outside what was tested: said once, above the map, before any number.

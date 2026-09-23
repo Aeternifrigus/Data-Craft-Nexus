@@ -3,10 +3,13 @@
 site/js/export.js writes a Python script that runs the shortlist on a user's
 file. These tests generate it with the site's own JavaScript and hold it to
 the benchmark: every estimator, the tuning candidates, the preprocessing and
-the cross-validation, down to the score.
+the cross-validation, down to the score. The page can also run the script in
+the browser (site/js/verify.js); the Python it runs there is run here too.
 """
 from __future__ import annotations
 
+import io
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -104,3 +107,38 @@ def test_the_script_runs_from_the_command_line(tmp_path):
     for code in ["TR1", "LM2", "EN4", "BASE-HGB-TUNED"]:
         assert code in out, code
     assert BASELINE.code + "-TUNED" in out
+
+
+def run_in_page(script: str, csv_text: str) -> tuple[list[dict], list[dict]]:
+    """What the "Run it here" worker does, minus Pyodide: the page's runner, verbatim."""
+    runner = subprocess.run(["node", str(ROOT / "bench" / "tools" / "js_runner.mjs")], capture_output=True,
+                            text=True, check=True, cwd=ROOT).stdout
+    streamed = []
+    scope = {"SCRIPT": script, "CSV": csv_text, "report_row": lambda text: streamed.append(json.loads(text))}
+    body, last = runner.rstrip().rsplit("\n", 1)
+    exec(compile(body, "runner.py", "exec"), scope)
+    return streamed, json.loads(eval(last, scope))   # the last line is the value Pyodide hands back
+
+
+def test_run_it_here_gives_what_the_downloaded_script_gives():
+    csv = FIXTURES / "balanced.csv"
+    text = generate(csv, "label", "category", ["TR1", "LM2"])
+    streamed, final = run_in_page(text, csv.read_text())
+    assert streamed == final, "every row the page shows as it arrives is in the final result"
+    assert [r["code"] for r in final] == ["TR1", "LM2", "BASE-HGB-TUNED"]
+
+    script = load(text)
+    direct = script["evaluate"](script["load"](str(csv)), progress=lambda row: None)
+    for mine, theirs in zip(final, direct):
+        assert mine["code"] == theirs["code"] and mine["status"] == theirs["status"] == "ok"
+        assert mine["score"] == pytest.approx(theirs["score"], abs=1e-12)
+
+
+def test_the_page_copy_needs_no_encoding():
+    """The worker hands over text the page already decoded, whatever the file's encoding was."""
+    text = generate(FIXTURES / "balanced.csv", "label", "category", ["TR1"]).replace(
+        '"encoding": "utf-8"', '"encoding": "cp1250"')
+    script = load(text)
+    from_path = script["load"](str(FIXTURES / "balanced.csv"))
+    from_text = script["load"](io.StringIO((FIXTURES / "balanced.csv").read_text()))
+    assert from_text.equals(from_path)

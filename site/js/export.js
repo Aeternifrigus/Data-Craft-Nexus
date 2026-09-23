@@ -9,7 +9,8 @@
 //
 // Nothing runs here. The script is text; tests/export.test.js checks what goes
 // in, and bench/tests/test_export.py runs generated scripts with Python and
-// checks every estimator against the benchmark's registry.
+// checks every estimator against the benchmark's registry. verify.js can run
+// the same text in the browser, through the script's own load() and evaluate().
 
 // The benchmark's estimators, as Python. `scale` mirrors ModelSpec.scale;
 // `needs` names a library that is only there if installed.
@@ -300,12 +301,24 @@ def report(results):
             print(f"  {row['status']:>15}  {row['code']:15} {row['name']}: {row.get('detail', '')}")
 
 
-def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else FILE
-    frame = pd.read_csv(path, **READ, dtype=str, keep_default_na=False)
+def load(source):
+    """The file as the page read it: every cell as text, under the page's column names.
+
+    \`source\` is a path, or an open text stream, which needs no encoding: the
+    page hands Python running in the browser its own decoded copy that way.
+    """
+    options = dict(READ)
+    if not isinstance(source, str):
+        options.pop("encoding", None)
+    frame = pd.read_csv(source, **options, dtype=str, keep_default_na=False)
     if len(frame.columns) == len(COLUMNS):
         frame.columns = COLUMNS   # the names the page gave them (blank or repeated headers renamed)
-    report(evaluate(frame, progress=lambda row: print(".", end="", flush=True)))
+    return frame
+
+
+def main():
+    path = sys.argv[1] if len(sys.argv) > 1 else FILE
+    report(evaluate(load(path), progress=lambda row: print(".", end="", flush=True)))
 
 
 if __name__ == "__main__":

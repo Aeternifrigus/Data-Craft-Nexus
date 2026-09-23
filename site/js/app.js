@@ -79,7 +79,8 @@ function ingest(text, encoding, fileName = 'data.csv') {
   }
   state.cols = head; state.rows = body;
   state.source = {
-    fileName, columns: head,
+    // The whole decoded file, for "Run it here", which uses every row.
+    fileName, columns: head, text,
     read: { sep: parsed.delimiter, encoding: /1250/.test(encoding) ? 'cp1250' : /1252/.test(encoding) ? 'cp1252' : 'utf-8',
       decimalComma: parsed.decimalComma },
   };

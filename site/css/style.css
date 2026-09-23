@@ -179,6 +179,13 @@ select.opt{color:var(--ink);padding-right:28px}
 .takehome-h{color:var(--chrome);font-size:12px;letter-spacing:.04em;margin-bottom:8px}
 .takehome .sect-note{margin-bottom:16px}
 .takehome-btn{margin-top:0}
+.takehome-row{display:flex;flex-wrap:wrap;gap:12px}
+.run.ghost{background:transparent;color:var(--chrome);box-shadow:inset 0 0 0 1px var(--chrome-dim)}
+.run.ghost:not(:disabled):hover{background:rgba(255,255,255,.04)}
+.takehome-fine{font-size:12px;margin-top:12px}
+.verify{margin-top:18px}
+.verify-status{color:var(--ink);font-size:13px;line-height:1.7;max-width:72ch;margin-bottom:12px}
+.verify-table .rec-code{font-size:12.5px;display:inline;margin-right:8px;cursor:default}
 
 /* an upload outside what the benchmark tested */
 .coverage{border-left:2px solid var(--amber);background:rgba(224,164,88,.06);

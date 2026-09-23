@@ -173,7 +173,7 @@ def load_meta(path: Path) -> pd.DataFrame | None:
     return pd.read_csv(path) if path.exists() else None
 
 
-def build(results_path: Path, run_label: str) -> dict:
+def build(results_path: Path, run_label: str, ranked_by: str = "counting matched coordinates") -> dict:
     raw = pd.read_csv(results_path)
     results = collapse_seeds(raw)
     meta = load_meta(results_path.parent / "meta.csv")
@@ -239,7 +239,10 @@ def build(results_path: Path, run_label: str) -> dict:
         "how": ("Every runnable model was fitted on every dataset, five-fold cross-validated, "
                 "including the models the instrument rules out. Regret is how far a choice "
                 "landed below the best model that ran."),
-        "model_runs": int(len(results)),
+        "model_runs": int(len(raw)),
+        # Which order the site used while the run was recorded, so the page can
+        # say what "shown first" meant at the time.
+        "ranked_by": ranked_by,
         "not_runnable": {code: why for code, why in NOT_RUNNABLE.items()},
         "runnable": sorted(BY_CODE),
         "meta_features": FEATURES,
@@ -258,10 +261,12 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--results", default="results/after-fixes.csv")
     ap.add_argument("--label", default="40 PMLB datasets, 760 model runs")
+    ap.add_argument("--ranked-by", default="counting matched coordinates",
+                    help="which order the site used while this run was recorded")
     ap.add_argument("--out", default=str(ROOT / "site" / "taxonomy" / "evidence.json"))
     args = ap.parse_args(argv)
 
-    evidence = build(Path(args.results), args.label)
+    evidence = build(Path(args.results), args.label, args.ranked_by)
     Path(args.out).write_text(json.dumps(evidence, indent=1) + "\n")
     print(f"wrote {args.out}: {len(evidence['datasets'])} datasets, {len(evidence['models'])} models")
     return 0

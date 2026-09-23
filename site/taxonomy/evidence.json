@@ -4,6 +4,7 @@
  "source_url": "https://github.com/EpistasisLab/pmlb",
  "how": "Every runnable model was fitted on every dataset, five-fold cross-validated, including the models the instrument rules out. Regret is how far a choice landed below the best model that ran.",
  "model_runs": 760,
+ "ranked_by": "counting matched coordinates",
  "not_runnable": {
   "EN5": "CatBoost is not installed here; it would need its own build",
   "NN3": "a convolutional network needs images, which a CSV cannot hold",

@@ -14,6 +14,8 @@ import { buildEvidence } from './evidence.js';
 // default because the data cannot imply them.
 const state = {
   T: null, rows: [], cols: [], profile: null,
+  // How the file was read, so a generated script reads it the same way.
+  source: null,
   decl: { target: null, task: null, order: null, mode: 'batch', labels: 'delayed', stage: null },
 };
 
@@ -66,7 +68,7 @@ function readNote(parsed, encoding) {
   return parts.join(' · ');
 }
 
-function ingest(text, encoding) {
+function ingest(text, encoding, fileName = 'data.csv') {
   const parsed = parseCSV(text);
   const { head, body } = parsed;
   const drop = document.getElementById('drop-msg');
@@ -76,6 +78,11 @@ function ingest(text, encoding) {
     return;
   }
   state.cols = head; state.rows = body;
+  state.source = {
+    fileName, columns: head,
+    read: { sep: parsed.delimiter, encoding: /1250/.test(encoding) ? 'cp1250' : /1252/.test(encoding) ? 'cp1252' : 'utf-8',
+      decimalComma: parsed.decimalComma },
+  };
   state.profile = profileData(head, body);
   const { profile } = state;
   showMeasuredAxes(null);
@@ -152,7 +159,7 @@ function initIntake() {
     const fr = new FileReader();
     fr.onload = () => {
       const { text, encoding } = decodeBytes(fr.result);
-      ingest(text, encoding);
+      ingest(text, encoding, f.name);
     };
     fr.readAsArrayBuffer(f);
   };
@@ -170,14 +177,14 @@ function initIntake() {
   });
 
   document.getElementById('sample').addEventListener('click', async () => {
-    ingest(await loadSample(), 'UTF-8');
+    ingest(await loadSample(), 'UTF-8', 'sample.csv');
   });
 
   document.getElementById('run').addEventListener('click', () => {
     const sig = signature(state.profile, state.decl);
     setSlot(5, sig.codes[4], sig.balance != null);
     showFlags(sig);
-    renderResults(state.T, sig, state.decl.task, state.profile);
+    renderResults(state.T, sig, state.decl.task, state.profile, state.source);
     document.getElementById('results').classList.add('on');
     document.getElementById('results').scrollIntoView({ block: 'start' });
   });

@@ -85,6 +85,23 @@ Underneath, those neighbours are listed with what actually won on each, and ever
 
 When an upload is outside what the benchmark tested, the page says so above the map, before any number: when it has fewer rows than the smallest benchmark dataset (200), and when its nearest benchmark dataset is further away than 95% of benchmark datasets are from their own nearest neighbour of a different kind (a synthetic dataset's sisters do not count). The bundled 20-row sample triggers both, which is the point: twenty rows is too few for any measured score to mean much. The thresholds are written to `evidence.json` by the benchmark and recomputed from the page's own data by the tests.
 
+### Take it home
+
+Under the recommendations, **Download the script** gives you `dcn_shortlist.py`: the shortlist the page showed, run on your whole file (the page reads at most 5,000 rows) with exactly the benchmark's preprocessing, estimators and cross-validation, and tuned boosting beside it, because on the benchmark a small tuning budget was worth more than the choice among the top models. It reads your file the way the page did (delimiter, encoding, decimal commas, the column names the page showed), splits by time when you said row order matters, and needs only pandas and scikit-learn, plus XGBoost or LightGBM if the shortlist has them.
+
+```
+python dcn_shortlist.py shipments.csv
+
+4 models, 5-fold cross-validation, balanced accuracy:
+
+  0.3803 ± 0.0682  EN4             LightGBM  (7.6s)
+  0.3740 ± 0.0529  BASE-HGB-TUNED  Histogram Gradient Boosting, tuned (reference)  (63.9s)
+  0.3359 ± 0.0355  LM2             Logistic Regression  (0.1s)
+  0.3196 ± 0.0361  TR3             Extra Trees  (2.2s)
+```
+
+The script is held to the benchmark by `bench/tests/test_export.py`: it is generated with the site's own JavaScript, every estimator in it is compared with the benchmark's registry, and on the test fixtures it produces exactly the benchmark's scores.
+
 ### What it was worth on real data
 
 The instrument publishes its own scoreboard, in **The evidence** tab: 195
@@ -191,6 +208,7 @@ npm test             # Node 20+
 - `tests/html.test.js`: escaping of everything that goes into the page.
 - `tests/taxonomy.test.js`: every code a model, drift checker or pipeline points at must exist.
 - `tests/build.test.js`: the built page is self-contained, carries exactly the taxonomy in `site/`, and is up to date.
+- `tests/export.test.js`: what the generated script carries: the page's reading of the file, the column roles, every runnable model's estimator, and the models it cannot run, named.
 - `tests/check_links.test.js`: the link checker against a fake network. A connection that resets and then answers passes, a 404 fails on the first answer, and no host gets more than two requests at once. `npm run check:links` runs the real check, which needs the internet and runs in CI.
 - `tests/recommend.snapshot.test.js`: runs every fixture in `tests/fixtures/` through every target, task and order answer, and compares what gets recommended with `tests/snapshots/recommendations.json`. When a change to the profiler or the ranking is intended, run `npm run test:update` and review the snapshot diff in the commit.
 

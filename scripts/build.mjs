@@ -5,8 +5,8 @@
 //
 // Plotly, Mermaid and the fonts still come from their CDNs, as before.
 //
-//   npm run build            writes dist/index.html
-//   npm run build -- --check fails if dist/index.html is out of date
+//   npm run build            writes dist/index.html, and copies the share image beside it
+//   npm run build -- --check fails if anything in dist/ is out of date
 //
 // With DCN_BUILD set to a commit hash (the Pages workflow sets it), the page
 // names that commit in a meta tag, out of sight, so the workflow can check
@@ -65,6 +65,11 @@ export async function buildPage({ stamp = null } = {}) {
   return html.replace('<!DOCTYPE html>\n', '<!DOCTYPE html>\n<!-- Built from site/ by scripts/build.mjs. Edit the files in site/, then run npm run build. -->\n');
 }
 
+// Files published beside the page as they are. og.png is the picture a link
+// to the page shows when it is shared; the page names it in og:image, and a
+// crawler fetches it by URL, so it cannot live inside the page.
+export const COPIED = ['og.png'];
+
 const isMain = process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url;
 if (isMain) {
   const page = await buildPage({ stamp: buildStamp(process.env.DCN_BUILD) });
@@ -75,10 +80,21 @@ if (isMain) {
       console.error('dist/index.html is out of date. Run `npm run build` and commit the result.');
       process.exit(1);
     }
-    console.log('dist/index.html is up to date.');
+    for (const name of COPIED) {
+      const built = new URL(`dist/${name}`, root);
+      if (!fs.existsSync(built) || !fs.readFileSync(built).equals(fs.readFileSync(new URL(`site/${name}`, root)))) {
+        console.error(`dist/${name} is out of date. Run \`npm run build\` and commit the result.`);
+        process.exit(1);
+      }
+    }
+    console.log('dist/ is up to date.');
   } else {
     fs.mkdirSync(new URL('dist/', root), { recursive: true });
     fs.writeFileSync(out, page);
     console.log(`wrote dist/index.html (${(page.length / 1024).toFixed(0)} KB)`);
+    for (const name of COPIED) {
+      fs.copyFileSync(new URL(`site/${name}`, root), new URL(`dist/${name}`, root));
+      console.log(`copied site/${name} to dist/`);
+    }
   }
 }

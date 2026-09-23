@@ -37,13 +37,13 @@ test('dist/index.html is up to date with site/', () => {
   assert.ok(committed === page, 'dist/index.html is stale: run `npm run build`');
 });
 
-test('the deployed page can name the commit it was built from', async () => {
+test('the deployed page names its commit out of sight, for the deploy check', async () => {
   const stamp = buildStamp('fe43b93230cfacd748c351169c0c39e41df0b20b', new Date('2026-09-24T10:00:00Z'));
   assert.deepEqual(stamp, { sha: 'fe43b93', date: '2026-09-24' });
   const stamped = await buildPage({ stamp });
   assert.match(stamped, /<meta name="dcn-build" content="fe43b93 2026-09-24">/);
-  assert.match(stamped, /Built from commit fe43b93 on 2026-09-24\./);
-  assert.doesNotMatch(page, /<meta name="dcn-build"|<div class="build">|build-stamp/, 'the committed page carries no stamp');
+  assert.doesNotMatch(stamped, /Built from commit/, 'nothing about the build shows on the page');
+  assert.doesNotMatch(page, /<meta name="dcn-build"/, 'the committed page carries no stamp');
   assert.equal(buildStamp(undefined), null);
   assert.throws(() => buildStamp('main"><script>'), /commit hash/);
 });

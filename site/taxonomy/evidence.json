@@ -196,6 +196,7 @@
     "strategies": {
      "current": {
       "label": "counting matched coordinates",
+      "units": 94,
       "median_regret": 0.0456,
       "ci": [
        0.0302,
@@ -206,6 +207,7 @@
      },
      "prior": {
       "label": "learned from the benchmark",
+      "units": 94,
       "median_regret": 0.0151,
       "ci": [
        0.0112,
@@ -216,6 +218,7 @@
      },
      "prior_fit": {
       "label": "learned, with dataset interactions",
+      "units": 94,
       "median_regret": 0.015,
       "ci": [
        0.0093,
@@ -226,6 +229,7 @@
      },
      "prior_knn": {
       "label": "learned, weighted toward datasets like yours",
+      "units": 94,
       "median_regret": 0.0159,
       "ci": [
        0.0093,
@@ -236,6 +240,7 @@
      },
      "boosting": {
       "label": "always use boosting",
+      "units": 94,
       "median_regret": 0.0139,
       "ci": [
        0.0109,
@@ -247,6 +252,7 @@
     },
     "against_chosen": {
      "current": {
+      "units": 94,
       "wins": 69,
       "ties": 3,
       "losses": 22,
@@ -259,6 +265,7 @@
       "p_holm": 1.861e-06
      },
      "boosting": {
+      "units": 94,
       "wins": 47,
       "ties": 7,
       "losses": 40,
@@ -270,6 +277,53 @@
       "p": 0.5227,
       "p_holm": 0.5227
      }
+    },
+    "ceiling": {
+     "current": {
+      "units": 94,
+      "median_gap": 0.0456,
+      "ci": [
+       0.0305,
+       0.0559
+      ],
+      "at_ceiling": 0.117
+     },
+     "prior": {
+      "units": 94,
+      "median_gap": 0.0156,
+      "ci": [
+       0.0121,
+       0.0198
+      ],
+      "at_ceiling": 0.138
+     },
+     "prior_fit": {
+      "units": 94,
+      "median_gap": 0.015,
+      "ci": [
+       0.0098,
+       0.0205
+      ],
+      "at_ceiling": 0.106
+     },
+     "prior_knn": {
+      "units": 94,
+      "median_gap": 0.0159,
+      "ci": [
+       0.0097,
+       0.0213
+      ],
+      "at_ceiling": 0.138
+     },
+     "boosting": {
+      "units": 94,
+      "median_gap": 0.0139,
+      "ci": [
+       0.0109,
+       0.0209
+      ],
+      "at_ceiling": 0.149
+     }
     }
    },
    "regression": {
@@ -279,6 +333,7 @@
     "strategies": {
      "current": {
       "label": "counting matched coordinates",
+      "units": 35,
       "median_regret": 0.2052,
       "ci": [
        0.0711,
@@ -289,6 +344,7 @@
      },
      "prior": {
       "label": "learned from the benchmark",
+      "units": 35,
       "median_regret": 0.0119,
       "ci": [
        0.002,
@@ -299,6 +355,7 @@
      },
      "prior_fit": {
       "label": "learned, with dataset interactions",
+      "units": 35,
       "median_regret": 0.0119,
       "ci": [
        0.0025,
@@ -309,6 +366,7 @@
      },
      "prior_knn": {
       "label": "learned, weighted toward datasets like yours",
+      "units": 35,
       "median_regret": 0.0119,
       "ci": [
        0.0014,
@@ -319,6 +377,7 @@
      },
      "boosting": {
       "label": "always use boosting",
+      "units": 35,
       "median_regret": 0.0212,
       "ci": [
        0.0095,
@@ -330,6 +389,7 @@
     },
     "against_chosen": {
      "current": {
+      "units": 35,
       "wins": 27,
       "ties": 0,
       "losses": 8,
@@ -342,6 +402,7 @@
       "p_holm": 2.27e-05
      },
      "boosting": {
+      "units": 35,
       "wins": 21,
       "ties": 0,
       "losses": 14,
@@ -353,10 +414,58 @@
       "p": 0.04567,
       "p_holm": 0.04567
      }
+    },
+    "ceiling": {
+     "current": {
+      "units": 35,
+      "median_gap": 0.2052,
+      "ci": [
+       0.0711,
+       0.305
+      ],
+      "at_ceiling": 0.0
+     },
+     "prior": {
+      "units": 35,
+      "median_gap": 0.0119,
+      "ci": [
+       0.002,
+       0.0276
+      ],
+      "at_ceiling": 0.114
+     },
+     "prior_fit": {
+      "units": 35,
+      "median_gap": 0.0119,
+      "ci": [
+       0.0025,
+       0.0275
+      ],
+      "at_ceiling": 0.2
+     },
+     "prior_knn": {
+      "units": 35,
+      "median_gap": 0.0119,
+      "ci": [
+       0.0014,
+       0.0275
+      ],
+      "at_ceiling": 0.257
+     },
+     "boosting": {
+      "units": 35,
+      "median_gap": 0.0212,
+      "ci": [
+       0.0095,
+       0.0547
+      ],
+      "at_ceiling": 0.029
+     }
     }
    }
   }
  },
+ "tuning": "the defaults and 9 random configurations, chosen by cross-validation inside each training fold",
  "significance": {
   "classification": {
    "datasets": 94,

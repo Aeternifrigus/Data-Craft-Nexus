@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseCSV } from '../site/js/csv.js';
 import { averageRanks, beyondLuck, boostingVerdict, choiceNote, evidenceFor, evidenceSentence, formatP, luckWords,
-  rankChart, seedsNote, unitNoun } from '../site/js/evidence.js';
+  rankChart, referenceVerdict, seedsNote, subsetNote, unitNoun } from '../site/js/evidence.js';
 import { loadTaxonomyFromDisk } from './helpers.js';
 
 const T = loadTaxonomyFromDisk();
@@ -27,14 +27,18 @@ function readTable(path) {
 const perDataset = () => readTable('bench/results/per_dataset.csv');
 
 // Mean regret per synthetic family, the unit every published test counts.
-function unitRegrets(rows, keys) {
+// A strategy missing on a dataset (a reference that skipped it) is averaged
+// over the members it has, as pandas does; a unit with none is NaN.
+function unitRegrets(rows, keys, against = 'best') {
   const groups = new Map();
   for (const r of rows) {
     if (!groups.has(r.family)) groups.set(r.family, []);
     groups.get(r.family).push(r);
   }
-  return [...groups.values()].map(members => Object.fromEntries(keys.map(k =>
-    [k, members.reduce((s, r) => s + (r.best - r[k]), 0) / members.length])));
+  return [...groups.values()].map(members => Object.fromEntries(keys.map(k => {
+    const seen = members.filter(r => r[k] != null && r[against] != null);
+    return [k, seen.length ? seen.reduce((s, r) => s + (r[against] - r[k]), 0) / seen.length : NaN];
+  })));
 }
 
 const median = (values) => {
@@ -117,12 +121,17 @@ test('the leave-one-dataset-out medians on the page match bench/results/ranking-
   }
 });
 
-test('the order in use is tested against both references, and the counts add up', () => {
+test('the order in use is tested against every reference, and the counts add up', () => {
   const rows = readTable('bench/results/ranking-lodo.csv');
   const chosen = EV.ranking.chosen;
   for (const [task, entry] of Object.entries(EV.ranking.tasks)) {
-    const units = unitRegrets(rows.filter(r => r.task === task), [chosen, 'current', 'boosting']);
+    assert.ok('current' in entry.against_chosen && 'boosting' in entry.against_chosen, task);
     for (const [other, c] of Object.entries(entry.against_chosen)) {
+      assert.ok(['current', 'boosting', 'tuned', 'tabpfn'].includes(other), `${task}: ${other} is not a reference`);
+      // Only the datasets where both ran, as learn.py compares them.
+      const both = rows.filter(r => r.task === task && r[chosen] != null && r[other] != null);
+      const units = unitRegrets(both, [chosen, other]);
+      assert.equal(c.units, units.length, `${task} vs ${other}: units`);
       assert.notEqual(other, chosen);
       let wins = 0, losses = 0;
       for (const u of units) {
@@ -206,4 +215,33 @@ test('counts say what they count, and a narrow result reads as narrow', () => {
   assert.equal(luckWords({ p_holm: 0.046 }), 'more than luck, narrowly');
   assert.equal(luckWords({ p_holm: 0.001 }), 'more than luck');
   assert.equal(luckWords({ p_holm: 0.2 }), 'within what luck produces');
+});
+
+test('the gap to the best of everything can be recomputed, and is never negative', () => {
+  const rows = readTable('bench/results/ranking-lodo.csv');
+  for (const [task, entry] of Object.entries(EV.ranking.tasks)) {
+    if (!entry.ceiling) continue;
+    const forTask = rows.filter(r => r.task === task);
+    const units = unitRegrets(forTask, Object.keys(entry.ceiling), 'ceiling');
+    for (const [key, c] of Object.entries(entry.ceiling)) {
+      const gaps = units.map(u => u[key]).filter(v => !Number.isNaN(v));
+      assert.equal(c.units, gaps.length, `${task}.${key}: units`);
+      assert.ok(Math.abs(median(gaps) - c.median_gap) < 5e-4, `${task}.${key}: page ${c.median_gap}, data ${median(gaps)}`);
+      assert.ok(gaps.every(g => g >= -1e-9), `${task}.${key}: nothing beats the best of everything`);
+    }
+  }
+});
+
+test('a reference judged on fewer datasets says so, and its verdict names the direction', () => {
+  assert.match(subsetNote(20, { datasets: 101, units: 35 }), /only the 20 it ran on/);
+  assert.equal(subsetNote(35, { datasets: 101, units: 35 }), '');
+  const ranking = { chosen: 'prior', tasks: {
+    classification: { datasets: 94, units: 94, against_chosen: { tuned: { wins: 20, losses: 60, ties: 14, p_holm: 0.001 } } },
+    regression: { datasets: 101, units: 35, against_chosen: { tuned: { wins: 17, losses: 18, ties: 0, p_holm: 0.9 } } },
+  } };
+  const verdict = referenceVerdict(ranking, 'tuned', 'tuned boosting');
+  assert.match(verdict, /better on 20 of 94 classification datasets/);
+  assert.match(verdict, /17 of 35 independent regression units/);
+  assert.match(verdict, /More than luck: the classification loss\./);
+  assert.equal(referenceVerdict(ranking, 'tabpfn', 'TabPFN'), '', 'no comparison, no sentence');
 });

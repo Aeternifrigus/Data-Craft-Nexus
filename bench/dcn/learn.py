@@ -44,7 +44,7 @@ import pandas as pd
 from sklearn.linear_model import Ridge
 
 from .meta import FEATURES as META_FEATURES
-from .models import BASELINE
+from .models import BASELINE, TABPFN_CODE, TUNED, is_reference
 from .ranking import blend, meta_distance, meta_vector, neighbours_of
 from .recommend import conflict, load_taxonomy, rank_models
 from .significance import by_family, collapse_seeds, family_of, holm, paired
@@ -78,7 +78,9 @@ FEATURE_NAMES = sorted(dataset_features("A31", 100, 10))
 def build_frame(results: pd.DataFrame, taxonomy: dict) -> pd.DataFrame:
     """One row per dataset and model, with the target and the features."""
     results = collapse_seeds(results)
-    ok = results[(results.status == "ok") & (results.model != BASELINE.code)].copy()
+    # The learned order is fitted on the taxonomy's models only: the baseline
+    # and the references are what it is judged against, not what it chooses from.
+    ok = results[(results.status == "ok") & ~results.model.map(is_reference)].copy()
     family = {m["c"]: m["dom"] for m in taxonomy["MODELS"]}
     rows = []
     for (dataset, task), group in ok.groupby(["dataset", "task"]):
@@ -161,7 +163,9 @@ def neighbour_block(train: pd.DataFrame, meta: pd.DataFrame, task: str, scale: d
 
 def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame, meta: pd.DataFrame | None = None) -> dict:
     """Leave one dataset out, rank its models with weights fitted on the rest."""
-    keys = ["current", "prior", "prior_fit"] + (["prior_knn"] if meta is not None else []) + ["boosting"]
+    present = set(results.model)
+    reference_keys = ["boosting"] + [key for key, code in REFERENCE_KEYS.items() if code in present]
+    keys = ["current", "prior", "prior_fit"] + (["prior_knn"] if meta is not None else []) + reference_keys
     scores = {k: [] for k in keys + ["oracle"]}
     per_dataset = []
     family = {m["c"]: m["dom"] for m in taxonomy["MODELS"]}
@@ -185,8 +189,11 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame, meta: p
 
         best = group.score.max()
         run = results[(results.dataset == dataset) & (results.task == task)]
-        boosting_row = run[(run.model == BASELINE.code) & (run.status == "ok")]
-        boosting = float(boosting_row.score.iloc[0]) if len(boosting_row) else np.nan
+        def reference(code):
+            row = run[(run.model == code) & (run.status == "ok")]
+            return float(row.score.iloc[0]) if len(row) else np.nan
+
+        boosting = reference(BASELINE.code)
 
         # The order the learned one replaced: the first model by coordinates
         # matched. The empty ranking matters. Without it rank_models reads the
@@ -211,13 +218,19 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame, meta: p
             chosen_models["prior_knn"] = (
                 pick(lambda m: blend(prior.get(m, 0.5), m, neighbours[1], KNN_STRENGTH))
                 if neighbours else chosen_models["prior"])
+        for key, code in REFERENCE_KEYS.items():
+            if key in keys:
+                chosen_models[key] = (reference(code), code)
         picks = {k: v[0] for k, v in chosen_models.items()}
+        # The ceiling: the best of everything that ran here, references included.
+        ceiling = float(np.nanmax([best] + [picks[k] for k in reference_keys]))
 
         for key, value in list(picks.items()) + [("oracle", best)]:
             scores[key].append(best - value if value is not None else np.nan)
         # The score each strategy's first pick got, and which model that was,
         # so a later analysis can follow the same pick across seeds.
         per_dataset.append({"dataset": dataset, "task": task, "family": family_of(dataset), "best": best,
+                            "ceiling": ceiling,
                             **{k: picks[k] for k in keys},
                             **{f"{k}_model": chosen_models[k][1] for k in keys}})
 
@@ -237,7 +250,10 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame, meta: p
     return {"summary": summary, "table": table}
 
 
-STRATEGIES = ["current", "prior", "prior_fit", "prior_knn", "boosting"]
+# Strategies that are a reference model's score rather than a pick from the
+# taxonomy, and the model each one is.
+REFERENCE_KEYS = {"tuned": TUNED.code, "tabpfn": TABPFN_CODE}
+STRATEGIES = ["current", "prior", "prior_fit", "prior_knn", "boosting", *REFERENCE_KEYS]
 CANDIDATES = ["prior", "prior_fit", "prior_knn"]   # simplest first
 
 
@@ -283,7 +299,10 @@ def describe(decision: dict) -> str:
     return f"{decision['candidate']} {verdict} {decision['against']} ({detail}{worse})"
 
 
-REFERENCES = ["current", "boosting"]   # what the order in use is claimed to beat
+# What the order in use is compared with: the two it claims to beat (counting
+# coordinates, default boosting) and the two references it makes no claim to
+# beat but a reader will ask about (tuned boosting, TabPFN).
+REFERENCES = ["current", "boosting", "tuned", "tabpfn"]
 
 
 def regret_units(group: pd.DataFrame, keys: list[str]) -> pd.DataFrame:
@@ -300,10 +319,16 @@ def comparisons(table: pd.DataFrame, chosen: str) -> dict:
     """
     out = {}
     for task, group in table.groupby("task"):
-        units = regret_units(group, STRATEGIES)
-        regret = {key: units[key].to_numpy() for key in units.columns}
-        tests = {other: paired(regret[chosen], regret[other]) for other in REFERENCES
-                 if other in regret and other != chosen}
+        tests = {}
+        for other in REFERENCES:
+            if other not in group or other == chosen or group[other].isna().all():
+                continue
+            # Only where both ran: TabPFN skips large datasets, and a family's
+            # unit is then averaged over the members it ran on, for both sides.
+            both = group[group[chosen].notna() & group[other].notna()]
+            units = regret_units(both, [chosen, other])
+            tests[other] = paired(units[chosen].to_numpy(), units[other].to_numpy())
+            tests[other]["units"] = int(len(units))
         adjusted = holm({other: t["p"] for other, t in tests.items()})
         for other, t in tests.items():
             t["p_holm"] = adjusted[other]
@@ -376,7 +401,7 @@ def main(argv=None) -> int:
         print(f"{'':26}{'median regret':>14}{'was best':>10}{'within 1pt':>12}")
         for key, label in [("current", "counting coordinates"), ("prior", "learned prior"),
                            ("prior_fit", "prior + interactions"), ("prior_knn", "prior + neighbours"),
-                           ("boosting", "always boosting")]:
+                           ("boosting", "always boosting"), ("tuned", "boosting, tuned"), ("tabpfn", "TabPFN")]:
             if key not in stats:
                 continue
             s = stats[key]

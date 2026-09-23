@@ -3189,8 +3189,8 @@ self.onmessage = async (event) => {
       const sig = signature(state.profile, state.decl);
       setSlot(5, sig.codes[4], sig.balance != null);
       showFlags(sig);
-      renderResults(state.T, sig, state.decl.task, state.profile, state.source);
       document.getElementById("results").classList.add("on");
+      renderResults(state.T, sig, state.decl.task, state.profile, state.source);
       document.getElementById("results").scrollIntoView({ block: "start" });
     });
   }

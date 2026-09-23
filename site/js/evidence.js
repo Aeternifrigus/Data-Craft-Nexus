@@ -45,31 +45,173 @@ function headlineTable(headline) {
   </table>`;
 }
 
+// A p-value as a reader should see it: small ones in scientific notation
+// rather than rounded to a reassuring zero.
+export function formatP(p) {
+  if (p == null || Number.isNaN(p)) return '—';
+  if (p < 0.001) return p.toExponential(1).replace('e-', ' × 10⁻').replace(/⁻(\d+)/, (_, d) =>
+    '⁻' + [...d].map(c => '⁰¹²³⁴⁵⁶⁷⁸⁹'[c]).join(''));
+  return p < 0.1 ? p.toFixed(3) : p.toFixed(2);
+}
+
+// Is a difference more than luck? The threshold is the usual 5%, after Holm's
+// correction for testing the order in use against several alternatives.
+export const ALPHA = 0.05;
+export const beyondLuck = (test) => test != null && test.p_holm != null && test.p_holm < ALPHA;
+
+const STRATEGY_KEYS = ['current', 'prior', 'prior_fit', 'boosting'];
+
+function strategyLabel(ranking, key) {
+  for (const task of Object.keys(ranking.tasks)) {
+    const s = ranking.tasks[task].strategies[key];
+    if (s) return s.label;
+  }
+  return key;
+}
+
 // How the order the site now uses compares with what it used to do, and with
 // reaching for boosting. Every number is leave-one-dataset-out: the dataset
-// being ranked never contributed to the weights that rank it.
+// being ranked never contributed to the weights that rank it. The interval
+// under each median is what resampling the datasets does to it.
 function rankingTable(ranking) {
   if (!ranking) return '';
   const tasks = Object.keys(ranking.tasks);
-  const keys = ['current', 'prior', 'prior_fit', 'boosting'];
-  const label = (key) => {
-    for (const task of tasks) {
-      const s = ranking.tasks[task].strategies[key];
-      if (s) return s.label;
-    }
-    return key;
-  };
   const chosenNote = (key) => (key === ranking.chosen ? ' <span class="ev-chosen">in use</span>' : '');
   return `<table class="ev-table">
     <thead><tr><th>median regret, leave-one-dataset-out</th>${tasks.map(t =>
       `<th>${esc(t)}<span class="ev-sub">${esc(ranking.tasks[t].metric)}, ${ranking.tasks[t].datasets} datasets</span></th>`).join('')}</tr></thead>
-    <tbody>${keys.map(key => `<tr>
-      <td>${esc(label(key))}${chosenNote(key)}</td>
+    <tbody>${STRATEGY_KEYS.map(key => `<tr>
+      <td>${esc(strategyLabel(ranking, key))}${chosenNote(key)}</td>
       ${tasks.map(t => { const s = ranking.tasks[t].strategies[key];
-        return `<td>${s ? num(s.median_regret) : '—'}${s ? `<span class="ev-sub">best ${pct(s.was_best)} of the time</span>` : ''}</td>`;
+        if (!s) return '<td>—</td>';
+        const ci = s.ci && s.ci[0] != null ? `<span class="ev-sub">95% interval ${num(s.ci[0])} to ${num(s.ci[1])}</span>` : '';
+        return `<td>${num(s.median_regret)}${ci}<span class="ev-sub">best ${pct(s.was_best)} of the time</span></td>`;
       }).join('')}
     </tr>`).join('')}</tbody>
   </table>`;
+}
+
+// The order in use against each alternative, dataset by dataset.
+function comparisonTable(ranking) {
+  if (!ranking?.chosen) return '';
+  const tasks = Object.keys(ranking.tasks).filter(t => ranking.tasks[t].against_chosen);
+  const others = STRATEGY_KEYS.filter(k => k !== ranking.chosen &&
+    tasks.some(t => ranking.tasks[t].against_chosen[k]));
+  if (!tasks.length || !others.length) return '';
+  return `<table class="ev-table">
+    <thead><tr><th>the order in use, against</th>${tasks.map(t => `<th>${esc(t)}</th>`).join('')}</tr></thead>
+    <tbody>${others.map(key => `<tr>
+      <td>${esc(strategyLabel(ranking, key))}</td>
+      ${tasks.map(t => { const c = ranking.tasks[t].against_chosen[key];
+        if (!c) return '<td>—</td>';
+        return `<td>better on ${c.wins}, worse on ${c.losses}${c.ties ? `, tied on ${c.ties}` : ''}
+          <span class="ev-sub">p = ${formatP(c.p_holm)}, ${beyondLuck(c) ? 'more than luck' : 'within what luck produces'}</span></td>`;
+      }).join('')}
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+// One sentence on the comparison people actually ask about: is it better
+// than just reaching for boosting?
+export function boostingVerdict(ranking) {
+  if (!ranking?.chosen || ranking.chosen === 'boosting') return '';
+  const parts = [], beyond = [];
+  for (const [task, entry] of Object.entries(ranking.tasks)) {
+    const c = entry.against_chosen?.boosting;
+    if (!c) continue;
+    parts.push(`${c.wins} of ${c.wins + c.losses + c.ties} ${task} datasets (p = ${formatP(c.p_holm)})`);
+    if (beyondLuck(c)) beyond.push(task);
+  }
+  if (!parts.length) return '';
+  const verdict = beyond.length === 0
+    ? (parts.length > 1 ? 'Neither difference is more than luck on this many datasets.'
+      : 'That is within what luck produces on this many datasets.')
+    : beyond.length === parts.length
+      ? (parts.length > 1 ? 'Both differences are more than luck.' : 'That is more than luck.')
+      : `Only the ${beyond.join(' and ')} difference is more than luck.`;
+  return `Against always using boosting, the order in use was better on ${parts.join(' and ')}. ${verdict}`;
+}
+
+// Average rank of every model over the benchmark datasets, recomputed from the
+// scores on the page. A model that did not finish on a dataset ranks last
+// there, tied with any other that did not finish. Mirrors average_ranks() in
+// bench/dcn/significance.py, and the tests hold the two together.
+export function averageRanks(datasets, task, models) {
+  const totals = Object.fromEntries(models.map(m => [m, 0]));
+  const rows = datasets.filter(d => d.task === task);
+  for (const d of rows) {
+    const values = models.map(m => d.scores?.[m] ?? -Infinity);
+    for (let i = 0; i < models.length; i++) {
+      let above = 0, same = 0;
+      for (let j = 0; j < models.length; j++) {
+        if (values[j] > values[i]) above++;
+        else if (values[j] === values[i]) same++;
+      }
+      totals[models[i]] += above + (same + 1) / 2;
+    }
+  }
+  return Object.fromEntries(models.map(m => [m, rows.length ? totals[m] / rows.length : NaN]));
+}
+
+// Which models the benchmark can tell apart: every model's average rank on a
+// shared axis, with the critical difference shaded from the best. A model
+// whose dot falls in the band cannot be told apart from the best one on
+// this many datasets. Built as rows rather than an SVG so it stays legible on
+// a phone.
+export function rankChart(block, names) {
+  const entries = Object.entries(block.ranks);
+  if (entries.length < 2) return '';
+  const k = entries.length;
+  const pos = (r) => Math.max(0, Math.min(100, ((r - 1) / (k - 1)) * 100));
+  const best = entries[0][1];
+  const cd = block.critical_difference;
+  const bandLeft = pos(best);
+  const bandWidth = pos(best + cd) - bandLeft;
+  const tied = new Set(block.tied_with_best);
+  const step = Math.max(1, Math.ceil(k / 8));
+  const ticks = [];
+  for (let r = 1; r <= k; r += step) ticks.push(r);
+
+  return `<div class="cd" role="table" aria-label="average rank of every model, 1 is best">
+    <div class="cd-row cd-axis" role="row">
+      <div class="cd-label" role="columnheader">average rank, 1 is best</div>
+      <div class="cd-track" aria-hidden="true">${ticks.map(r =>
+        `<span class="cd-tick" style="left:${pos(r).toFixed(2)}%">${r}</span>`).join('')}</div>
+      <div class="cd-val" role="columnheader">rank</div>
+    </div>
+    ${entries.map(([code, rank]) => {
+      const inBand = tied.has(code);
+      const name = names[code] ?? code;
+      const tip = `${code} ${name}: average rank ${rank.toFixed(2)}, ` +
+        (inBand ? 'within the critical difference of the best' : 'separated from the best');
+      return `<div class="cd-row" role="row" title="${esc(tip)}">
+        <div class="cd-label" role="cell">${code.startsWith('BASE-')
+          ? `<span class="rec-code">${esc(code)}</span>`
+          : `<span class="rec-code" data-model="${esc(code)}">${esc(code)}</span>`} ${esc(name)}</div>
+        <div class="cd-track" aria-hidden="true">
+          <span class="cd-band" style="left:${bandLeft.toFixed(2)}%;width:${bandWidth.toFixed(2)}%"></span>
+          <span class="cd-dot ${inBand ? 'in' : 'out'}" style="left:${pos(rank).toFixed(2)}%"></span>
+        </div>
+        <div class="cd-val" role="cell">${rank.toFixed(2)}<span class="cd-state">${inBand ? 'tied' : 'behind'}</span></div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function significanceSection(ev) {
+  const blocks = ev.significance;
+  if (!blocks) return '';
+  return Object.entries(blocks).map(([task, block]) => {
+    const f = block.friedman;
+    const tiedCount = block.tied_with_best.length;
+    const lead = `On ${block.datasets} ${task} datasets the models do differ (Friedman test, p = ${formatP(f.p)}).
+      But two models need average ranks more than ${num(block.critical_difference, 2)} apart before the difference is more
+      than luck (Nemenyi, α = ${block.alpha}), and ${tiedCount} of the ${f.models} are within that of the best one: the shaded
+      band. More datasets narrow the band.`;
+    return `<h3 class="ev-h">Which ${esc(task)} models can be told apart</h3>
+      <p class="sect-note">${lead}</p>
+      ${rankChart(block, block.names ?? {})}`;
+  }).join('');
 }
 
 function modelTable(models) {
@@ -144,10 +286,16 @@ export function buildEvidence(T) {
       they were worth on the benchmark. Every number here is leave-one-dataset-out: the dataset being ranked contributed
       nothing to the weights that rank it, so this is what the ranking does on data it has not seen.</p>
     ${rankingTable(ev.ranking)}
+    <p class="sect-note" style="margin-top:14px">A median over a few dozen datasets moves when a few datasets change, so
+      the order in use is also compared with each alternative dataset by dataset (Wilcoxon signed-rank test, Holm-corrected
+      for making several comparisons). ${esc(boostingVerdict(ev.ranking))}</p>
+    ${comparisonTable(ev.ranking)}
     <p class="sect-note" style="margin-top:14px">Interactions between a dataset's measured features and a model's family
       were fitted too, and did not beat the plain per-model order on ${ev.ranking.trained_on?.datasets ?? 40} datasets.
       They stay switched off until the benchmark is large enough to support them, which is an argument for running all 196
       datasets rather than 40.</p>` : ''}
+
+    ${significanceSection(ev)}
 
     <h3 class="ev-h">Every model that ran</h3>
     <p class="sect-note">“Was best” counts datasets where this model scored highest of all that ran.

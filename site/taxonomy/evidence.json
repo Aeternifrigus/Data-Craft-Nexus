@@ -126,6 +126,7 @@
    "datasets": 40,
    "rows": 718
   },
+  "level": 0.95,
   "tasks": {
    "classification": {
     "datasets": 20,
@@ -134,26 +135,80 @@
      "current": {
       "label": "counting matched coordinates",
       "median_regret": 0.0548,
+      "ci": [
+       0.0327,
+       0.0927
+      ],
       "was_best": 0.05,
       "within_one_point": 0.1
      },
      "prior": {
       "label": "learned from the benchmark",
       "median_regret": 0.0106,
+      "ci": [
+       0.0046,
+       0.0173
+      ],
       "was_best": 0.2,
       "within_one_point": 0.5
      },
      "prior_fit": {
       "label": "learned, with dataset interactions",
       "median_regret": 0.0148,
+      "ci": [
+       0.0086,
+       0.0754
+      ],
       "was_best": 0.15,
       "within_one_point": 0.35
      },
      "boosting": {
       "label": "always use boosting",
       "median_regret": 0.023,
+      "ci": [
+       0.004,
+       0.0356
+      ],
       "was_best": 0.2,
       "within_one_point": 0.35
+     }
+    },
+    "against_chosen": {
+     "current": {
+      "wins": 16,
+      "ties": 0,
+      "losses": 4,
+      "median_difference": 0.0221,
+      "ci": [
+       0.0009,
+       0.0422
+      ],
+      "p": 0.009436,
+      "p_holm": 0.02831
+     },
+     "prior_fit": {
+      "wins": 4,
+      "ties": 15,
+      "losses": 1,
+      "median_difference": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "p": 0.1875,
+      "p_holm": 0.375
+     },
+     "boosting": {
+      "wins": 12,
+      "ties": 1,
+      "losses": 7,
+      "median_difference": 0.0028,
+      "ci": [
+       -0.002,
+       0.0143
+      ],
+      "p": 0.4653,
+      "p_holm": 0.4653
      }
     }
    },
@@ -164,28 +219,361 @@
      "current": {
       "label": "counting matched coordinates",
       "median_regret": 0.4321,
+      "ci": [
+       0.2102,
+       0.6409
+      ],
       "was_best": 0.05,
       "within_one_point": 0.05
      },
      "prior": {
       "label": "learned from the benchmark",
       "median_regret": 0.002,
+      "ci": [
+       0.0,
+       0.0083
+      ],
       "was_best": 0.4,
       "within_one_point": 0.75
      },
      "prior_fit": {
       "label": "learned, with dataset interactions",
       "median_regret": 0.0001,
+      "ci": [
+       0.0,
+       0.0063
+      ],
       "was_best": 0.5,
       "within_one_point": 0.75
      },
      "boosting": {
       "label": "always use boosting",
       "median_regret": 0.0068,
+      "ci": [
+       0.0025,
+       0.0132
+      ],
       "was_best": 0.15,
       "within_one_point": 0.65
      }
+    },
+    "against_chosen": {
+     "current": {
+      "wins": 18,
+      "ties": 0,
+      "losses": 2,
+      "median_difference": 0.4309,
+      "ci": [
+       0.201,
+       0.6319
+      ],
+      "p": 1.335e-05,
+      "p_holm": 4.005e-05
+     },
+     "prior_fit": {
+      "wins": 2,
+      "ties": 15,
+      "losses": 3,
+      "median_difference": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "p": 0.625,
+      "p_holm": 0.625
+     },
+     "boosting": {
+      "wins": 15,
+      "ties": 0,
+      "losses": 5,
+      "median_difference": 0.0027,
+      "ci": [
+       0.0014,
+       0.0079
+      ],
+      "p": 0.2024,
+      "p_holm": 0.4049
+     }
     }
+   }
+  }
+ },
+ "significance": {
+  "classification": {
+   "datasets": 20,
+   "alpha": 0.05,
+   "friedman": {
+    "datasets": 20,
+    "models": 18,
+    "chi2": 87.151,
+    "p": 2.006e-11
+   },
+   "critical_difference": 5.8896,
+   "ranks": {
+    "TR3": 5.55,
+    "EN4": 6.275,
+    "BASE-HGB": 6.625,
+    "TR2": 6.675,
+    "NN2": 7.075,
+    "EN3": 7.175,
+    "EN6": 8.025,
+    "EN7": 9.0,
+    "EN2": 9.2,
+    "SV2": 9.5,
+    "LM2": 9.625,
+    "DR4": 10.575,
+    "SV1": 10.9,
+    "TR1": 11.6,
+    "IB1": 12.25,
+    "EN1": 13.125,
+    "PR1": 13.525,
+    "NN1": 14.3
+   },
+   "tied_with_best": [
+    "TR3",
+    "EN4",
+    "BASE-HGB",
+    "TR2",
+    "NN2",
+    "EN3",
+    "EN6",
+    "EN7",
+    "EN2",
+    "SV2",
+    "LM2",
+    "DR4",
+    "SV1"
+   ],
+   "cliques": [
+    [
+     "TR3",
+     "EN4",
+     "BASE-HGB",
+     "TR2",
+     "NN2",
+     "EN3",
+     "EN6",
+     "EN7",
+     "EN2",
+     "SV2",
+     "LM2",
+     "DR4",
+     "SV1"
+    ],
+    [
+     "EN4",
+     "BASE-HGB",
+     "TR2",
+     "NN2",
+     "EN3",
+     "EN6",
+     "EN7",
+     "EN2",
+     "SV2",
+     "LM2",
+     "DR4",
+     "SV1",
+     "TR1"
+    ],
+    [
+     "BASE-HGB",
+     "TR2",
+     "NN2",
+     "EN3",
+     "EN6",
+     "EN7",
+     "EN2",
+     "SV2",
+     "LM2",
+     "DR4",
+     "SV1",
+     "TR1",
+     "IB1"
+    ],
+    [
+     "EN6",
+     "EN7",
+     "EN2",
+     "SV2",
+     "LM2",
+     "DR4",
+     "SV1",
+     "TR1",
+     "IB1",
+     "EN1",
+     "PR1"
+    ],
+    [
+     "EN7",
+     "EN2",
+     "SV2",
+     "LM2",
+     "DR4",
+     "SV1",
+     "TR1",
+     "IB1",
+     "EN1",
+     "PR1",
+     "NN1"
+    ]
+   ],
+   "names": {
+    "TR3": "Extra Trees",
+    "EN4": "LightGBM",
+    "BASE-HGB": "Histogram Gradient Boosting (baseline)",
+    "TR2": "Random Forest",
+    "NN2": "MLP (Feedforward)",
+    "EN3": "XGBoost",
+    "EN6": "Stacking",
+    "EN7": "Voting Ensemble",
+    "EN2": "Gradient Boosting (GBM)",
+    "SV2": "Kernel SVM (RBF/Poly)",
+    "LM2": "Logistic Regression",
+    "DR4": "LDA (Linear Discriminant Analysis)",
+    "SV1": "SVM (linear)",
+    "TR1": "Decision Tree",
+    "IB1": "k-Nearest Neighbors",
+    "EN1": "AdaBoost",
+    "PR1": "Naive Bayes",
+    "NN1": "Perceptron"
+   }
+  },
+  "regression": {
+   "datasets": 20,
+   "alpha": 0.05,
+   "friedman": {
+    "datasets": 20,
+    "models": 20,
+    "chi2": 210.744,
+    "p": 2.456e-34
+   },
+   "critical_difference": 6.6298,
+   "ranks": {
+    "EN2": 3.225,
+    "TR3": 4.575,
+    "BASE-HGB": 4.775,
+    "EN4": 4.975,
+    "TR2": 5.85,
+    "EN3": 7.25,
+    "EN6": 7.7,
+    "EN1": 9.2,
+    "EN7": 10.075,
+    "NN2": 11.65,
+    "TR1": 12.225,
+    "LM3": 12.25,
+    "LM7": 12.325,
+    "SV2": 12.8,
+    "LM6": 13.075,
+    "LM1": 13.15,
+    "IB1": 13.75,
+    "SV1": 15.05,
+    "LM4": 17.925,
+    "LM5": 18.175
+   },
+   "tied_with_best": [
+    "EN2",
+    "TR3",
+    "BASE-HGB",
+    "EN4",
+    "TR2",
+    "EN3",
+    "EN6",
+    "EN1"
+   ],
+   "cliques": [
+    [
+     "EN2",
+     "TR3",
+     "BASE-HGB",
+     "EN4",
+     "TR2",
+     "EN3",
+     "EN6",
+     "EN1"
+    ],
+    [
+     "TR3",
+     "BASE-HGB",
+     "EN4",
+     "TR2",
+     "EN3",
+     "EN6",
+     "EN1",
+     "EN7"
+    ],
+    [
+     "TR2",
+     "EN3",
+     "EN6",
+     "EN1",
+     "EN7",
+     "NN2",
+     "TR1",
+     "LM3",
+     "LM7"
+    ],
+    [
+     "EN3",
+     "EN6",
+     "EN1",
+     "EN7",
+     "NN2",
+     "TR1",
+     "LM3",
+     "LM7",
+     "SV2",
+     "LM6",
+     "LM1",
+     "IB1"
+    ],
+    [
+     "EN1",
+     "EN7",
+     "NN2",
+     "TR1",
+     "LM3",
+     "LM7",
+     "SV2",
+     "LM6",
+     "LM1",
+     "IB1",
+     "SV1"
+    ],
+    [
+     "NN2",
+     "TR1",
+     "LM3",
+     "LM7",
+     "SV2",
+     "LM6",
+     "LM1",
+     "IB1",
+     "SV1",
+     "LM4",
+     "LM5"
+    ]
+   ],
+   "names": {
+    "EN2": "Gradient Boosting (GBM)",
+    "TR3": "Extra Trees",
+    "BASE-HGB": "Histogram Gradient Boosting (baseline)",
+    "EN4": "LightGBM",
+    "TR2": "Random Forest",
+    "EN3": "XGBoost",
+    "EN6": "Stacking",
+    "EN1": "AdaBoost",
+    "EN7": "Voting Ensemble",
+    "NN2": "MLP (Feedforward)",
+    "TR1": "Decision Tree",
+    "LM3": "Ridge Regression",
+    "LM7": "Bayesian Linear Regression",
+    "SV2": "Kernel SVM (RBF/Poly)",
+    "LM6": "Polynomial Regression",
+    "LM1": "Linear Regression",
+    "IB1": "k-Nearest Neighbors",
+    "SV1": "SVM (linear)",
+    "LM4": "Lasso Regression",
+    "LM5": "Elastic Net"
    }
   }
  },

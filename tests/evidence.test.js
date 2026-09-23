@@ -6,15 +6,16 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseCSV } from '../site/js/csv.js';
-import { evidenceFor, evidenceSentence } from '../site/js/evidence.js';
+import { averageRanks, beyondLuck, boostingVerdict, evidenceFor, evidenceSentence, formatP, rankChart }
+  from '../site/js/evidence.js';
 import { loadTaxonomyFromDisk } from './helpers.js';
 
 const T = loadTaxonomyFromDisk();
 const EV = T.EVIDENCE;
 const ROOT = new URL('../', import.meta.url);
 
-function perDataset() {
-  const { head, body } = parseCSV(fs.readFileSync(new URL('bench/results/per_dataset.csv', ROOT), 'utf8'));
+function readTable(path) {
+  const { head, body } = parseCSV(fs.readFileSync(new URL(path, ROOT), 'utf8'));
   const index = Object.fromEntries(head.map((name, i) => [name, i]));
   return body.map(row => Object.fromEntries(head.map(name => {
     const raw = row[index[name]];
@@ -22,6 +23,8 @@ function perDataset() {
     return [name, Number.isNaN(value) ? raw : value];
   })));
 }
+
+const perDataset = () => readTable('bench/results/per_dataset.csv');
 
 const median = (values) => {
   const sorted = [...values].sort((a, b) => a - b);
@@ -80,4 +83,76 @@ test('a recommendation can find its measured line, and says nothing when there i
   assert.equal(evidenceFor(T, 'TR2', 'group'), null);
   assert.equal(evidenceFor(T, 'NN9', 'category'), null, 'U-Net never ran');
   assert.equal(evidenceSentence(null), '');
+});
+
+test('the leave-one-dataset-out medians on the page match bench/results/ranking-lodo.csv', () => {
+  const rows = readTable('bench/results/ranking-lodo.csv');
+  for (const [task, entry] of Object.entries(EV.ranking.tasks)) {
+    const forTask = rows.filter(r => r.task === task);
+    assert.equal(entry.datasets, forTask.length, `${task}: dataset count`);
+    for (const [key, s] of Object.entries(entry.strategies)) {
+      const got = median(forTask.map(r => r.best - r[key]).filter(v => !Number.isNaN(v)));
+      assert.ok(Math.abs(got - s.median_regret) < 5e-4, `${task}.${key}: page ${s.median_regret}, data ${got}`);
+      assert.ok(s.ci[0] <= s.median_regret + 1e-9 && s.median_regret <= s.ci[1] + 1e-9,
+        `${task}.${key}: the interval must contain the median`);
+    }
+  }
+});
+
+test('the order in use is tested against every alternative, and the counts add up', () => {
+  const rows = readTable('bench/results/ranking-lodo.csv');
+  const chosen = EV.ranking.chosen;
+  for (const [task, entry] of Object.entries(EV.ranking.tasks)) {
+    const forTask = rows.filter(r => r.task === task);
+    for (const [other, c] of Object.entries(entry.against_chosen)) {
+      assert.notEqual(other, chosen);
+      let wins = 0, losses = 0;
+      for (const r of forTask) {
+        const diff = (r.best - r[other]) - (r.best - r[chosen]);
+        if (diff > 1e-9) wins++;
+        else if (diff < -1e-9) losses++;
+      }
+      assert.equal(c.wins, wins, `${task} vs ${other}: wins`);
+      assert.equal(c.losses, losses, `${task} vs ${other}: losses`);
+      assert.ok(c.p_holm >= c.p - 1e-12 && c.p_holm <= 1, 'Holm can only raise a p-value');
+    }
+  }
+});
+
+test('average ranks on the page can be recomputed from the scores on the page', () => {
+  for (const [task, block] of Object.entries(EV.significance)) {
+    const models = Object.keys(block.ranks);
+    const got = averageRanks(EV.datasets, task, models);
+    for (const m of models) {
+      assert.ok(Math.abs(got[m] - block.ranks[m]) < 1e-3, `${task} ${m}: page ${block.ranks[m]}, scores give ${got[m]}`);
+    }
+    const best = Math.min(...Object.values(block.ranks));
+    const expected = models.filter(m => block.ranks[m] - best <= block.critical_difference + 1e-9);
+    assert.deepEqual([...block.tied_with_best].sort(), expected.sort(), `${task}: tied with the best`);
+    assert.equal(block.datasets, EV.datasets.filter(d => d.task === task).length);
+  }
+});
+
+test('the rank chart marks exactly the models tied with the best, and escapes names', () => {
+  const [task, block] = Object.entries(EV.significance)[0];
+  const html = rankChart(block, { ...block.names, [Object.keys(block.ranks)[0]]: '<b>x</b>' });
+  assert.equal((html.match(/cd-dot in/g) || []).length, block.tied_with_best.length, task);
+  assert.equal((html.match(/cd-dot (in|out)/g) || []).length, Object.keys(block.ranks).length);
+  assert.ok(!html.includes('<b>x</b>'));
+});
+
+test('p-values are shown honestly, and the verdict follows the corrected one', () => {
+  assert.equal(formatP(0.465), '0.47');
+  assert.equal(formatP(0.0283), '0.028');
+  assert.equal(formatP(0.0043), '0.004');
+  assert.equal(formatP(2.01e-11), '2.0 × 10⁻¹¹');
+  assert.equal(beyondLuck({ p: 0.01, p_holm: 0.06 }), false);
+  assert.equal(beyondLuck({ p: 0.01, p_holm: 0.03 }), true);
+  const verdict = boostingVerdict(EV.ranking);
+  const tests = Object.entries(EV.ranking.tasks).map(([task, entry]) => [task, entry.against_chosen.boosting]);
+  for (const [task, c] of tests) assert.ok(verdict.includes(`${c.wins} of`) && verdict.includes(task));
+  const beyond = tests.filter(([, c]) => beyondLuck(c)).length;
+  if (beyond === 0) assert.match(verdict, /Neither difference is more than luck|within what luck produces/);
+  else if (beyond === tests.length) assert.match(verdict, /more than luck\.$/);
+  else assert.match(verdict, /^.*Only the .* difference is more than luck\.$/);
 });

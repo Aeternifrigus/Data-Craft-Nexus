@@ -56,11 +56,13 @@ What is left is **ordered by what those models were worth on the benchmark**, no
 
 The weights are a prior per model, fitted in `bench/dcn/learn.py` and judged leave-one-dataset-out, so a dataset never contributes to the weights that rank it:
 
-| median regret, leave-one-dataset-out | classification | regression |
+| median regret, leave-one-dataset-out (95% interval) | classification | regression |
 |---|---|---|
-| counting matched coordinates (before) | 0.055 | 0.432 |
-| **learned from the benchmark (now)** | **0.011** | **0.002** |
-| always use boosting | 0.023 | 0.007 |
+| counting matched coordinates (before) | 0.055 (0.033 to 0.093) | 0.432 (0.210 to 0.641) |
+| learned from the benchmark (now) | 0.011 (0.005 to 0.017) | 0.002 (0.000 to 0.008) |
+| always use boosting | 0.023 (0.004 to 0.036) | 0.007 (0.003 to 0.013) |
+
+The intervals come from resampling the datasets, and each pair is also compared dataset by dataset (Wilcoxon signed-rank, Holm-corrected for the several comparisons). Against counting coordinates the learned order is better by more than luck: better on 16 of 20 classification datasets (p = 0.028) and 18 of 20 regression datasets (p = 4 × 10⁻⁵). **Against always using boosting it is not, yet.** It was better on 12 of 20 classification and 15 of 20 regression datasets, but p = 0.47 and 0.40: on 20 datasets per task, that is within what luck produces. Only a larger benchmark can settle it.
 
 A model the benchmark never ran is shown below the ones it did, with no score attached, and a task the benchmark never covered (forecasting, grouping, anomalies) still falls back to coordinates. The page says which of the two it used.
 

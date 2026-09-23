@@ -34,6 +34,7 @@ from sklearn.linear_model import Ridge
 
 from .models import BASELINE
 from .recommend import conflict, load_taxonomy, rank_models
+from .significance import collapse_seeds, holm, paired
 
 ROOT = Path(__file__).resolve().parents[2]
 TASK_CODE = {"classification": "category", "regression": "number"}
@@ -56,6 +57,7 @@ FEATURE_NAMES = sorted(dataset_features("A31", 100, 10))
 
 def build_frame(results: pd.DataFrame, taxonomy: dict) -> pd.DataFrame:
     """One row per dataset and model, with the target and the features."""
+    results = collapse_seeds(results)
     ok = results[(results.status == "ok") & (results.model != BASELINE.code)].copy()
     family = {m["c"]: m["dom"] for m in taxonomy["MODELS"]}
     rows = []
@@ -110,6 +112,7 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame) -> dict
     per_dataset = []
     family = {m["c"]: m["dom"] for m in taxonomy["MODELS"]}
 
+    results = collapse_seeds(results)
     for (dataset, task), group in frame.groupby(["dataset", "task"]):
         train = frame[(frame.dataset != dataset) & (frame.task == task)]
         prior = fit_prior(train)
@@ -121,9 +124,12 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame) -> dict
         boosting_row = run[(run.model == BASELINE.code) & (run.status == "ok")]
         boosting = float(boosting_row.score.iloc[0]) if len(boosting_row) else np.nan
 
-        # What the site does now: the first model of the coordinate ranking.
+        # The order the learned one replaced: the first model by coordinates
+        # matched. The empty ranking matters. Without it rank_models reads the
+        # committed ranking.json, which was fitted on every dataset including
+        # this one, and "current" would quietly become an in-sample prior.
         signature = {"codes": run.signature.iloc[0].split(), "flags": []}
-        ranking = rank_models(taxonomy, signature, TASK_CODE[task], limit=99)
+        ranking = rank_models(taxonomy, signature, TASK_CODE[task], limit=99, ranking={"tasks": {}})
         eligible = [m["c"] for m in ranking.items if m["c"] in set(group.model)]
         by_model = dict(zip(group.model, group.score))
         current = by_model.get(eligible[0]) if eligible else np.nan
@@ -154,6 +160,32 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame) -> dict
                 "within_one_point": round(float((regret <= 0.01).mean()), 3),
             }
     return {"summary": summary, "table": table}
+
+
+STRATEGIES = ["current", "prior", "prior_fit", "boosting"]
+
+
+def comparisons(table: pd.DataFrame, chosen: str) -> dict:
+    """The order in use against every alternative, per task, with Holm's correction."""
+    out = {}
+    for task, group in table.groupby("task"):
+        regret = {key: (group.best - group[key]).to_numpy() for key in STRATEGIES if key in group}
+        tests = {other: paired(regret[chosen], regret[other]) for other in regret if other != chosen}
+        adjusted = holm({other: t["p"] for other, t in tests.items()})
+        for other, t in tests.items():
+            t["p_holm"] = adjusted[other]
+        out[task] = tests
+    return out
+
+
+def report_comparisons(table: pd.DataFrame, chosen: str) -> str:
+    lines = [f"{chosen} against each alternative, paired over datasets (Wilcoxon, Holm-adjusted):"]
+    for task, tests in comparisons(table, chosen).items():
+        lines.append(f"  {task}")
+        for other, t in tests.items():
+            lines.append(f"    vs {other:10} better on {t['wins']:>3}, worse on {t['losses']:>3}, tied {t['ties']:>3}"
+                         f"   p = {t['p_holm']:.3g}")
+    return "\n".join(lines)
 
 
 def export(frame: pd.DataFrame, taxonomy: dict, out: Path, chosen: str) -> dict:
@@ -209,7 +241,8 @@ def main(argv=None) -> int:
         return sum(stats[key]["median_regret"] for stats in evaluation["summary"].values())
     chosen = "prior" if total("prior") <= total("prior_fit") else "prior_fit"
     print(f"chosen: {chosen} (prior {total('prior'):.3f} vs prior+interactions {total('prior_fit'):.3f}, "
-          f"counting coordinates {total('current'):.3f}, boosting {total('boosting'):.3f})")
+          f"counting coordinates {total('current'):.3f}, boosting {total('boosting'):.3f})\n")
+    print(report_comparisons(evaluation["table"], chosen))
 
     evaluation["table"].round(4).to_csv(args.report, index=False)
     payload = export(frame, taxonomy, Path(args.out), chosen)

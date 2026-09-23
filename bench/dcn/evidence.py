@@ -22,10 +22,10 @@ from .analyze import BASELINE as BASELINE_CODE, METRIC, per_dataset
 from .models import BASELINE
 from .meta import FEATURES
 from .models import BY_CODE, NOT_RUNNABLE  # noqa: F401
-from .learn import comparisons
+from .learn import comparisons, regret_units
 from .ranking import load_ranking
 from .recommend import load_taxonomy
-from .significance import bootstrap_ci, collapse_seeds, model_ranking, seed_stability
+from .significance import bootstrap_ci, by_family, collapse_seeds, family_of, model_ranking, seed_stability
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -87,12 +87,15 @@ def ranking_evidence(lodo_path: Path) -> dict | None:
     out = {"chosen": chosen, "trained_on": ranking.get("trained_on"), "level": 0.95,
            "choice": ranking.get("choice", []), "tasks": {}}
     for task, group in table.groupby("task"):
-        out["tasks"][task] = {"datasets": int(len(group)), "metric": METRIC[task], "strategies": {},
-                              "against_chosen": {}}
+        # Every number is over independent units: a synthetic family's
+        # datasets are averaged into one, as the tests in learn.py count them.
+        units = regret_units(group, [key for key, _ in STRATEGY_LABELS])
+        out["tasks"][task] = {"datasets": int(len(group)), "units": int(len(units)), "metric": METRIC[task],
+                              "strategies": {}, "against_chosen": {}}
         for key, label in STRATEGY_LABELS:
-            if key not in group:
+            if key not in units:
                 continue
-            regret = (group.best - group[key]).dropna()
+            regret = units[key].dropna()
             low, high = bootstrap_ci(regret.to_numpy())
             out["tasks"][task]["strategies"][key] = {
                 "label": label,
@@ -149,7 +152,8 @@ def coverage(datasets: list[dict], names: list[str], scale: dict | None) -> dict
     Two things per task: the smallest dataset tested, and how far a benchmark
     dataset usually is from its nearest other benchmark dataset. An upload
     further from every benchmark dataset than 95% of benchmark datasets are
-    from each other is not like anything that was tested. Computed from the
+    from each other is not like anything that was tested. A dataset's own
+    synthetic family does not count as its neighbour. Computed from the
     rounded values the page carries, so the page can recompute it.
     """
     out = {}
@@ -157,8 +161,11 @@ def coverage(datasets: list[dict], names: list[str], scale: dict | None) -> dict
         return out
     for task in sorted({d["task"] for d in datasets}):
         rows = [d for d in datasets if d["task"] == task and d.get("meta")]
-        nearest = [min(meta_distance(d["meta"], o["meta"], names, scale) for o in rows if o is not d)
-                   for d in rows] if len(rows) > 1 else []
+        # Nearest *other kind* of dataset: a synthetic dataset's sisters are
+        # always close, and would make the threshold meaninglessly tight.
+        nearest = [min((meta_distance(d["meta"], o["meta"], names, scale) for o in rows
+                        if o["family"] != d["family"]), default=None) for d in rows] if len(rows) > 1 else []
+        nearest = [x for x in nearest if x is not None]
         out[task] = {
             "datasets": len(rows),
             "min_rows": int(min(d["rows"] for d in rows)) if rows else None,
@@ -184,17 +191,21 @@ def build(results_path: Path, run_label: str, ranked_by: str = "counting matched
 
     headline = {}
     for task, group in table.groupby("task"):
+        # Over independent units, like every other number on the page: a
+        # synthetic family's datasets averaged into one.
+        units = by_family(group, ["regret_first", "regret_top4", "regret_boosting", "regret_eligible_mean"])
         headline[task] = {
             "datasets": int(len(group)),
+            "units": int(len(units)),
             "metric": METRIC[task],
-            "first": round(float(group.regret_first.median()), 4),
-            "top4": round(float(group.regret_top4.median()), 4),
-            "boosting": round(float(group.regret_boosting.median()), 4),
-            "random_eligible": round(float(group.regret_eligible_mean.median()), 4),
-            "first_was_best": round(float((group.regret_first <= 1e-9).mean()), 3),
-            "top4_was_best": round(float((group.regret_top4 <= 1e-9).mean()), 3),
-            "boosting_was_best": round(float((group.regret_boosting <= 1e-9).mean()), 3),
-            "top4_beats_boosting": round(float((group.regret_top4 < group.regret_boosting - 1e-9).mean()), 3),
+            "first": round(float(units.regret_first.median()), 4),
+            "top4": round(float(units.regret_top4.median()), 4),
+            "boosting": round(float(units.regret_boosting.median()), 4),
+            "random_eligible": round(float(units.regret_eligible_mean.median()), 4),
+            "first_was_best": round(float((units.regret_first <= 1e-9).mean()), 3),
+            "top4_was_best": round(float((units.regret_top4 <= 1e-9).mean()), 3),
+            "boosting_was_best": round(float((units.regret_boosting <= 1e-9).mean()), 3),
+            "top4_beats_boosting": round(float((units.regret_top4 < units.regret_boosting - 1e-9).mean()), 3),
         }
 
     # Every model's score on every dataset, so the page can answer questions
@@ -212,6 +223,7 @@ def build(results_path: Path, run_label: str, ranked_by: str = "counting matched
     datasets = [{
         "dataset": row.dataset,
         "task": row.task,
+        "family": family_of(row.dataset),
         "rows": int(row.rows),
         "features": int(row.features),
         "signature": row.signature,

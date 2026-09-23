@@ -17,8 +17,10 @@ Three candidates, simplest first:
   prior+knn     the prior blended with what each model was worth on the
                 benchmark datasets nearest to this one (see ranking.py)
 
-All are judged leave-one-dataset-out: the held-out dataset never contributes
-to the weights, the neighbours or the scale that rank it. They are compared
+All are judged leave-one-dataset-out, with synthetic families held out whole
+(family_of in significance.py): the held-out dataset, and any dataset
+generated from the same function, never contributes to the weights, the
+neighbours or the scale that rank it. The tests then count each family once. They are compared
 against counting coordinates and against always reaching for boosting.
 
 The rule for which one ships was fixed before the full run (choose()): the
@@ -45,7 +47,7 @@ from .meta import FEATURES as META_FEATURES
 from .models import BASELINE
 from .ranking import blend, meta_distance, meta_vector, neighbours_of
 from .recommend import conflict, load_taxonomy, rank_models
-from .significance import collapse_seeds, holm, paired
+from .significance import by_family, collapse_seeds, family_of, holm, paired
 
 # The neighbour order, fixed in advance rather than tuned on the results.
 KNN_K = 10              # neighbours consulted
@@ -147,7 +149,10 @@ def neighbour_block(train: pd.DataFrame, meta: pd.DataFrame, task: str, scale: d
             "meta": meta_vector({f: getattr(row, f) for f in META_FEATURES}, META_FEATURES),
             "ranks": {m: round(float(r), 4) for m, r in zip(group.model, group.target)},
         })
-    nearest = [min(meta_distance(d["meta"], o["meta"], META_FEATURES, scale) for o in datasets if o is not d)
+    # "Close" is measured against other kinds of data: a Friedman dataset's
+    # sister is always near it, and would make every bandwidth tiny.
+    nearest = [min((meta_distance(d["meta"], o["meta"], META_FEATURES, scale) for o in datasets
+                    if family_of(o["dataset"]) != family_of(d["dataset"])), default=1.0)
                for d in datasets] if len(datasets) > 1 else [1.0]
     bandwidth = round(float(np.median(nearest)), 4) or 1.0
     return {"k": KNN_K, "strength": KNN_STRENGTH, "bandwidth": bandwidth,
@@ -162,8 +167,10 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame, meta: p
     family = {m["c"]: m["dom"] for m in taxonomy["MODELS"]}
 
     results = collapse_seeds(results)
+    families = frame.dataset.map(family_of)
     for (dataset, task), group in frame.groupby(["dataset", "task"]):
-        train = frame[(frame.dataset != dataset) & (frame.task == task)]
+        # Leave the dataset's whole family out, not just the dataset.
+        train = frame[(families != family_of(dataset)) & (frame.task == task)]
         prior = fit_prior(train)
         weights = fit_interactions(train, prior)
         features = {name: group.iloc[0][name] for name in FEATURE_NAMES}
@@ -171,7 +178,7 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame, meta: p
         neighbours = None
         if meta is not None:
             own = meta[(meta.dataset == dataset) & (meta.task == task)]
-            others = meta[~((meta.dataset == dataset) & (meta.task == task))]
+            others = meta[~((meta.dataset.map(family_of) == family_of(dataset)) & (meta.task == task))]
             if len(own):
                 block = neighbour_block(train, others, task, meta_scale(others))
                 neighbours = (block, neighbours_of(block, {f: own.iloc[0][f] for f in META_FEATURES}))
@@ -210,7 +217,7 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame, meta: p
             scores[key].append(best - value if value is not None else np.nan)
         # The score each strategy's first pick got, and which model that was,
         # so a later analysis can follow the same pick across seeds.
-        per_dataset.append({"dataset": dataset, "task": task, "best": best,
+        per_dataset.append({"dataset": dataset, "task": task, "family": family_of(dataset), "best": best,
                             **{k: picks[k] for k in keys},
                             **{f"{k}_model": chosen_models[k][1] for k in keys}})
 
@@ -218,8 +225,9 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame, meta: p
     summary = {}
     for task, group in table.groupby("task"):
         summary[task] = {}
+        units = by_family(group.assign(**{k: group.best - group[k] for k in keys}), keys)
         for key in keys:
-            regret = (group.best - group[key]).dropna()
+            regret = units[key].dropna()
             summary[task][key] = {
                 "median_regret": round(float(regret.median()), 4),
                 "mean_regret": round(float(regret.mean()), 4),
@@ -248,8 +256,8 @@ def choose(table: pd.DataFrame) -> tuple[str, list[dict]]:
             continue
         no_worse, tests = True, {}
         for task, group in table.groupby("task"):
-            regret_new = (group.best - group[candidate]).to_numpy()
-            regret_old = (group.best - group[chosen]).to_numpy()
+            units = regret_units(group, [candidate, chosen])
+            regret_new, regret_old = units[candidate].to_numpy(), units[chosen].to_numpy()
             if np.nanmedian(regret_new) > np.nanmedian(regret_old) + 1e-9:
                 no_worse = False
             tests[task] = paired(regret_new, regret_old)
@@ -278,6 +286,12 @@ def describe(decision: dict) -> str:
 REFERENCES = ["current", "boosting"]   # what the order in use is claimed to beat
 
 
+def regret_units(group: pd.DataFrame, keys: list[str]) -> pd.DataFrame:
+    """Regret per independent unit: a synthetic family's datasets averaged into one."""
+    keys = [k for k in dict.fromkeys(keys) if k in group]
+    return by_family(group.assign(**{k: group.best - group[k] for k in keys}), keys)
+
+
 def comparisons(table: pd.DataFrame, chosen: str) -> dict:
     """The order in use against the two references, per task, Holm-corrected over the two.
 
@@ -286,7 +300,8 @@ def comparisons(table: pd.DataFrame, chosen: str) -> dict:
     """
     out = {}
     for task, group in table.groupby("task"):
-        regret = {key: (group.best - group[key]).to_numpy() for key in STRATEGIES if key in group}
+        units = regret_units(group, STRATEGIES)
+        regret = {key: units[key].to_numpy() for key in units.columns}
         tests = {other: paired(regret[chosen], regret[other]) for other in REFERENCES
                  if other in regret and other != chosen}
         adjusted = holm({other: t["p"] for other, t in tests.items()})
@@ -353,7 +368,9 @@ def main(argv=None) -> int:
         meta = meta.merge(frame[["dataset", "task"]].drop_duplicates(), on=["dataset", "task"])
     evaluation = evaluate(frame, taxonomy, results, meta)
 
-    print(f"{frame.dataset.nunique()} datasets, {len(frame)} model results, leave-one-dataset-out\n")
+    units = frame.dataset.map(family_of).nunique()
+    print(f"{frame.dataset.nunique()} datasets ({units} independent), {len(frame)} model results, "
+          f"leave-one-dataset-out with families held out whole\n")
     for task, stats in evaluation["summary"].items():
         print(f"{task}")
         print(f"{'':26}{'median regret':>14}{'was best':>10}{'within 1pt':>12}")

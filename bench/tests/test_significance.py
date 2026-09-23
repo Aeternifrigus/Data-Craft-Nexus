@@ -7,7 +7,7 @@ import pytest
 from scipy import stats
 
 from dcn.significance import (average_ranks, bootstrap_ci, cliques, collapse_seeds, critical_difference,
-                              friedman, holm, model_ranking, paired, seed_stability)
+                              by_family, family_of, friedman, holm, model_ranking, paired, seed_stability)
 
 
 @pytest.mark.parametrize("k,q", [(2, 1.960), (3, 2.343), (4, 2.569), (5, 2.728), (10, 3.164)])
@@ -142,3 +142,34 @@ def test_seed_stability_counts_flips_and_changing_winners():
     assert out["same_best"] == 0.5
     assert (out["compared"], out["flips"]) == (2, 1)
     assert out["score_spread"] > 0
+
+
+def test_datasets_from_one_generator_are_one_family():
+    assert family_of("581_fri_c3_500_25") == family_of("607_fri_c4_1000_50") == "friedman"
+    assert family_of("strogatz_glider2") == "strogatz"
+    assert family_of("1199_BNG_echoMonths") == "bng"
+    # Collected datasets stand alone, even when their names share a prefix.
+    assert family_of("analcatdata_apnea2") == "analcatdata_apnea2"
+    assert family_of("nikuradse_1") != family_of("nikuradse_2")
+
+
+def test_a_family_counts_once():
+    frame = pd.DataFrame({"dataset": ["581_fri_c3_500_25", "607_fri_c4_1000_50", "yeast"],
+                          "regret": [0.1, 0.3, 0.5]})
+    units = by_family(frame, ["regret"])
+    assert len(units) == 2
+    assert units.loc["friedman", "regret"] == pytest.approx(0.2)
+
+
+def test_model_ranking_ranks_families_not_datasets():
+    rows = []
+    # Ten sister datasets where "a" wins, and three collected ones where "b" does.
+    for i in range(10):
+        rows += [{"dataset": f"{600 + i}_fri_c0_500_5", "task": "regression", "model": m, "score": s, "status": "ok"}
+                 for m, s in [("a", 0.9), ("b", 0.8), ("c", 0.1)]]
+    for name in ["x", "y", "z"]:
+        rows += [{"dataset": name, "task": "regression", "model": m, "score": s, "status": "ok"}
+                 for m, s in [("a", 0.8), ("b", 0.9), ("c", 0.1)]]
+    out = model_ranking(pd.DataFrame(rows), "regression")
+    assert (out["datasets"], out["units"]) == (13, 4)
+    assert list(out["ranks"])[0] == "b", "ten sisters must not outvote three independent datasets"

@@ -7,6 +7,10 @@
 //
 //   npm run build            writes dist/index.html
 //   npm run build -- --check fails if dist/index.html is out of date
+//
+// With DCN_BUILD set to a commit hash (the Pages workflow sets it), the page
+// names that commit in a meta tag and in the footer, so anyone can see which
+// version is live. The committed dist/ is built without it.
 
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -16,7 +20,15 @@ import { TAXONOMY_FILES } from '../site/js/taxonomy.js';
 const root = new URL('../', import.meta.url);
 const read = (p) => fs.readFileSync(new URL(p, root), 'utf8');
 
-export async function buildPage() {
+// "abc1234 2026-09-24" from a commit hash, or null. Anything else is refused:
+// it goes into the page.
+export function buildStamp(sha, date = new Date()) {
+  if (!sha) return null;
+  if (!/^[0-9a-f]{7,40}$/.test(sha)) throw new Error(`build: DCN_BUILD must be a commit hash, got ${sha}`);
+  return { sha: sha.slice(0, 7), date: date.toISOString().slice(0, 10) };
+}
+
+export async function buildPage({ stamp = null } = {}) {
   const bundle = await build({
     entryPoints: [new URL('site/js/app.js', root).pathname],
     bundle: true,
@@ -43,6 +55,9 @@ export async function buildPage() {
   };
   replace('<link rel="stylesheet" href="css/style.css">', `<style>\n${css}</style>`);
   html = html.replace(/<!-- dev-only -->[\s\S]*?<!-- \/dev-only -->\n?/, '');
+  replace('<!-- build-stamp -->', stamp
+    ? `<div class="build">Built from commit ${stamp.sha} on ${stamp.date}.</div>` : '');
+  if (stamp) replace('<meta name="theme-color"', `<meta name="dcn-build" content="${stamp.sha} ${stamp.date}">\n<meta name="theme-color"`);
   replace('<script type="module" src="js/app.js"></script>',
     `<script id="dcn-data" type="application/json">${json}</script>\n` +
     `<script>\n${js.replace(/<\/script/gi, '<\\/script')}</script>`);
@@ -53,7 +68,7 @@ export async function buildPage() {
 
 const isMain = process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url;
 if (isMain) {
-  const page = await buildPage();
+  const page = await buildPage({ stamp: buildStamp(process.env.DCN_BUILD) });
   const out = new URL('dist/index.html', root);
   if (process.argv.includes('--check')) {
     const current = fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : '';

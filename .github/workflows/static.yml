@@ -36,6 +36,9 @@ jobs:
           node-version: 22
       - name: Build the single-file page
         run: npm ci && npm run build
+        env:
+          # The page names the commit it was built from, in a meta tag and the footer.
+          DCN_BUILD: ${{ github.sha }}
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
@@ -46,3 +49,21 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+      - name: Check the live page is this commit
+        # A deploy that "succeeds" but leaves an older page live fails here,
+        # instead of being noticed by someone looking for a new feature.
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          sha="${GITHUB_SHA::7}"
+          for attempt in $(seq 1 20); do
+            page="$(curl -fsSL "${PAGE_URL}?build=${sha}" || true)"
+            if grep -q "name=\"dcn-build\" content=\"${sha} " <<< "${page}"; then
+              echo "The live page was built from ${sha}."
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "After five minutes the live page is still not ${sha}."
+          curl -fsSL "${PAGE_URL}?build=${sha}" | grep -o 'name="dcn-build" content="[^"]*"' || echo "It carries no build stamp."
+          exit 1

@@ -118,6 +118,8 @@ export function verdict(results, firstCode) {
   const ok = results.filter(r => r.status === 'ok' && r.score != null).sort((a, b) => b.score - a.score);
   if (!ok.length) return 'No model finished on this file.';
   const best = ok[0];
+  // No first pick to judge when the page's own list is not what the script ran.
+  if (!firstCode) return `The best of ${ok.length} on your file was ${best.name}, at ${best.score.toFixed(4)}.`;
   const first = ok.find(r => r.code === firstCode);
   if (!first) {
     const why = results.some(r => r.code === firstCode) ? 'did not finish here' : 'is not a model the script can run';

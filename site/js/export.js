@@ -63,6 +63,31 @@ export function scriptable(codes, task) {
   return { run, skipped };
 }
 
+// What the take-home script can check for a reading. It cross-validates
+// models that predict a target from the other columns, so it runs as it is
+// for a number or a category. A future value on rows in time order is checked
+// the nearest way it can be: the target predicted as a number (or a category)
+// from the other columns, split by time, and the page says so. Anything else
+// gets a reason instead of a silent gap.
+export function takeHomeTask(task, sig, profile, taskLabel = task) {
+  if (!sig.target) {
+    return { task: null, why: 'The script checks models that predict a column, and none was picked above. Pick the column to predict, and it appears here.' };
+  }
+  if (task === 'category' || task === 'number') return { task, framed: false };
+  if (task === 'forecast') {
+    if (sig.codes[1] !== 'A22') {
+      return { task: null, why: 'A future value needs rows in time order. Answer "Yes, it is a sequence" above, and the script can check it split by time.' };
+    }
+    const target = profile?.columns?.find(c => c.name === sig.target);
+    return { task: target && !target.numeric ? 'category' : 'number', framed: true };
+  }
+  return {
+    task: null,
+    why: `The script checks models that predict a number or a category from the other columns, and "${taskLabel}" `
+      + 'is a different kind of answer, so there is no script for it. Answer "A number" or "A category" above to get one.',
+  };
+}
+
 // Which columns are which, exactly as the benchmark splits them
 // (bench/dcn/run.py profile_dataset): numeric where the profiler read numbers,
 // everything else categorical, the target in neither.

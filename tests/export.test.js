@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseCSV } from '../site/js/csv.js';
 import { profileData } from '../site/js/profile.js';
-import { MODEL_CODE, columnRoles, pythonScript, scriptable } from '../site/js/export.js';
+import { MODEL_CODE, columnRoles, pythonScript, scriptable, takeHomeTask } from '../site/js/export.js';
 import { loadTaxonomyFromDisk } from './helpers.js';
 
 const T = loadTaxonomyFromDisk();
@@ -44,4 +44,17 @@ test('the script carries what the page read, and names what it cannot run', () =
   assert.match(script, /Recommended but not runnable on a table here: NN9\./);
   assert.match(script, /"EN4": \("LightGBM", False, "lightgbm", lambda: lightgbm\.LGBMClassifier/);
   assert.deepEqual(scriptable(['TR2', 'NN9', 'LM1'], 'category'), { run: ['TR2'], skipped: ['NN9', 'LM1'] });
+});
+
+test('the script is offered for every answer it can check, and a reason is given for the rest', () => {
+  const sig = (order, target = 'y') => ({ codes: ['A11', order, 'A38', 'A41', 'A51', 'A61'], flags: [], target });
+  const profile = { columns: [{ name: 'y', numeric: true }, { name: 'kind', numeric: false }] };
+  assert.deepEqual(takeHomeTask('number', sig('A21'), profile), { task: 'number', framed: false });
+  assert.deepEqual(takeHomeTask('category', sig('A22'), profile), { task: 'category', framed: false });
+  // A future value on rows in time order: the target as a number, split by time.
+  assert.deepEqual(takeHomeTask('forecast', sig('A22'), profile), { task: 'number', framed: true });
+  assert.deepEqual(takeHomeTask('forecast', sig('A22', 'kind'), profile), { task: 'category', framed: true });
+  assert.match(takeHomeTask('forecast', sig('A21'), profile).why, /time order/);
+  assert.match(takeHomeTask('group', sig('A21'), profile, 'Natural groupings').why, /"Natural groupings" is a different kind of answer/);
+  assert.match(takeHomeTask('number', sig('A21', null), profile).why, /Pick the column to predict/);
 });

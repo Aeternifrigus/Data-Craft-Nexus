@@ -1920,6 +1920,24 @@ footer .sig{font-size:27px}
     });
     return { run, skipped };
   }
+  function takeHomeTask(task, sig, profile, taskLabel = task) {
+    var _a;
+    if (!sig.target) {
+      return { task: null, why: "The script checks models that predict a column, and none was picked above. Pick the column to predict, and it appears here." };
+    }
+    if (task === "category" || task === "number") return { task, framed: false };
+    if (task === "forecast") {
+      if (sig.codes[1] !== "A22") {
+        return { task: null, why: 'A future value needs rows in time order. Answer "Yes, it is a sequence" above, and the script can check it split by time.' };
+      }
+      const target = (_a = profile == null ? void 0 : profile.columns) == null ? void 0 : _a.find((c) => c.name === sig.target);
+      return { task: target && !target.numeric ? "category" : "number", framed: true };
+    }
+    return {
+      task: null,
+      why: `The script checks models that predict a number or a category from the other columns, and "${taskLabel}" is a different kind of answer, so there is no script for it. Answer "A number" or "A category" above to get one.`
+    };
+  }
   function columnRoles(profile, target) {
     const features = profile.columns.filter((c) => c.name !== target);
     return {
@@ -2301,6 +2319,7 @@ self.onmessage = async (event) => {
     const ok = results.filter((r) => r.status === "ok" && r.score != null).sort((a, b) => b.score - a.score);
     if (!ok.length) return "No model finished on this file.";
     const best = ok[0];
+    if (!firstCode) return `The best of ${ok.length} on your file was ${best.name}, at ${best.score.toFixed(4)}.`;
     const first = ok.find((r) => r.code === firstCode);
     if (!first) {
       const why = results.some((r) => r.code === firstCode) ? "did not finish here" : "is not a model the script can run";
@@ -2428,7 +2447,7 @@ self.onmessage = async (event) => {
     return `<span class="chip${cls}" ${attr}="${esc(code)}">${esc(code)}</span>`;
   }
   function renderResults(T, sig, task, profile, source = null) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g;
     const codes = matchCodes(sig);
     const meta = profile ? metaFeatures(profile, (_a = sig.target) != null ? _a : null) : null;
     if (meta && sig.drift) meta.drift_psi = Math.min(sig.drift.psi, 5);
@@ -2572,7 +2591,17 @@ self.onmessage = async (event) => {
         });
       }
     });
-    renderTakeHome(T, sig, task, profile, source, models.items.map((m) => m.c), lead);
+    const home = takeHomeTask(task, sig, profile, (_g = (_f = T.TASKS.find((t) => t.id === task)) == null ? void 0 : _f.label) != null ? _g : task);
+    const homeModels = home.task && home.task !== task ? rankModels(T, sig, home.task, 4, meta) : models;
+    renderTakeHome(
+      T,
+      sig,
+      home,
+      profile,
+      source,
+      homeModels.items.map((m) => m.c),
+      home.task ? leadRecommendation(T, sig, home.task) : null
+    );
     renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
     renderNeighbours(T, neighbours, task);
     plotSpace(T, sig, meta, neighbours);
@@ -2607,22 +2636,28 @@ self.onmessage = async (event) => {
       </div>
     </article>`;
   }
-  function renderTakeHome(T, sig, task, profile, source, codes, lead = null) {
-    var _a;
+  function renderTakeHome(T, sig, home, profile, source, codes, lead = null) {
+    var _a, _b;
     const el = document.getElementById("takehome");
     if (!el) return;
-    const { run } = scriptable(codes, task);
-    if (!profile || !sig.target || !["category", "number"].includes(task) || !run.length) {
+    if (!profile) {
       el.innerHTML = "";
+      return;
+    }
+    const task = home.task;
+    const { run } = task ? scriptable(codes, task) : { run: [] };
+    if (!task || !run.length) {
+      el.innerHTML = `<p class="takehome-h">Take it home</p>
+      <p class="sect-note">${esc((_a = home.why) != null ? _a : "None of the models shown can run on a table here, so there is no script for them.")}</p>`;
       return;
     }
     const names = Object.fromEntries(T.MODELS.map((m) => [m.c, m.n]));
     const script = () => {
-      var _a2, _b;
+      var _a2, _b2;
       return pythonScript({
         fileName: (_a2 = source == null ? void 0 : source.fileName) != null ? _a2 : "data.csv",
         read: source == null ? void 0 : source.read,
-        columns: (_b = source == null ? void 0 : source.columns) != null ? _b : profile.columns.map((c) => c.name),
+        columns: (_b2 = source == null ? void 0 : source.columns) != null ? _b2 : profile.columns.map((c) => c.name),
         target: sig.target,
         task,
         ordered: sig.codes[1] === "A22",
@@ -2630,8 +2665,13 @@ self.onmessage = async (event) => {
         shortlist: codes
       });
     };
+    const framing = home.framed ? `<p class="sect-note">A future value is not something the benchmark or the script covers, so this checks the
+      nearest thing it can: models that predict ${esc(sig.target)} as ${task === "number" ? "a number" : "a category"}
+      from your other columns, split by time so no later row helps predict an earlier one. It does not build lag
+      features, and it does not run the forecasting models above.</p>` : "";
     el.innerHTML = `<p class="takehome-h">Take it home</p>
-    <p class="sect-note">A Python script that runs ${lead ? "tuned boosting, which the page puts first, and " : ""}${run.map((c) => {
+    ${framing}
+    <p class="sect-note">A Python script that runs ${lead ? home.framed ? "tuned boosting and " : "tuned boosting, which the page puts first, and " : ""}${run.map((c) => {
       var _a2;
       return esc((_a2 = names[c]) != null ? _a2 : c);
     }).join(", ")} on your whole file, with the preprocessing and cross-validation the
@@ -2647,7 +2687,7 @@ self.onmessage = async (event) => {
       models, so on a large file this takes minutes.</p>
     <div class="verify" id="verify-out" hidden></div>` : ""}`;
     document.getElementById("takehome-btn").addEventListener("click", () => downloadScript(script()));
-    (_a = document.getElementById("verify-btn")) == null ? void 0 : _a.addEventListener("click", (event) => runHere(event.currentTarget, script(), source.text, run, lead ? lead.c : codes[0]));
+    (_b = document.getElementById("verify-btn")) == null ? void 0 : _b.addEventListener("click", (event) => runHere(event.currentTarget, script(), source.text, run, home.framed ? null : lead ? lead.c : codes[0]));
   }
   async function runHere(button, script, csv, run, firstCode) {
     const out = document.getElementById("verify-out");

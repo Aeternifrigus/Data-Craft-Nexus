@@ -7,7 +7,7 @@ import { driftUnmeasured, leadRecommendation, paradigmOf, paradigmLabel, rankMod
 import { driftSentence, evidenceFor, evidenceSentence, leadSentence, messyNote } from './evidence.js';
 import { rankingProvenance } from './ranking.js';
 import { coverageNotes, metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
-import { MODEL_CODE, columnRoles, downloadScript, pythonScript, scriptable } from './export.js';
+import { MODEL_CODE, columnRoles, downloadScript, pythonScript, scriptable, takeHomeTask } from './export.js';
 import { PYODIDE_VERSION, verdict, verifyInBrowser } from './verify.js';
 import { downloadReading, readingFileName, readingMarkdown } from './report.js';
 
@@ -193,7 +193,11 @@ export function renderResults(T, sig, task, profile, source = null) {
     }
   });
 
-  renderTakeHome(T, sig, task, profile, source, models.items.map(m => m.c), lead);
+  // The script's task can differ from the answer: a future value is checked as a number, split by time.
+  const home = takeHomeTask(task, sig, profile, T.TASKS.find(t => t.id === task)?.label ?? task);
+  const homeModels = home.task && home.task !== task ? rankModels(T, sig, home.task, 4, meta) : models;
+  renderTakeHome(T, sig, home, profile, source, homeModels.items.map(m => m.c),
+    home.task ? leadRecommendation(T, sig, home.task) : null);
   renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
   renderNeighbours(T, neighbours, task);
   plotSpace(T, sig, meta, neighbours);
@@ -232,12 +236,16 @@ function leadCard(T, lead) {
 
 // "Take it home": the shortlist as a Python script, for the tasks the
 // benchmark covers (it needs a target to score against).
-function renderTakeHome(T, sig, task, profile, source, codes, lead = null) {
+function renderTakeHome(T, sig, home, profile, source, codes, lead = null) {
   const el = document.getElementById('takehome');
   if (!el) return;
-  const { run } = scriptable(codes, task);
-  if (!profile || !sig.target || !['category', 'number'].includes(task) || !run.length) {
-    el.innerHTML = '';
+  if (!profile) { el.innerHTML = ''; return; }
+  const task = home.task;
+  const { run } = task ? scriptable(codes, task) : { run: [] };
+  if (!task || !run.length) {
+    // Said, not hidden: a reader looking for the script learns what it needs.
+    el.innerHTML = `<p class="takehome-h">Take it home</p>
+      <p class="sect-note">${esc(home.why ?? 'None of the models shown can run on a table here, so there is no script for them.')}</p>`;
     return;
   }
   const names = Object.fromEntries(T.MODELS.map(m => [m.c, m.n]));
@@ -245,8 +253,15 @@ function renderTakeHome(T, sig, task, profile, source, codes, lead = null) {
     fileName: source?.fileName ?? 'data.csv', read: source?.read, columns: source?.columns ?? profile.columns.map(c => c.name),
     target: sig.target, task, ordered: sig.codes[1] === 'A22', ...columnRoles(profile, sig.target), shortlist: codes,
   });
+  const framing = home.framed
+    ? `<p class="sect-note">A future value is not something the benchmark or the script covers, so this checks the
+      nearest thing it can: models that predict ${esc(sig.target)} as ${task === 'number' ? 'a number' : 'a category'}
+      from your other columns, split by time so no later row helps predict an earlier one. It does not build lag
+      features, and it does not run the forecasting models above.</p>`
+    : '';
   el.innerHTML = `<p class="takehome-h">Take it home</p>
-    <p class="sect-note">A Python script that runs ${lead ? 'tuned boosting, which the page puts first, and ' : ''}${
+    ${framing}
+    <p class="sect-note">A Python script that runs ${lead ? (home.framed ? 'tuned boosting and ' : 'tuned boosting, which the page puts first, and ') : ''}${
       run.map(c => esc(names[c] ?? c)).join(', ')} on your whole file, with the preprocessing and cross-validation the
       benchmark used${lead ? '' : ', and tuned boosting beside them: on the benchmark, a small tuning budget was worth more than the choice among the top models'}.
       It needs pandas and scikit-learn.</p>
@@ -261,7 +276,7 @@ function renderTakeHome(T, sig, task, profile, source, codes, lead = null) {
     <div class="verify" id="verify-out" hidden></div>` : ''}`;
   document.getElementById('takehome-btn').addEventListener('click', () => downloadScript(script()));
   document.getElementById('verify-btn')?.addEventListener('click', (event) =>
-    runHere(event.currentTarget, script(), source.text, run, lead ? lead.c : codes[0]));
+    runHere(event.currentTarget, script(), source.text, run, home.framed ? null : (lead ? lead.c : codes[0])));
 }
 
 // "Run it here": the script in a Pyodide worker, results as they arrive.

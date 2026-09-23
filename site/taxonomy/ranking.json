@@ -161,8 +161,8 @@
     "regression": {
      "wins": 3,
      "losses": 2,
-     "ties": 15,
-     "p_holm": 0.625
+     "ties": 3,
+     "p_holm": 0.8125
     }
    }
   },
@@ -179,9 +179,9 @@
      "p_holm": 1.0
     },
     "regression": {
-     "wins": 0,
+     "wins": 1,
      "losses": 0,
-     "ties": 20,
+     "ties": 7,
      "p_holm": 1.0
     }
    }

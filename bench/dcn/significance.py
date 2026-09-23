@@ -20,16 +20,40 @@ Repeated cross-validation seeds are averaged into one score per dataset and
 model first (collapse_seeds). The seeds measure how much a single split can
 move a score; they are not extra datasets, and counting them as such would
 make every difference look more certain than it is.
+
+The same goes for datasets generated from one function. PMLB has 54
+regression datasets from Friedman's benchmark functions and 14 from
+Strogatz's equations: sisters that share a winner. Each such family counts
+once (family_of, by_family), so 101 regression datasets are 35 independent
+units, and a test that counted all 101 would claim far more certainty than
+the data holds.
 """
 from __future__ import annotations
 
 import math
+import re
 
 import numpy as np
 import pandas as pd
 from scipy import stats
 
 LEVEL = 0.95
+
+SYNTHETIC_FAMILIES = [(re.compile(r"^\d+_fri_c\d"), "friedman"), (re.compile(r"^strogatz_"), "strogatz"),
+                      (re.compile(r"^feynman_"), "feynman"), (re.compile(r"BNG"), "bng")]
+
+
+def family_of(dataset: str) -> str:
+    """The family a dataset was generated in, or the dataset itself when it stands alone."""
+    for pattern, family in SYNTHETIC_FAMILIES:
+        if pattern.search(dataset):
+            return family
+    return dataset
+
+
+def by_family(frame: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+    """One row per independent unit: the mean of each column over a family's datasets."""
+    return frame.assign(family=frame.dataset.map(family_of)).groupby("family")[columns].mean()
 
 
 def collapse_seeds(results: pd.DataFrame) -> pd.DataFrame:
@@ -162,15 +186,17 @@ def cliques(ranks: pd.Series, cd: float) -> list[list[str]]:
 
 
 def score_matrix(results: pd.DataFrame, task: str, decimals: int = 4) -> pd.DataFrame:
-    """Datasets by models, the collapsed score of every model that was run.
+    """Independent units by models: each model's score, a family's averaged.
 
     Scores are compared at the four decimals the site publishes, so a
-    difference too small to show counts as a tie, and the ranks can be
-    recomputed from the page.
+    difference too small to show counts as a tie, and a family's mean is
+    rounded to six, so the ranks can be recomputed from the page exactly.
+    A model that finished on none of a unit's datasets has no score there.
     """
     run = results[results.task == task]
     scores = run.assign(score=np.where(run.status == "ok", run.score.astype(float).round(decimals), np.nan))
-    return scores.pivot_table(index="dataset", columns="model", values="score", aggfunc="first", dropna=False)
+    matrix = scores.pivot_table(index="dataset", columns="model", values="score", aggfunc="first", dropna=False)
+    return matrix.groupby(matrix.index.map(family_of)).mean().round(6)
 
 
 def model_ranking(results: pd.DataFrame, task: str, alpha: float = 0.05) -> dict:
@@ -179,14 +205,16 @@ def model_ranking(results: pd.DataFrame, task: str, alpha: float = 0.05) -> dict
     # A model has to have been attempted on every dataset of the task to be
     # ranked against the others; one that was only run on some cannot be.
     matrix = matrix.loc[:, matrix.notna().any(axis=0)]
-    attempted = results[results.task == task].groupby("model").dataset.nunique()
-    matrix = matrix[[c for c in matrix.columns if attempted.get(c, 0) == matrix.shape[0]]]
+    run = results[results.task == task]
+    attempted = run.groupby("model").dataset.nunique()
+    matrix = matrix[[c for c in matrix.columns if attempted.get(c, 0) == run.dataset.nunique()]]
     ranks = average_ranks(matrix)
     n, k = matrix.shape
     cd = critical_difference(k, n, alpha)
     best = float(ranks.iloc[0])
     return {
-        "datasets": int(n),
+        "datasets": int(results[results.task == task].dataset.nunique()),
+        "units": int(n),
         "alpha": alpha,
         "friedman": friedman(matrix),
         "critical_difference": cd,

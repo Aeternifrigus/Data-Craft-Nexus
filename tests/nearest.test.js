@@ -90,7 +90,8 @@ test('what the benchmark covered can be recomputed from the datasets on the page
     const rows = ev.datasets.filter(d => d.task === task && d.meta);
     assert.equal(cov.datasets, rows.length, task);
     assert.equal(cov.min_rows, Math.min(...rows.map(d => d.rows)), `${task}: smallest dataset`);
-    const nearest = rows.map(d => Math.min(...rows.filter(o => o !== d)
+    // A dataset's own synthetic family does not count as its neighbour.
+    const nearest = rows.map(d => Math.min(...rows.filter(o => o.family !== d.family)
       .map(o => distance(d.meta, o.meta, ev.meta_features, ev.meta_scale))));
     assert.ok(Math.abs(quantile(nearest, 0.95) - cov.nearest_p95) < 1e-3,
       `${task}: page says ${cov.nearest_p95}, datasets give ${quantile(nearest, 0.95)}`);

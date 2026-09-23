@@ -107,13 +107,14 @@
    "datasets": 20,
    "min_rows": 200,
    "max_rows": 5000,
-   "nearest_median": 0.2253,
-   "nearest_p95": 0.9216
+   "nearest_median": 0.6415,
+   "nearest_p95": 1.0168
   }
  },
  "headline": {
   "classification": {
    "datasets": 20,
+   "units": 20,
    "metric": "balanced accuracy",
    "first": 0.0548,
    "top4": 0.0152,
@@ -126,15 +127,16 @@
   },
   "regression": {
    "datasets": 20,
+   "units": 8,
    "metric": "R\u00b2",
-   "first": 0.4321,
-   "top4": 0.1758,
-   "boosting": 0.0069,
-   "random_eligible": 0.2404,
-   "first_was_best": 0.05,
-   "top4_was_best": 0.05,
-   "boosting_was_best": 0.15,
-   "top4_beats_boosting": 0.2
+   "first": 0.3218,
+   "top4": 0.0672,
+   "boosting": 0.0093,
+   "random_eligible": 0.1716,
+   "first_was_best": 0.0,
+   "top4_was_best": 0.0,
+   "boosting_was_best": 0.0,
+   "top4_beats_boosting": 0.375
   }
  },
  "ranking": {
@@ -160,8 +162,8 @@
      "regression": {
       "wins": 3,
       "losses": 2,
-      "ties": 15,
-      "p_holm": 0.625
+      "ties": 3,
+      "p_holm": 0.8125
      }
     }
    },
@@ -178,9 +180,9 @@
       "p_holm": 1.0
      },
      "regression": {
-      "wins": 0,
+      "wins": 1,
       "losses": 0,
-      "ties": 20,
+      "ties": 7,
       "p_holm": 1.0
      }
     }
@@ -189,6 +191,7 @@
   "tasks": {
    "classification": {
     "datasets": 20,
+    "units": 20,
     "metric": "balanced accuracy",
     "strategies": {
      "current": {
@@ -271,83 +274,84 @@
    },
    "regression": {
     "datasets": 20,
+    "units": 8,
     "metric": "R\u00b2",
     "strategies": {
      "current": {
       "label": "counting matched coordinates",
-      "median_regret": 0.4321,
+      "median_regret": 0.3218,
       "ci": [
-       0.2102,
-       0.6409
+       0.035,
+       0.5153
       ],
-      "was_best": 0.05,
-      "within_one_point": 0.05
+      "was_best": 0.0,
+      "within_one_point": 0.0
      },
      "prior": {
       "label": "learned from the benchmark",
-      "median_regret": 0.002,
+      "median_regret": 0.0033,
       "ci": [
        0.0,
-       0.0083
+       0.0607
       ],
-      "was_best": 0.4,
+      "was_best": 0.375,
       "within_one_point": 0.75
      },
      "prior_fit": {
       "label": "learned, with dataset interactions",
-      "median_regret": 0.0001,
+      "median_regret": 0.0023,
       "ci": [
        0.0,
-       0.0063
+       0.0123
       ],
-      "was_best": 0.5,
-      "within_one_point": 0.75
+      "was_best": 0.375,
+      "within_one_point": 0.625
      },
      "prior_knn": {
       "label": "learned, weighted toward datasets like yours",
-      "median_regret": 0.002,
+      "median_regret": 0.0033,
       "ci": [
        0.0,
-       0.0083
+       0.0187
       ],
-      "was_best": 0.4,
+      "was_best": 0.375,
       "within_one_point": 0.75
      },
      "boosting": {
       "label": "always use boosting",
-      "median_regret": 0.0068,
+      "median_regret": 0.0092,
       "ci": [
-       0.0025,
-       0.0132
+       0.0047,
+       0.0499
       ],
-      "was_best": 0.15,
-      "within_one_point": 0.65
+      "was_best": 0.0,
+      "within_one_point": 0.625
      }
     },
     "against_chosen": {
      "current": {
-      "wins": 18,
+      "wins": 7,
       "ties": 0,
-      "losses": 2,
-      "median_difference": 0.4309,
+      "losses": 1,
+      "median_difference": 0.3164,
       "ci": [
-       0.201,
-       0.6319
+       0.035,
+       0.5153
       ],
-      "p": 1.335e-05,
-      "p_holm": 2.67e-05
+      "p": 0.02344,
+      "p_holm": 0.04688
      },
      "boosting": {
-      "wins": 15,
+      "wins": 6,
       "ties": 0,
-      "losses": 5,
+      "losses": 2,
       "median_difference": 0.0027,
       "ci": [
-       0.0014,
-       0.0079
+       -0.0397,
+       0.0457
       ],
-      "p": 0.2024,
-      "p_holm": 0.2024
+      "p": 0.4609,
+      "p_holm": 0.4609
      }
     }
    }
@@ -356,6 +360,7 @@
  "significance": {
   "classification": {
    "datasets": 20,
+   "units": 20,
    "alpha": 0.05,
    "friedman": {
     "datasets": 20,
@@ -495,114 +500,123 @@
   },
   "regression": {
    "datasets": 20,
+   "units": 8,
    "alpha": 0.05,
    "friedman": {
-    "datasets": 20,
+    "datasets": 8,
     "models": 20,
-    "chi2": 210.744,
-    "p": 2.456e-34
+    "chi2": 70.642,
+    "p": 7.193e-08
    },
-   "critical_difference": 6.6298,
+   "critical_difference": 10.4827,
    "ranks": {
-    "EN2": 3.225,
-    "TR3": 4.575,
-    "BASE-HGB": 4.775,
-    "EN4": 4.975,
-    "TR2": 5.85,
-    "EN3": 7.25,
-    "EN6": 7.7,
-    "EN1": 9.2,
-    "EN7": 10.075,
-    "NN2": 11.65,
-    "TR1": 12.225,
-    "LM3": 12.25,
-    "LM7": 12.325,
-    "SV2": 12.8,
-    "LM6": 13.075,
-    "LM1": 13.15,
-    "IB1": 13.75,
-    "SV1": 15.05,
-    "LM4": 17.925,
-    "LM5": 18.175
+    "EN2": 4.125,
+    "TR2": 4.5625,
+    "TR3": 5.125,
+    "EN6": 6.0,
+    "BASE-HGB": 6.5625,
+    "EN4": 7.1875,
+    "EN3": 8.25,
+    "EN7": 8.375,
+    "EN1": 10.0,
+    "NN2": 12.0,
+    "LM7": 12.0,
+    "LM3": 12.0,
+    "LM6": 12.0,
+    "TR1": 12.0,
+    "IB1": 12.625,
+    "LM1": 13.125,
+    "SV2": 15.25,
+    "SV1": 15.3125,
+    "LM4": 16.1875,
+    "LM5": 17.3125
    },
    "tied_with_best": [
     "EN2",
+    "TR2",
     "TR3",
+    "EN6",
     "BASE-HGB",
     "EN4",
-    "TR2",
     "EN3",
-    "EN6",
-    "EN1"
+    "EN7",
+    "EN1",
+    "NN2",
+    "LM7",
+    "LM3",
+    "LM6",
+    "TR1",
+    "IB1",
+    "LM1"
    ],
    "cliques": [
     [
      "EN2",
+     "TR2",
      "TR3",
+     "EN6",
      "BASE-HGB",
      "EN4",
-     "TR2",
      "EN3",
-     "EN6",
-     "EN1"
-    ],
-    [
-     "TR3",
-     "BASE-HGB",
-     "EN4",
-     "TR2",
-     "EN3",
-     "EN6",
-     "EN1",
-     "EN7"
-    ],
-    [
-     "TR2",
-     "EN3",
-     "EN6",
-     "EN1",
      "EN7",
-     "NN2",
-     "TR1",
-     "LM3",
-     "LM7"
-    ],
-    [
-     "EN3",
-     "EN6",
      "EN1",
-     "EN7",
      "NN2",
-     "TR1",
-     "LM3",
      "LM7",
-     "SV2",
-     "LM6",
-     "LM1",
-     "IB1"
-    ],
-    [
-     "EN1",
-     "EN7",
-     "NN2",
-     "TR1",
      "LM3",
-     "LM7",
-     "SV2",
      "LM6",
-     "LM1",
+     "TR1",
      "IB1",
+     "LM1"
+    ],
+    [
+     "TR3",
+     "EN6",
+     "BASE-HGB",
+     "EN4",
+     "EN3",
+     "EN7",
+     "EN1",
+     "NN2",
+     "LM7",
+     "LM3",
+     "LM6",
+     "TR1",
+     "IB1",
+     "LM1",
+     "SV2",
      "SV1"
     ],
     [
+     "EN6",
+     "BASE-HGB",
+     "EN4",
+     "EN3",
+     "EN7",
+     "EN1",
      "NN2",
-     "TR1",
-     "LM3",
      "LM7",
-     "SV2",
+     "LM3",
      "LM6",
-     "LM1",
+     "TR1",
      "IB1",
+     "LM1",
+     "SV2",
+     "SV1",
+     "LM4"
+    ],
+    [
+     "EN4",
+     "EN3",
+     "EN7",
+     "EN1",
+     "NN2",
+     "LM7",
+     "LM3",
+     "LM6",
+     "TR1",
+     "IB1",
+     "LM1",
+     "SV2",
      "SV1",
      "LM4",
      "LM5"
@@ -610,22 +624,22 @@
    ],
    "names": {
     "EN2": "Gradient Boosting (GBM)",
+    "TR2": "Random Forest",
     "TR3": "Extra Trees",
+    "EN6": "Stacking",
     "BASE-HGB": "Histogram Gradient Boosting (baseline)",
     "EN4": "LightGBM",
-    "TR2": "Random Forest",
     "EN3": "XGBoost",
-    "EN6": "Stacking",
-    "EN1": "AdaBoost",
     "EN7": "Voting Ensemble",
+    "EN1": "AdaBoost",
     "NN2": "MLP (Feedforward)",
-    "TR1": "Decision Tree",
-    "LM3": "Ridge Regression",
     "LM7": "Bayesian Linear Regression",
-    "SV2": "Kernel SVM (RBF/Poly)",
+    "LM3": "Ridge Regression",
     "LM6": "Polynomial Regression",
-    "LM1": "Linear Regression",
+    "TR1": "Decision Tree",
     "IB1": "k-Nearest Neighbors",
+    "LM1": "Linear Regression",
+    "SV2": "Kernel SVM (RBF/Poly)",
     "SV1": "SVM (linear)",
     "LM4": "Lasso Regression",
     "LM5": "Elastic Net"
@@ -1042,6 +1056,7 @@
   {
    "dataset": "1199_BNG_echoMonths",
    "task": "regression",
+   "family": "bng",
    "rows": 5000,
    "features": 9,
    "signature": "A11 A21 A38 A41 A53 A61",
@@ -1094,6 +1109,7 @@
   {
    "dataset": "225_puma8NH",
    "task": "regression",
+   "family": "225_puma8NH",
    "rows": 5000,
    "features": 8,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -1146,6 +1162,7 @@
   {
    "dataset": "229_pwLinear",
    "task": "regression",
+   "family": "229_pwLinear",
    "rows": 200,
    "features": 10,
    "signature": "A11 A21 A32 A41 A53 A61",
@@ -1198,6 +1215,7 @@
   {
    "dataset": "556_analcatdata_apnea2",
    "task": "regression",
+   "family": "556_analcatdata_apnea2",
    "rows": 475,
    "features": 3,
    "signature": "A11 A21 A38 A41 A54 A61",
@@ -1250,6 +1268,7 @@
   {
    "dataset": "581_fri_c3_500_25",
    "task": "regression",
+   "family": "friedman",
    "rows": 500,
    "features": 25,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -1302,6 +1321,7 @@
   {
    "dataset": "589_fri_c2_1000_25",
    "task": "regression",
+   "family": "friedman",
    "rows": 1000,
    "features": 25,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -1354,6 +1374,7 @@
   {
    "dataset": "595_fri_c0_1000_10",
    "task": "regression",
+   "family": "friedman",
    "rows": 1000,
    "features": 10,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -1406,6 +1427,7 @@
   {
    "dataset": "596_fri_c2_250_5",
    "task": "regression",
+   "family": "friedman",
    "rows": 250,
    "features": 5,
    "signature": "A11 A21 A31 A41 A54 A61",
@@ -1458,6 +1480,7 @@
   {
    "dataset": "598_fri_c0_1000_25",
    "task": "regression",
+   "family": "friedman",
    "rows": 1000,
    "features": 25,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -1510,6 +1533,7 @@
   {
    "dataset": "606_fri_c2_1000_10",
    "task": "regression",
+   "family": "friedman",
    "rows": 1000,
    "features": 10,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -1562,6 +1586,7 @@
   {
    "dataset": "620_fri_c1_1000_25",
    "task": "regression",
+   "family": "friedman",
    "rows": 1000,
    "features": 25,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -1614,6 +1639,7 @@
   {
    "dataset": "627_fri_c2_500_10",
    "task": "regression",
+   "family": "friedman",
    "rows": 500,
    "features": 10,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -1666,6 +1692,7 @@
   {
    "dataset": "635_fri_c0_250_10",
    "task": "regression",
+   "family": "friedman",
    "rows": 250,
    "features": 10,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -1718,6 +1745,7 @@
   {
    "dataset": "641_fri_c1_500_10",
    "task": "regression",
+   "family": "friedman",
    "rows": 500,
    "features": 10,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -1770,6 +1798,7 @@
   {
    "dataset": "645_fri_c3_500_50",
    "task": "regression",
+   "family": "friedman",
    "rows": 500,
    "features": 50,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -1822,6 +1851,7 @@
   {
    "dataset": "653_fri_c0_250_25",
    "task": "regression",
+   "family": "friedman",
    "rows": 250,
    "features": 25,
    "signature": "A11 A21 A31 A41 A54 A61",
@@ -1874,6 +1904,7 @@
   {
    "dataset": "695_chatfield_4",
    "task": "regression",
+   "family": "695_chatfield_4",
    "rows": 235,
    "features": 12,
    "signature": "A11 A21 A31 A41 A54 A61",
@@ -1926,6 +1957,7 @@
   {
    "dataset": "agaricus_lepiota",
    "task": "classification",
+   "family": "agaricus_lepiota",
    "rows": 5000,
    "features": 22,
    "signature": "A11 A21 A38 A41 A51 A61",
@@ -1976,6 +2008,7 @@
   {
    "dataset": "allhypo",
    "task": "classification",
+   "family": "allhypo",
    "rows": 3770,
    "features": 29,
    "signature": "A11 A21 A38 A41 A52 A61",
@@ -2026,6 +2059,7 @@
   {
    "dataset": "banana",
    "task": "classification",
+   "family": "banana",
    "rows": 5000,
    "features": 2,
    "signature": "A11 A21 A31 A41 A51 A61",
@@ -2076,6 +2110,7 @@
   {
    "dataset": "biomed",
    "task": "classification",
+   "family": "biomed",
    "rows": 209,
    "features": 8,
    "signature": "A11 A21 A38 A41 A51 A61",
@@ -2126,6 +2161,7 @@
   {
    "dataset": "breast_cancer",
    "task": "classification",
+   "family": "breast_cancer",
    "rows": 286,
    "features": 9,
    "signature": "A11 A21 A38 A41 A51 A61",
@@ -2176,6 +2212,7 @@
   {
    "dataset": "breast_cancer_wisconsin_diagnostic",
    "task": "classification",
+   "family": "breast_cancer_wisconsin_diagnostic",
    "rows": 569,
    "features": 30,
    "signature": "A11 A21 A31 A41 A51 A61",
@@ -2226,6 +2263,7 @@
   {
    "dataset": "cars",
    "task": "classification",
+   "family": "cars",
    "rows": 392,
    "features": 8,
    "signature": "A11 A21 A38 A41 A51 A61",
@@ -2276,6 +2314,7 @@
   {
    "dataset": "collins",
    "task": "classification",
+   "family": "collins",
    "rows": 485,
    "features": 23,
    "signature": "A11 A21 A38 A41 A51 A61",
@@ -2326,6 +2365,7 @@
   {
    "dataset": "credit_approval_australia",
    "task": "classification",
+   "family": "credit_approval_australia",
    "rows": 690,
    "features": 15,
    "signature": "A11 A21 A38 A41 A51 A62",
@@ -2376,6 +2416,7 @@
   {
    "dataset": "heart_disease_va_long_beach",
    "task": "classification",
+   "family": "heart_disease_va_long_beach",
    "rows": 200,
    "features": 13,
    "signature": "A11 A21 A38 A41 A51 A62",
@@ -2426,6 +2467,7 @@
   {
    "dataset": "letter",
    "task": "classification",
+   "family": "letter",
    "rows": 5000,
    "features": 16,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -2475,6 +2517,7 @@
   {
    "dataset": "mfeat_zernike",
    "task": "classification",
+   "family": "mfeat_zernike",
    "rows": 2000,
    "features": 47,
    "signature": "A11 A21 A31 A41 A51 A61",
@@ -2524,6 +2567,7 @@
   {
    "dataset": "movement_libras",
    "task": "classification",
+   "family": "movement_libras",
    "rows": 360,
    "features": 90,
    "signature": "A11 A21 A31 A42 A51 A61",
@@ -2574,6 +2618,7 @@
   {
    "dataset": "nikuradse_1",
    "task": "regression",
+   "family": "nikuradse_1",
    "rows": 362,
    "features": 2,
    "signature": "A11 A21 A31 A41 A54 A61",
@@ -2626,6 +2671,7 @@
   {
    "dataset": "parity5+5",
    "task": "classification",
+   "family": "parity5+5",
    "rows": 1124,
    "features": 10,
    "signature": "A11 A21 A32 A41 A51 A61",
@@ -2676,6 +2722,7 @@
   {
    "dataset": "satimage",
    "task": "classification",
+   "family": "satimage",
    "rows": 5000,
    "features": 36,
    "signature": "A11 A21 A31 A41 A51 A61",
@@ -2726,6 +2773,7 @@
   {
    "dataset": "schizo",
    "task": "classification",
+   "family": "schizo",
    "rows": 340,
    "features": 14,
    "signature": "A11 A21 A38 A41 A51 A61",
@@ -2776,6 +2824,7 @@
   {
    "dataset": "spambase",
    "task": "classification",
+   "family": "spambase",
    "rows": 4601,
    "features": 57,
    "signature": "A11 A21 A31 A43 A51 A61",
@@ -2826,6 +2875,7 @@
   {
    "dataset": "splice",
    "task": "classification",
+   "family": "splice",
    "rows": 3188,
    "features": 60,
    "signature": "A11 A21 A32 A41 A51 A61",
@@ -2876,6 +2926,7 @@
   {
    "dataset": "strogatz_glider2",
    "task": "regression",
+   "family": "strogatz",
    "rows": 400,
    "features": 2,
    "signature": "A11 A21 A31 A41 A54 A61",
@@ -2928,6 +2979,7 @@
   {
    "dataset": "strogatz_vdp2",
    "task": "regression",
+   "family": "strogatz",
    "rows": 400,
    "features": 2,
    "signature": "A11 A21 A31 A41 A53 A61",
@@ -2980,6 +3032,7 @@
   {
    "dataset": "tic_tac_toe",
    "task": "classification",
+   "family": "tic_tac_toe",
    "rows": 958,
    "features": 9,
    "signature": "A11 A21 A32 A41 A51 A61",
@@ -3030,6 +3083,7 @@
   {
    "dataset": "yeast",
    "task": "classification",
+   "family": "yeast",
    "rows": 1479,
    "features": 8,
    "signature": "A11 A21 A31 A41 A51 A61",

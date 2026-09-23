@@ -36,7 +36,7 @@ function headlineTable(headline) {
   ];
   return `<table class="ev-table">
     <thead><tr><th>median regret</th>${tasks.map(t =>
-      `<th>${esc(t)}<span class="ev-sub">${esc(headline[t].metric)}, ${headline[t].datasets} datasets</span></th>`).join('')}</tr></thead>
+      `<th>${esc(t)}<span class="ev-sub">${esc(headline[t].metric)}, ${unitsLabel(headline[t])}</span></th>`).join('')}</tr></thead>
     <tbody>${rows.map(([label, key, bestKey]) => `<tr>
       <td>${esc(label)}</td>
       ${tasks.map(t => `<td>${num(headline[t][key])}${bestKey
@@ -61,6 +61,12 @@ export const beyondLuck = (test) => test != null && test.p_holm != null && test.
 
 const STRATEGY_KEYS = ['current', 'prior', 'prior_fit', 'prior_knn', 'boosting'];
 
+// "101 datasets, 35 independent" when synthetic families were counted once.
+export function unitsLabel(entry) {
+  const units = entry.units ?? entry.datasets;
+  return units < entry.datasets ? `${entry.datasets} datasets, ${units} independent` : `${entry.datasets} datasets`;
+}
+
 function strategyLabel(ranking, key) {
   for (const task of Object.keys(ranking.tasks)) {
     const s = ranking.tasks[task].strategies[key];
@@ -79,7 +85,7 @@ function rankingTable(ranking) {
   const chosenNote = (key) => (key === ranking.chosen ? ' <span class="ev-chosen">in use</span>' : '');
   return `<table class="ev-table">
     <thead><tr><th>median regret, leave-one-dataset-out</th>${tasks.map(t =>
-      `<th>${esc(t)}<span class="ev-sub">${esc(ranking.tasks[t].metric)}, ${ranking.tasks[t].datasets} datasets</span></th>`).join('')}</tr></thead>
+      `<th>${esc(t)}<span class="ev-sub">${esc(ranking.tasks[t].metric)}, ${unitsLabel(ranking.tasks[t])}</span></th>`).join('')}</tr></thead>
     <tbody>${STRATEGY_KEYS.map(key => `<tr>
       <td>${esc(strategyLabel(ranking, key))}${chosenNote(key)}</td>
       ${tasks.map(t => { const s = ranking.tasks[t].strategies[key];
@@ -141,7 +147,8 @@ export function boostingVerdict(ranking) {
   for (const [task, entry] of Object.entries(ranking.tasks)) {
     const c = entry.against_chosen?.boosting;
     if (!c) continue;
-    parts.push(`${c.wins} of ${c.wins + c.losses + c.ties} ${task} datasets (p = ${formatP(c.p_holm)})`);
+    const unit = (entry.units ?? entry.datasets) < entry.datasets ? 'independent units' : 'datasets';
+    parts.push(`${c.wins} of ${c.wins + c.losses + c.ties} ${task} ${unit} (p = ${formatP(c.p_holm)})`);
     if (beyondLuck(c)) beyond.push(task);
   }
   if (!parts.length) return '';
@@ -154,13 +161,27 @@ export function boostingVerdict(ranking) {
   return `Against always using boosting, the order in use was better on ${parts.join(' and ')}. ${verdict}`;
 }
 
-// Average rank of every model over the benchmark datasets, recomputed from the
-// scores on the page. A model that did not finish on a dataset ranks last
-// there, tied with any other that did not finish. Mirrors average_ranks() in
-// bench/dcn/significance.py, and the tests hold the two together.
+// Average rank of every model over the benchmark's independent units,
+// recomputed from the scores on the page. A synthetic family (datasets
+// generated from one function) is one unit, scored by each model's mean over
+// its datasets, rounded to six decimals. A model that did not finish on a unit
+// ranks last there, tied with any other that did not finish. Mirrors
+// score_matrix() and average_ranks() in bench/dcn/significance.py, and the
+// tests hold the two together.
 export function averageRanks(datasets, task, models) {
   const totals = Object.fromEntries(models.map(m => [m, 0]));
-  const rows = datasets.filter(d => d.task === task);
+  const units = new Map();
+  for (const d of datasets.filter(x => x.task === task)) {
+    const key = d.family ?? d.dataset;
+    if (!units.has(key)) units.set(key, []);
+    units.get(key).push(d);
+  }
+  const rows = [...units.values()].map(members => ({
+    scores: Object.fromEntries(models.map(m => {
+      const seen = members.map(d => d.scores?.[m]).filter(v => v != null);
+      return [m, seen.length ? Math.round(seen.reduce((a, b) => a + b, 0) / seen.length * 1e6) / 1e6 : null];
+    })),
+  }));
   for (const d of rows) {
     const values = models.map(m => d.scores?.[m] ?? -Infinity);
     for (let i = 0; i < models.length; i++) {
@@ -242,10 +263,13 @@ function significanceSection(ev) {
   return Object.entries(blocks).map(([task, block]) => {
     const f = block.friedman;
     const tiedCount = block.tied_with_best.length;
-    const lead = `On ${block.datasets} ${task} datasets the models do differ (Friedman test, p = ${formatP(f.p)}).
+    const where = (block.units ?? block.datasets) < block.datasets
+      ? `${block.datasets} ${task} datasets (${block.units} independent, each synthetic family counted once)`
+      : `${block.datasets} ${task} datasets`;
+    const lead = `On ${where} the models do differ (Friedman test, p = ${formatP(f.p)}).
       But two models need average ranks more than ${num(block.critical_difference, 2)} apart before the difference is more
       than luck (Nemenyi, α = ${block.alpha}), and ${tiedCount} of the ${f.models} are within that of the best one: the shaded
-      band. More datasets narrow the band.`;
+      band. More independent datasets narrow the band.`;
     return `<h3 class="ev-h">Which ${esc(task)} models can be told apart</h3>
       <p class="sect-note">${lead}</p>
       ${rankChart(block, block.names ?? {})}`;
@@ -328,7 +352,9 @@ export function buildEvidence(T) {
     ${rankingTable(ev.ranking)}
     <p class="sect-note" style="margin-top:14px">A median over a few dozen datasets moves when a few datasets change, so
       the order in use is also compared, dataset by dataset, with the two things it claims to beat: counting coordinates and
-      always using boosting (Wilcoxon signed-rank test, Holm-corrected for making two comparisons).
+      always using boosting (Wilcoxon signed-rank test, Holm-corrected for making two comparisons). Datasets generated from
+      one function, like PMLB's Friedman and Strogatz families, are held out together and counted once: sisters share a
+      winner, and counting each would claim more certainty than the data holds.
       ${esc(boostingVerdict(ev.ranking))}</p>
     ${comparisonTable(ev.ranking)}
     <p class="sect-note" style="margin-top:14px">${esc(choiceNote(ev.ranking))}</p>` : ''}

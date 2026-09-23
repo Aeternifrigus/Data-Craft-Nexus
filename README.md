@@ -56,13 +56,15 @@ What is left is **ordered by what those models were worth on the benchmark**, no
 
 The weights are a prior per model, fitted in `bench/dcn/learn.py` and judged leave-one-dataset-out, so a dataset never contributes to the weights that rank it:
 
-| median regret, leave-one-dataset-out (95% interval) | classification | regression |
+| median regret, leave-one-dataset-out (95% interval) | classification (20 datasets) | regression (20 datasets, 8 independent) |
 |---|---|---|
-| counting matched coordinates (before) | 0.055 (0.033 to 0.093) | 0.432 (0.210 to 0.641) |
-| learned from the benchmark (now) | 0.011 (0.005 to 0.017) | 0.002 (0.000 to 0.008) |
-| always use boosting | 0.023 (0.004 to 0.036) | 0.007 (0.003 to 0.013) |
+| counting matched coordinates (before) | 0.055 (0.033 to 0.093) | 0.322 (0.035 to 0.515) |
+| learned from the benchmark (now) | 0.011 (0.005 to 0.017) | 0.003 (0.000 to 0.061) |
+| always use boosting | 0.023 (0.004 to 0.036) | 0.009 (0.005 to 0.050) |
 
-The intervals come from resampling the datasets, and the order in use is also compared, dataset by dataset, with the two things it claims to beat (Wilcoxon signed-rank, Holm-corrected for the two comparisons). Against counting coordinates it is better by more than luck: better on 16 of 20 classification datasets (p = 0.019) and 18 of 20 regression datasets (p = 3 × 10⁻⁵). **Against always using boosting it is not, yet.** It was better on 12 of 20 classification and 15 of 20 regression datasets, but p = 0.47 and 0.20: on 20 datasets per task, that is within what luck produces. Only a larger benchmark can settle it.
+Datasets generated from one function are not independent: 13 of those 20 regression datasets come from Friedman's benchmark functions, sisters that share a winner. Such a family is held out whole when its members are ranked, and counted once in every number above, so 20 regression datasets are 8 independent units.
+
+The intervals come from resampling those units, and the order in use is also compared, unit by unit, with the two things it claims to beat (Wilcoxon signed-rank, Holm-corrected for the two comparisons). Against counting coordinates it is better by more than luck: better on 16 of 20 classification datasets (p = 0.019) and 7 of 8 regression units (p = 0.047). **Against always using boosting it is not, yet.** It was better on 12 of 20 and 6 of 8, but p = 0.47 and 0.46: within what luck produces. Only a larger benchmark can settle it.
 
 Two richer orders are built and judged the same way, and either can replace the per-model prior: one adds interactions between the dataset's measured features and each model's family, and one weights each model toward what it did on the benchmark datasets nearest to yours. Which one ships is decided by a rule fixed before the results were seen (`choose()` in `bench/dcn/learn.py`): a richer order replaces the prior only if it is no worse on either task and better by more than luck on at least one. On 40 datasets neither did, so the order in use is the prior. The evidence tab reports each decision with its numbers.
 
@@ -102,7 +104,7 @@ disagree with the run behind it.
 
 ### Not done yet
 
-- **The order in use is a per-model prior, not yet a per-dataset one.** Both ways of making it depend on your data (interactions, and weighting toward the nearest benchmark datasets) are built, tested against the JavaScript, and judged leave-one-dataset-out, and neither beat the prior by more than luck on 20 datasets per task. Running all 196 datasets is what can change that; the choice is then made by the rule, not by hand.
+- **The order in use is a per-model prior, not yet a per-dataset one.** Both ways of making it depend on your data (interactions, and weighting toward the nearest benchmark datasets) are built, tested against the JavaScript, and judged leave-one-dataset-out, and neither beat the prior by more than luck on the 40-dataset run. Running all 196 datasets is what can change that; the choice is then made by the rule, not by hand.
 - **Only classification and regression are benchmarked.** Forecasting, survival, grouping, anomalies, compression and generation still fall back to counting coordinates.
 - Image, audio, graph and spatial data cannot be detected from a CSV, so those models are reachable in the reference but never recommended from an upload.
 - Separability (A55/A56) and weak or self-supervised labelling (A13 to A15) are not measured yet.

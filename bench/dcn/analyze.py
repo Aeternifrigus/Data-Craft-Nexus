@@ -24,7 +24,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .significance import collapse_seeds
+from .significance import by_family, collapse_seeds, family_of
 
 BASELINE = "BASE-HGB"
 METRIC = {"classification": "balanced accuracy", "regression": "R²"}
@@ -63,6 +63,7 @@ def per_dataset(results: pd.DataFrame) -> pd.DataFrame:
         rows.append({
             "dataset": dataset,
             "task": task,
+            "family": family_of(dataset),
             "rows": int(group.rows.iloc[0]),
             "features": int(group.features.iloc[0]),
             "signature": group.signature.iloc[0],
@@ -88,18 +89,21 @@ def per_dataset(results: pd.DataFrame) -> pd.DataFrame:
 
 def summarise(table: pd.DataFrame, results: pd.DataFrame) -> dict:
     def stats(task_table: pd.DataFrame) -> dict:
-        out = {"datasets": int(len(task_table))}
+        # A synthetic family (datasets generated from one function) counts once.
+        columns = [f"regret_{c}" for c in ["first", "top4", "boosting", "eligible_mean"]]
+        units = by_family(task_table, columns)
+        out = {"datasets": int(len(task_table)), "units": int(len(units))}
         for column in ["first", "top4", "boosting", "eligible_mean"]:
-            regret = task_table[f"regret_{column}"].dropna()
+            regret = units[f"regret_{column}"].dropna()
             out[column] = {
                 "median_regret": round(float(regret.median()), 4),
                 "mean_regret": round(float(regret.mean()), 4),
                 "was_best": round(float((regret <= 1e-9).mean()), 3),
                 "within_one_point": round(float((regret <= 0.01).mean()), 3),
             }
-        beat = (task_table.regret_first < task_table.regret_boosting - 1e-9).mean()
+        beat = (units.regret_first < units.regret_boosting - 1e-9).mean()
         out["first_beats_boosting"] = round(float(beat), 3)
-        out["top4_beats_boosting"] = round(float((task_table.regret_top4 < task_table.regret_boosting - 1e-9).mean()), 3)
+        out["top4_beats_boosting"] = round(float((units.regret_top4 < units.regret_boosting - 1e-9).mean()), 3)
         return out
 
     # Where the rules threw away the winner.
@@ -138,7 +142,7 @@ def report(table: pd.DataFrame, summary: dict) -> str:
     lines = [f"{summary['datasets']} datasets, {summary['model_runs']} model runs, "
              f"{summary['failed_runs']} did not finish", ""]
     for task, stats in summary["by_task"].items():
-        lines.append(f"{task} ({METRIC[task]}, {stats['datasets']} datasets)")
+        lines.append(f"{task} ({METRIC[task]}, {stats['datasets']} datasets, {stats['units']} independent)")
         lines.append(f"{'':22}{'median regret':>14}{'was best':>10}{'within 1pt':>12}")
         for key, label in [("first", "site's first pick"), ("top4", "best of the four shown"),
                            ("boosting", "always boosting"), ("eligible_mean", "random eligible model")]:

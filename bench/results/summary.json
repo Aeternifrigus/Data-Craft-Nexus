@@ -9,6 +9,7 @@
  "by_task": {
   "classification": {
    "datasets": 20,
+   "units": 20,
    "first": {
     "median_regret": 0.0548,
     "mean_regret": 0.085,
@@ -38,32 +39,33 @@
   },
   "regression": {
    "datasets": 20,
+   "units": 8,
    "first": {
-    "median_regret": 0.4321,
-    "mean_regret": 0.4086,
-    "was_best": 0.05,
-    "within_one_point": 0.05
-   },
-   "top4": {
-    "median_regret": 0.1758,
-    "mean_regret": 0.3082,
-    "was_best": 0.05,
-    "within_one_point": 0.2
-   },
-   "boosting": {
-    "median_regret": 0.0069,
-    "mean_regret": 0.0221,
-    "was_best": 0.15,
-    "within_one_point": 0.65
-   },
-   "eligible_mean": {
-    "median_regret": 0.2404,
-    "mean_regret": 0.2868,
+    "median_regret": 0.3218,
+    "mean_regret": 0.3112,
     "was_best": 0.0,
     "within_one_point": 0.0
    },
-   "first_beats_boosting": 0.15,
-   "top4_beats_boosting": 0.2
+   "top4": {
+    "median_regret": 0.0672,
+    "mean_regret": 0.1218,
+    "was_best": 0.0,
+    "within_one_point": 0.375
+   },
+   "boosting": {
+    "median_regret": 0.0093,
+    "mean_regret": 0.0372,
+    "was_best": 0.0,
+    "within_one_point": 0.625
+   },
+   "eligible_mean": {
+    "median_regret": 0.1716,
+    "mean_regret": 0.1961,
+    "was_best": 0.0,
+    "within_one_point": 0.0
+   },
+   "first_beats_boosting": 0.25,
+   "top4_beats_boosting": 0.375
   }
  },
  "ruled_out_winners": [],

@@ -26,6 +26,17 @@ function readTable(path) {
 
 const perDataset = () => readTable('bench/results/per_dataset.csv');
 
+// Mean regret per synthetic family, the unit every published test counts.
+function unitRegrets(rows, keys) {
+  const groups = new Map();
+  for (const r of rows) {
+    if (!groups.has(r.family)) groups.set(r.family, []);
+    groups.get(r.family).push(r);
+  }
+  return [...groups.values()].map(members => Object.fromEntries(keys.map(k =>
+    [k, members.reduce((s, r) => s + (r.best - r[k]), 0) / members.length])));
+}
+
 const median = (values) => {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = sorted.length / 2;
@@ -45,9 +56,14 @@ test('the published headline matches bench/results/per_dataset.csv', () => {
   for (const [task, headline] of Object.entries(EV.headline)) {
     const forTask = rows.filter(r => r.task === task);
     assert.equal(headline.datasets, forTask.length, `${task}: dataset count`);
+    // Mean per synthetic family first: each family counts once.
+    const families = new Map();
+    for (const r of forTask) families.set(r.family, [...(families.get(r.family) ?? []), r]);
+    const units = [...families.values()];
+    assert.equal(headline.units, units.length, `${task}: independent units`);
     for (const [key, column] of [['first', 'regret_first'], ['top4', 'regret_top4'],
       ['boosting', 'regret_boosting'], ['random_eligible', 'regret_eligible_mean']]) {
-      const got = median(forTask.map(r => r[column]).filter(v => v != null));
+      const got = median(units.map(m => m.reduce((s, r) => s + r[column], 0) / m.length).filter(v => !Number.isNaN(v)));
       assert.ok(Math.abs(got - headline[key]) < 5e-4, `${task}.${key}: page says ${headline[key]}, data says ${got}`);
     }
   }
@@ -90,8 +106,10 @@ test('the leave-one-dataset-out medians on the page match bench/results/ranking-
   for (const [task, entry] of Object.entries(EV.ranking.tasks)) {
     const forTask = rows.filter(r => r.task === task);
     assert.equal(entry.datasets, forTask.length, `${task}: dataset count`);
+    const units = unitRegrets(forTask, Object.keys(entry.strategies));
+    assert.equal(entry.units, units.length, `${task}: independent units`);
     for (const [key, s] of Object.entries(entry.strategies)) {
-      const got = median(forTask.map(r => r.best - r[key]).filter(v => !Number.isNaN(v)));
+      const got = median(units.map(u => u[key]).filter(v => !Number.isNaN(v)));
       assert.ok(Math.abs(got - s.median_regret) < 5e-4, `${task}.${key}: page ${s.median_regret}, data ${got}`);
       assert.ok(s.ci[0] <= s.median_regret + 1e-9 && s.median_regret <= s.ci[1] + 1e-9,
         `${task}.${key}: the interval must contain the median`);
@@ -103,12 +121,12 @@ test('the order in use is tested against both references, and the counts add up'
   const rows = readTable('bench/results/ranking-lodo.csv');
   const chosen = EV.ranking.chosen;
   for (const [task, entry] of Object.entries(EV.ranking.tasks)) {
-    const forTask = rows.filter(r => r.task === task);
+    const units = unitRegrets(rows.filter(r => r.task === task), [chosen, 'current', 'boosting']);
     for (const [other, c] of Object.entries(entry.against_chosen)) {
       assert.notEqual(other, chosen);
       let wins = 0, losses = 0;
-      for (const r of forTask) {
-        const diff = (r.best - r[other]) - (r.best - r[chosen]);
+      for (const u of units) {
+        const diff = u[other] - u[chosen];
         if (diff > 1e-9) wins++;
         else if (diff < -1e-9) losses++;
       }
@@ -130,6 +148,7 @@ test('average ranks on the page can be recomputed from the scores on the page', 
     const expected = models.filter(m => block.ranks[m] - best <= block.critical_difference + 1e-9);
     assert.deepEqual([...block.tied_with_best].sort(), expected.sort(), `${task}: tied with the best`);
     assert.equal(block.datasets, EV.datasets.filter(d => d.task === task).length);
+    assert.equal(block.units, new Set(EV.datasets.filter(d => d.task === task).map(d => d.family)).size);
   }
 });
 

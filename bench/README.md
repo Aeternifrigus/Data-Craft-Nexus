@@ -161,10 +161,27 @@ Every comparison the site publishes goes through `dcn/significance.py`:
 The order in use is compared with the two things it claims to beat: counting
 coordinates and always using boosting, Holm-corrected over those two. On the
 40-dataset run it beats counting coordinates by more than luck (p = 0.019 on
-classification, 3 × 10⁻⁵ on regression) and does not yet beat always using
-boosting (p = 0.47 and 0.20). With 20 datasets, two classifiers need average
+classification, 0.047 on regression) and does not yet beat always using
+boosting (p = 0.47 and 0.46). With 20 datasets, two classifiers need average
 ranks 5.9 apart to be separated, so 13 of the 18 are indistinguishable from the
 best one.
+
+### A family counts once
+
+PMLB's regression collection is mostly generated, not collected: of the 101
+regression datasets that fit, 54 come from Friedman's benchmark functions and
+14 from Strogatz's equations. Sisters from one generator share a winner, so
+treating them as separate datasets does two things wrong. Leave-one-dataset-out
+lets a Friedman dataset be ranked by weights learned on its 53 siblings, and
+every test counts 54 correlated results as 54 pieces of evidence.
+
+`family_of()` in `dcn/significance.py` groups them (Friedman, Strogatz,
+Feynman, BNG; every other dataset is its own family). `learn.py` holds a
+family out whole when it ranks a member, and every published number counts a
+family once: medians, intervals and paired tests over units, where a family's
+unit is the mean over its datasets, and model ranks over family-averaged
+scores. The coverage threshold and the neighbour bandwidth ignore a dataset's
+own family, since a sister is always close.
 
 ## Which learned order ships
 

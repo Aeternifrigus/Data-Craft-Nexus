@@ -312,7 +312,7 @@ family counts once" below):
 
 | median regret (95% interval) | classification, 94 datasets, 78 independent | regression, 101 datasets, 35 independent |
 |---|---|---|
-| counting coordinates | 0.047 (0.035 to 0.056) | 0.205 (0.071 to 0.303) |
+| counting coordinates | 0.048 (0.034 to 0.068) | 0.086 (0.038 to 0.257) |
 | learned prior, in use | 0.016 (0.012 to 0.021) | 0.012 (0.002 to 0.027) |
 | prior + interactions | 0.016 (0.010 to 0.021) | 0.012 (0.003 to 0.025) |
 | prior + neighbours | 0.018 (0.013 to 0.023) | 0.012 (0.001 to 0.025) |
@@ -323,7 +323,7 @@ Holm-corrected over three comparisons (coordinates, default boosting, tuned
 boosting):
 
 - The learned order beats counting coordinates by more than luck on both
-  tasks (p = 2e-6 and 3e-5).
+  tasks (p = 3e-6 and 5e-4).
 - Against default boosting it is level on both: 39 better and 35 worse of 78
   classification units (p = 0.61), 21 and 14 of 35 regression units (p = 0.091).
   With only two comparisons in the family, before tuned boosting was added,
@@ -355,12 +355,22 @@ analysis did it, made the prior's regression regret 0.007 and made the
 interactions order look better than the prior at p = 0.0008. Both effects
 came from 54 sister datasets being ranked by weights learned on each other.
 
-The run also found a rule that throws away winners. Models that need numeric
-features (A31) are ruled out on all-categorical tables (A32), but the pipeline
+The run also found a rule that threw away winners. Models that need numeric
+features (A31) were ruled out on all-categorical tables (A32), but the pipeline
 one-hot encodes categories, and a ruled-out model won on 9 datasets: Logistic
 Regression, Naive Bayes and Bayesian linear regression among them, by up to
 0.13 R² on solar_flare (elsewhere by 0.002 to 0.023). The details are in `summary.json`
-under `ruled_out_winners`.
+under `ruled_out_winners`, which records the rule as it was during the run.
+
+The rule is gone: a model for numbers and independent rows is now usable on a
+table of categories, with a caution to encode them (`encodes()` in
+`recommend.js`, `_encodes()` in the port). Recomputed leave-one-dataset-out, it
+changed none of the four models shown on the 26 categorical tables, because the
+learned order ranks boosting above those models there. It did change the order
+the learned one is compared with: counting coordinates, now allowed the same
+models, dropped from 0.205 to 0.086 median regret on regression, and the
+table above is with the rule fixed. A forecaster is still ruled out on a table
+of categories: encoding does not make a numeric series.
 
 ## Is it more than luck?
 
@@ -580,8 +590,6 @@ choice. `tests/drift.test.js` recomputes every published rate from
   pick it up
 - fold tuning into the advice: the site recommends families at their
   defaults, and ten configurations of boosting beat that on classification
-- let numeric-feature models run on all-categorical tables, since the pipeline
-  encodes categories, and check the 9 lost winners come back
 - weight a synthetic family once when fitting the prior, declared before the
   next run
 - more collected regression data: 35 independent units is what limits every

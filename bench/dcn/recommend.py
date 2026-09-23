@@ -17,6 +17,14 @@ from .ranking import has_learned_ranking, learned_score, load_ranking, ranking_f
 STRUCTURE = ["A21", "A22", "A23", "A24", "A25", "A26"]
 MODALITY = ["A31", "A32", "A33", "A34", "A35", "A36", "A37", "A38"]
 MIXED_OK = ["A31", "A32", "A33", "A38"]
+# A table of categories feeds a numeric model for independent rows once they
+# are one-hot encoded. Mirrors encodes() in site/js/recommend.js.
+ENCODED_OK = {"A32": ["A31"]}
+
+
+def _encodes(model: dict, modality: str) -> bool:
+    return (_code_of(model, MODALITY) in ENCODED_OK.get(modality, [])
+            and _code_of(model, STRUCTURE) in (None, "A21"))
 PARADIGMS = {"A11": ["SL"], "A12": ["USL", "SSL"]}
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -66,15 +74,19 @@ def conflict(model: dict, sig: dict):
 
     wants_modality = _code_of(model, MODALITY)
     if wants_modality and wants_modality != modality and wants_modality != "A38":
-        if not (modality == "A38" and wants_modality in MIXED_OK):
+        mixed = modality == "A38" and wants_modality in MIXED_OK
+        encoded = _encodes(model, modality)
+        if not mixed and not encoded:
             return f"needs {wants_modality} data (yours is {modality})"
     return None
 
 
 def caution(model: dict, sig: dict):
-    structure = sig["codes"][1]
+    structure, modality = sig["codes"][1], sig["codes"][2]
     if structure == "A22" and _code_of(model, STRUCTURE) == "A21":
         return "assumes rows are independent: split by time, not at random, and build lag features yourself"
+    if _encodes(model, modality):
+        return "built for numbers: one-hot encode your categories first, as the take-home script does"
     if "A54" in sig["flags"] or sig["codes"][4] == "A54":
         return "your data shifts across the file, so hold out the most recent rows and watch for drift after deployment"
     return None

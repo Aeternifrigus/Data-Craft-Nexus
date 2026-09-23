@@ -21,6 +21,14 @@ const STRUCTURE = ['A21', 'A22', 'A23', 'A24', 'A25', 'A26'];
 const MODALITY = ['A31', 'A32', 'A33', 'A34', 'A35', 'A36', 'A37', 'A38'];
 // A mixed table holds numbers and categories, so models for those still fit.
 const MIXED_OK = ['A31', 'A32', 'A33', 'A38'];
+// A table of categories feeds a numeric model for independent rows once they
+// are one-hot encoded, which is what the benchmark's pipeline does. It used to
+// rule these models out, and on 9 of the benchmark's categorical tables one of
+// them would have been the best choice. Only models for independent rows: a
+// forecaster needs a numeric series, and encoding does not make one.
+const ENCODED_OK = { A32: ['A31'] };
+const encodes = (model, modality) =>
+  (ENCODED_OK[modality] || []).includes(codeOf(model, MODALITY)) && [undefined, 'A21'].includes(codeOf(model, STRUCTURE));
 
 // Reinforcement learning needs an environment to act in, not a table, so those
 // models are reference material only.
@@ -56,7 +64,9 @@ export function conflict(model, sig) {
 
   const wantsModality = codeOf(model, MODALITY);
   if (wantsModality && wantsModality !== modality && wantsModality !== 'A38') {
-    if (!(modality === 'A38' && MIXED_OK.includes(wantsModality))) {
+    const mixed = modality === 'A38' && MIXED_OK.includes(wantsModality);
+    const encoded = encodes(model, modality);
+    if (!mixed && !encoded) {
       return `needs ${wantsModality} data (yours is ${modality})`;
     }
   }
@@ -81,9 +91,12 @@ export function operatingConflict(entry, ops) {
 
 // Usable, but with a caveat worth printing on the card.
 export function caution(model, sig) {
-  const [, structure] = sig.codes;
+  const [, structure, modality] = sig.codes;
   if (structure === 'A22' && codeOf(model, STRUCTURE) === 'A21') {
     return 'assumes rows are independent: split by time, not at random, and build lag features yourself';
+  }
+  if (encodes(model, modality)) {
+    return 'built for numbers: one-hot encode your categories first, as the take-home script does';
   }
   if (sig.flags.includes('A54') || sig.codes[4] === 'A54') {
     return 'your data shifts across the file, so hold out the most recent rows and watch for drift after deployment';

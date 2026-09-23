@@ -189,23 +189,30 @@ def evaluate(frame: pd.DataFrame, taxonomy: dict, results: pd.DataFrame, meta: p
         ranking = rank_models(taxonomy, signature, TASK_CODE[task], limit=99, ranking={"tasks": {}})
         eligible = [m["c"] for m in ranking.items if m["c"] in set(group.model)]
         by_model = dict(zip(group.model, group.score))
-        current = by_model.get(eligible[0]) if eligible else np.nan
 
         def pick(scorer):
             ordered = sorted(eligible, key=scorer, reverse=True)
-            return by_model[ordered[0]] if ordered else np.nan
+            return (by_model[ordered[0]], ordered[0]) if ordered else (np.nan, "")
 
-        prior_pick = pick(lambda m: prior.get(m, 0.5))
-        fit_pick = pick(lambda m: predict(m, family.get(m, "?"), features, prior, weights))
-        picks = {"current": current, "prior": prior_pick, "prior_fit": fit_pick, "boosting": boosting}
+        chosen_models = {
+            "current": (by_model[eligible[0]], eligible[0]) if eligible else (np.nan, ""),
+            "prior": pick(lambda m: prior.get(m, 0.5)),
+            "prior_fit": pick(lambda m: predict(m, family.get(m, "?"), features, prior, weights)),
+            "boosting": (boosting, BASELINE.code),
+        }
         if meta is not None:
-            picks["prior_knn"] = (pick(lambda m: blend(prior.get(m, 0.5), m, neighbours[1], KNN_STRENGTH))
-                                  if neighbours else prior_pick)
+            chosen_models["prior_knn"] = (
+                pick(lambda m: blend(prior.get(m, 0.5), m, neighbours[1], KNN_STRENGTH))
+                if neighbours else chosen_models["prior"])
+        picks = {k: v[0] for k, v in chosen_models.items()}
 
         for key, value in list(picks.items()) + [("oracle", best)]:
             scores[key].append(best - value if value is not None else np.nan)
+        # The score each strategy's first pick got, and which model that was,
+        # so a later analysis can follow the same pick across seeds.
         per_dataset.append({"dataset": dataset, "task": task, "best": best,
-                            **{k: picks[k] for k in keys}})
+                            **{k: picks[k] for k in keys},
+                            **{f"{k}_model": chosen_models[k][1] for k in keys}})
 
     table = pd.DataFrame(per_dataset)
     summary = {}

@@ -25,7 +25,7 @@ from .models import BY_CODE, NOT_RUNNABLE  # noqa: F401
 from .learn import comparisons
 from .ranking import load_ranking
 from .recommend import load_taxonomy
-from .significance import bootstrap_ci, collapse_seeds, model_ranking
+from .significance import bootstrap_ci, collapse_seeds, model_ranking, seed_stability
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -124,6 +124,15 @@ def model_significance(results: pd.DataFrame, table: pd.DataFrame, names: dict) 
     return out
 
 
+def seeds_evidence(raw: pd.DataFrame, lodo_path: Path) -> dict:
+    """How much the split alone moves things, on the datasets run under several seeds."""
+    picks = pd.read_csv(lodo_path) if lodo_path.exists() else None
+    chosen = (load_ranking() or {}).get("chosen")
+    if picks is not None and f"{chosen}_model" not in picks:
+        picks = None
+    return seed_stability(raw, picks, chosen)
+
+
 def meta_distance(a: dict, b: dict, names: list[str], scale: dict) -> float:
     """Distance between two datasets' meta-features. Mirrors distance() in site/js/nearest.js."""
     total = 0.0
@@ -165,7 +174,8 @@ def load_meta(path: Path) -> pd.DataFrame | None:
 
 
 def build(results_path: Path, run_label: str) -> dict:
-    results = collapse_seeds(pd.read_csv(results_path))
+    raw = pd.read_csv(results_path)
+    results = collapse_seeds(raw)
     meta = load_meta(results_path.parent / "meta.csv")
     table = per_dataset(results)
     taxonomy = load_taxonomy()
@@ -238,6 +248,7 @@ def build(results_path: Path, run_label: str) -> dict:
         "headline": headline,
         "ranking": ranking_evidence(results_path.parent / "ranking-lodo.csv"),
         "significance": model_significance(results, table, names),
+        "seeds": seeds_evidence(raw, results_path.parent / "ranking-lodo.csv"),
         "models": model_lines(results, table),
         "datasets": datasets,
     }

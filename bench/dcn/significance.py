@@ -194,3 +194,53 @@ def model_ranking(results: pd.DataFrame, task: str, alpha: float = 0.05) -> dict
         "tied_with_best": [m for m, r in ranks.items() if r - best <= cd + 1e-12],
         "cliques": cliques(ranks, cd),
     }
+
+
+def seed_stability(raw: pd.DataFrame, picks: pd.DataFrame | None = None, chosen: str | None = None,
+                   reference: str = "BASE-HGB") -> dict:
+    """How much the luck of one cross-validation split can move the results.
+
+    Uses the datasets that were run under two or more seeds, per task:
+
+      score_spread   the median, over datasets and models, of how far a
+                     model's score moves between seeds (standard deviation)
+      same_best      the share of those datasets where the best model is the
+                     same under every seed
+      flips          datasets where the order in use's first pick and
+                     `reference` swap places between seeds: the comparison
+                     the headline rests on, decided by the split
+    """
+    ok = raw[raw.status == "ok"].copy()
+    if "seed" not in ok:
+        return {}
+    ok["score"] = ok.score.astype(float)
+    counts = ok.groupby(["dataset", "task"]).seed.nunique()
+    repeated = counts[counts >= 2]
+    out = {}
+    for task in sorted({t for _, t in repeated.index}):
+        names = [d for d, t in repeated.index if t == task]
+        runs = ok[(ok.task == task) & ok.dataset.isin(names)]
+        spread = runs.groupby(["dataset", "model"]).score.std(ddof=0)
+        same_best, flips, compared = 0, 0, 0
+        for dataset, group in runs.groupby("dataset"):
+            by_seed = group.pivot_table(index="seed", columns="model", values="score", aggfunc="first")
+            winners = {tuple(sorted(by_seed.columns[by_seed.loc[s] == by_seed.loc[s].max()])) for s in by_seed.index}
+            same_best += len(winners) == 1
+            if picks is not None and chosen:
+                row = picks[(picks.dataset == dataset) & (picks.task == task)]
+                model = row[f"{chosen}_model"].iloc[0] if len(row) else None
+                if model and model in by_seed and reference in by_seed and model != reference:
+                    diff = (by_seed[model] - by_seed[reference]).dropna()
+                    signs = {np.sign(round(float(x), 4)) for x in diff if round(float(x), 4) != 0}
+                    compared += 1
+                    flips += len(signs) > 1
+        out[task] = {
+            "datasets": len(names),
+            "seeds": int(runs.seed.nunique()),
+            "score_spread": round(float(spread.median()), 4) if len(spread) else None,
+            "score_spread_p90": round(float(spread.quantile(0.9)), 4) if len(spread) else None,
+            "same_best": round(same_best / len(names), 3) if names else None,
+            "compared": compared,
+            "flips": flips,
+        }
+    return out

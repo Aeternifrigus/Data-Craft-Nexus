@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { conflict, rankModels, rankPipelines } from '../site/js/recommend.js';
+import { caution, conflict, rankModels, rankPipelines } from '../site/js/recommend.js';
 import { loadTaxonomyFromDisk } from './helpers.js';
 
 const T = loadTaxonomyFromDisk();
@@ -46,6 +46,17 @@ test('models for numbers or categories still fit a mixed table', () => {
   const logistic = T.MODELS.find(m => m.n === 'Logistic Regression');
   assert.equal(conflict(rf, MIXED_TABLE), null);
   assert.equal(conflict(logistic, MIXED_TABLE), null);
+});
+
+test('a model for numbers fits a table of categories once they are encoded, and says so', () => {
+  const categorical = sig(['A11', 'A21', 'A32', 'A41', 'A51', 'A61']);
+  const logistic = T.MODELS.find(m => m.c === 'LM2');
+  assert.equal(conflict(logistic, categorical), null, 'the benchmark one-hot encoded categories, and these models won');
+  assert.match(caution(logistic, categorical), /one-hot encode/);
+  assert.equal(caution(logistic, LABELLED_NUMERIC_IID), null);
+  const arima = T.MODELS.find(m => m.n === 'ARIMA');
+  const orderedCategories = sig(['A11', 'A22', 'A32', 'A41', 'A51', 'A61']);
+  assert.match(conflict(arima, orderedCategories), /A31/, 'encoding categories does not make a numeric series');
 });
 
 test('supervised models are ruled out without a target, and unsupervised ones with one', () => {

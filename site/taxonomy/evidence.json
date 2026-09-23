@@ -197,12 +197,12 @@
      "current": {
       "label": "counting matched coordinates",
       "units": 78,
-      "median_regret": 0.0467,
+      "median_regret": 0.0479,
       "ci": [
-       0.035,
-       0.0561
+       0.0335,
+       0.0679
       ],
-      "was_best": 0.077,
+      "was_best": 0.064,
       "within_one_point": 0.179
      },
      "prior": {
@@ -264,16 +264,16 @@
     "against_chosen": {
      "current": {
       "units": 78,
-      "wins": 57,
-      "ties": 2,
-      "losses": 19,
+      "wins": 56,
+      "ties": 1,
+      "losses": 21,
       "median_difference": 0.02,
       "ci": [
-       0.0154,
-       0.04
+       0.0103,
+       0.0417
       ],
-      "p": 5.927e-07,
-      "p_holm": 1.778e-06
+      "p": 1.091e-06,
+      "p_holm": 3.274e-06
      },
      "boosting": {
       "units": 78,
@@ -305,12 +305,12 @@
     "ceiling": {
      "current": {
       "units": 78,
-      "median_gap": 0.0467,
+      "median_gap": 0.0479,
       "ci": [
-       0.0361,
-       0.0574
+       0.0364,
+       0.0711
       ],
-      "at_ceiling": 0.077
+      "at_ceiling": 0.064
      },
      "prior": {
       "units": 78,
@@ -367,13 +367,13 @@
      "current": {
       "label": "counting matched coordinates",
       "units": 35,
-      "median_regret": 0.2052,
+      "median_regret": 0.0863,
       "ci": [
-       0.0711,
-       0.303
+       0.0384,
+       0.2569
       ],
-      "was_best": 0.0,
-      "within_one_point": 0.143
+      "was_best": 0.029,
+      "within_one_point": 0.229
      },
      "prior": {
       "label": "learned from the benchmark",
@@ -434,16 +434,16 @@
     "against_chosen": {
      "current": {
       "units": 35,
-      "wins": 27,
+      "wins": 24,
       "ties": 0,
-      "losses": 8,
-      "median_difference": 0.1653,
+      "losses": 11,
+      "median_difference": 0.0805,
       "ci": [
-       0.0365,
-       0.2844
+       0.0241,
+       0.2544
       ],
-      "p": 1.135e-05,
-      "p_holm": 3.404e-05
+      "p": 0.0001762,
+      "p_holm": 0.0005285
      },
      "boosting": {
       "units": 35,
@@ -475,12 +475,12 @@
     "ceiling": {
      "current": {
       "units": 35,
-      "median_gap": 0.2052,
+      "median_gap": 0.0863,
       "ci": [
-       0.0711,
-       0.305
+       0.0394,
+       0.257
       ],
-      "at_ceiling": 0.0
+      "at_ceiling": 0.029
      },
      "prior": {
       "units": 35,

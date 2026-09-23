@@ -50,7 +50,7 @@ A63 (missing not at random) is never reported. Whether a gap depends on the valu
 
 ### How the recommendation is made
 
-First, what cannot work is ruled out, with the reason shown on the page: a sequence model has no order to use on independent rows, a text model has nothing to read in a numeric table, a supervised model has no labels to learn from. A model that assumes independent rows still appears on ordered data, with a caution to split by time rather than at random.
+First, what cannot work is ruled out, with the reason shown on the page: a sequence model has no order to use on independent rows, a text model has nothing to read in a numeric table, a supervised model has no labels to learn from. A model that assumes independent rows still appears on ordered data, with a caution to split by time rather than at random, and a model built for numbers still appears on a table of categories, with a caution to one-hot encode them: it used to be ruled out, and on 9 of the benchmark's categorical tables one of those models would have been the best choice. Letting them back changed none of the four models shown on the 26 categorical tables, because the learned order ranks boosting above them there; what changed is that the page stops calling usable models unusable, and that counting coordinates, the order both are compared with, got better (the numbers below are with the rule fixed).
 
 What is left is **ordered by what those models were worth on the benchmark**, not by how many coordinates they match. The coordinate count is still shown on every card, because it says what your data has in common with the model, but it no longer decides the order: it used to, and it put plain Linear Regression first on 17 of 20 regression datasets at a cost of up to 0.7 R².
 
@@ -58,7 +58,7 @@ The weights are a prior per model, fitted in `bench/dcn/learn.py` on 195 real da
 
 | median regret, leave-one-dataset-out (95% interval) | classification (94 datasets, 78 independent) | regression (101 datasets, 35 independent) |
 |---|---|---|
-| counting matched coordinates (before) | 0.047 (0.035 to 0.056) | 0.205 (0.071 to 0.303) |
+| counting matched coordinates (before) | 0.048 (0.034 to 0.068) | 0.086 (0.038 to 0.257) |
 | learned from the benchmark (now) | 0.016 (0.012 to 0.021) | 0.012 (0.002 to 0.027) |
 | always use boosting | 0.014 (0.011 to 0.022) | 0.021 (0.009 to 0.055) |
 | always use boosting, tuned (reference) | 0.011 (0.008 to 0.018) | 0.006 (0.002 to 0.017) |
@@ -67,7 +67,7 @@ Datasets generated from one function are not independent. Of the 101 regression 
 
 The intervals come from resampling those units. The order in use is also compared, unit by unit, with the two things it claims to beat, and with tuned boosting, a reference it makes no claim to beat but a reader will ask about (Wilcoxon signed-rank, Holm-corrected for the three comparisons):
 
-- **Against counting coordinates it is better by more than luck:** on 57 of 78 classification units, worse on 19 (p = 2 × 10⁻⁶), and on 27 of 35 regression units (p = 3 × 10⁻⁵).
+- **Against counting coordinates it is better by more than luck:** on 56 of 78 classification units, worse on 21 (p = 3 × 10⁻⁶), and on 24 of 35 regression units (p = 5 × 10⁻⁴).
 - **Against always using default boosting, it is level:** better on 39 classification units and worse on 35 (p = 0.61), better on 21 of 35 regression units and worse on 14 (p = 0.091). With two comparisons the regression edge was p = 0.046; adding a third comparison to the family, as honesty requires, puts it back inside luck.
 - **Against tuned boosting, it loses on classification by more than luck:** better on 24 units, worse on 49 (p = 0.028). On regression they are level: better on 16 of 35 units, worse on 19 (p = 0.55).
 
@@ -162,7 +162,6 @@ It also found five defects, now fixed: six drift cards linked to the wrong funct
 - **TabPFN has not been run yet.** The runner supports it; its weights need a Prior Labs login this benchmark's environment could not reach. `bench/README.md` has the three commands to add it on your own machine.
 - **The order in use is a per-model prior, not yet a per-dataset one.** Both ways of making it depend on your data (interactions, and weighting toward the nearest benchmark datasets) are built, tested against the JavaScript, and judged leave-one-dataset-out, and neither beat the prior by more than luck on 195 datasets once families count once. With only 35 independent regression units, a per-dataset order needs more collected data to prove itself, not more of the same generators.
 - **The prior itself still counts a family's datasets one by one when it is fitted**, so on regression it leans toward what wins on Friedman's functions. Weighting a family once in the fit is the obvious change, and it should be declared before the next run rather than tried after this one.
-- **The benchmark found a rule that throws away winners:** models that need numeric features (A31) are ruled out on all-categorical tables (A32), yet with one-hot encoding they won on 9 datasets, by up to 0.13 R² on solar_flare.
 - **The order ignores data quality.** On regression with 30% of cells missing or noisy targets, its first pick lost ground that the linear models kept. An order that reads A62 and A64 has not been built or tested.
 - **A64 is judged on the average over all columns**, so junk confined to the few numeric columns of a wide categorical table goes unflagged. Judging it per column is the fix.
 - **Drift was injected at one strength per kind**, on classification datasets, with 500- and 250-row windows, so the rates hold for that setting. Detectors tuned to their stream would beat river's defaults.

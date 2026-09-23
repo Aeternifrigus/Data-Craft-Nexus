@@ -180,7 +180,9 @@ select.opt{color:var(--ink);padding-right:28px}
 .rec-body.evidence{color:var(--sage)}
 
 /* take it home: the shortlist as a script */
-.takehome{margin-top:34px;padding-top:22px;border-top:1px solid var(--rule)}
+.takehome{margin:34px 0;padding-top:22px;border-top:1px solid var(--rule)}
+.takehome:empty{display:none}
+footer .build{margin-top:6px;font-size:11px;color:var(--dim)}
 .takehome-h{color:var(--chrome);font-size:12px;letter-spacing:.04em;margin-bottom:8px}
 .takehome .sect-note{margin-bottom:16px}
 .takehome-btn{margin-top:0}

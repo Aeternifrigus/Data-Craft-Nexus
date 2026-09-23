@@ -16,6 +16,8 @@ Every code is clickable, down to the formula underneath.
 
 **[Try it here](https://aeternifrigus.github.io/Data-Craft-Nexus/)**
 
+The footer of the live page says which commit it was built from. If that is not the latest commit on `main`, the deploy has not finished or has failed: the "Deploy static content to Pages" workflow builds the page, deploys it, and then fetches the live page until it carries the new commit, failing if it does not within five minutes. A browser can also hold on to an older copy for a few minutes; a hard refresh fetches the new one.
+
 ---
 
 ## How It Works

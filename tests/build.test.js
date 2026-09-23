@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { buildPage } from '../scripts/build.mjs';
+import { buildPage, buildStamp } from '../scripts/build.mjs';
 import { TAXONOMY_FILES } from '../site/js/taxonomy.js';
 
 const page = await buildPage();
@@ -35,4 +35,15 @@ test('nothing inside the page closes a script tag early', () => {
 test('dist/index.html is up to date with site/', () => {
   const committed = fs.readFileSync(new URL('dist/index.html', root), 'utf8');
   assert.ok(committed === page, 'dist/index.html is stale: run `npm run build`');
+});
+
+test('the deployed page can name the commit it was built from', async () => {
+  const stamp = buildStamp('fe43b93230cfacd748c351169c0c39e41df0b20b', new Date('2026-09-24T10:00:00Z'));
+  assert.deepEqual(stamp, { sha: 'fe43b93', date: '2026-09-24' });
+  const stamped = await buildPage({ stamp });
+  assert.match(stamped, /<meta name="dcn-build" content="fe43b93 2026-09-24">/);
+  assert.match(stamped, /Built from commit fe43b93 on 2026-09-24\./);
+  assert.doesNotMatch(page, /dcn-build|Built from commit|build-stamp/, 'the committed page carries no stamp');
+  assert.equal(buildStamp(undefined), null);
+  assert.throws(() => buildStamp('main"><script>'), /commit hash/);
 });

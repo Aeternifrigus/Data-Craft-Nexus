@@ -37,7 +37,7 @@ jobs:
       - name: Build the single-file page
         run: npm ci && npm run build
         env:
-          # The page names the commit it was built from, in a meta tag and the footer.
+          # The page names the commit it was built from in a hidden meta tag, for the check below.
           DCN_BUILD: ${{ github.sha }}
       - name: Setup Pages
         uses: actions/configure-pages@v5

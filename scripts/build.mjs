@@ -9,8 +9,9 @@
 //   npm run build -- --check fails if dist/index.html is out of date
 //
 // With DCN_BUILD set to a commit hash (the Pages workflow sets it), the page
-// names that commit in a meta tag and in the footer, so anyone can see which
-// version is live. The committed dist/ is built without it.
+// names that commit in a meta tag, out of sight, so the workflow can check
+// the live page is the version it just deployed. The committed dist/ is built
+// without it.
 
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -55,8 +56,6 @@ export async function buildPage({ stamp = null } = {}) {
   };
   replace('<link rel="stylesheet" href="css/style.css">', `<style>\n${css}</style>`);
   html = html.replace(/<!-- dev-only -->[\s\S]*?<!-- \/dev-only -->\n?/, '');
-  replace('<!-- build-stamp -->', stamp
-    ? `<div class="build">Built from commit ${stamp.sha} on ${stamp.date}.</div>` : '');
   if (stamp) replace('<meta name="theme-color"', `<meta name="dcn-build" content="${stamp.sha} ${stamp.date}">\n<meta name="theme-color"`);
   replace('<script type="module" src="js/app.js"></script>',
     `<script id="dcn-data" type="application/json">${json}</script>\n` +

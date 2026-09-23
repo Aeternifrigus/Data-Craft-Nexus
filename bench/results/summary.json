@@ -1,100 +1,151 @@
 {
- "datasets": 40,
- "model_runs": 760,
- "failed_runs": 2,
+ "datasets": 195,
+ "model_runs": 5250,
+ "failed_runs": 28,
  "metric": {
   "classification": "balanced accuracy",
   "regression": "R\u00b2"
  },
  "by_task": {
   "classification": {
-   "datasets": 20,
-   "units": 20,
+   "datasets": 94,
+   "units": 94,
    "first": {
-    "median_regret": 0.0548,
-    "mean_regret": 0.085,
-    "was_best": 0.05,
-    "within_one_point": 0.1
+    "median_regret": 0.0121,
+    "mean_regret": 0.052,
+    "was_best": 0.117,
+    "within_one_point": 0.404
    },
    "top4": {
-    "median_regret": 0.0152,
-    "mean_regret": 0.0434,
-    "was_best": 0.15,
-    "within_one_point": 0.35
+    "median_regret": 0.0054,
+    "mean_regret": 0.0174,
+    "was_best": 0.287,
+    "within_one_point": 0.67
    },
    "boosting": {
-    "median_regret": 0.023,
-    "mean_regret": 0.0308,
-    "was_best": 0.2,
-    "within_one_point": 0.4
+    "median_regret": 0.0139,
+    "mean_regret": 0.0314,
+    "was_best": 0.149,
+    "within_one_point": 0.362
    },
    "eligible_mean": {
-    "median_regret": 0.0599,
-    "mean_regret": 0.0981,
+    "median_regret": 0.0503,
+    "mean_regret": 0.0781,
     "was_best": 0.0,
-    "within_one_point": 0.05
+    "within_one_point": 0.074
    },
-   "first_beats_boosting": 0.3,
-   "top4_beats_boosting": 0.55
+   "first_beats_boosting": 0.5,
+   "top4_beats_boosting": 0.809
   },
   "regression": {
-   "datasets": 20,
-   "units": 8,
+   "datasets": 101,
+   "units": 35,
    "first": {
-    "median_regret": 0.3218,
-    "mean_regret": 0.3112,
-    "was_best": 0.0,
-    "within_one_point": 0.0
+    "median_regret": 0.0115,
+    "mean_regret": 0.0261,
+    "was_best": 0.114,
+    "within_one_point": 0.457
    },
    "top4": {
-    "median_regret": 0.0672,
-    "mean_regret": 0.1218,
-    "was_best": 0.0,
-    "within_one_point": 0.375
+    "median_regret": 0.002,
+    "mean_regret": 0.0134,
+    "was_best": 0.429,
+    "within_one_point": 0.629
    },
    "boosting": {
-    "median_regret": 0.0093,
-    "mean_regret": 0.0372,
-    "was_best": 0.0,
-    "within_one_point": 0.625
+    "median_regret": 0.0212,
+    "mean_regret": 0.0818,
+    "was_best": 0.029,
+    "within_one_point": 0.371
    },
    "eligible_mean": {
-    "median_regret": 0.1716,
-    "mean_regret": 0.1961,
+    "median_regret": 0.1623,
+    "mean_regret": 0.7615,
     "was_best": 0.0,
     "within_one_point": 0.0
    },
-   "first_beats_boosting": 0.25,
-   "top4_beats_boosting": 0.375
+   "first_beats_boosting": 0.629,
+   "top4_beats_boosting": 0.914
   }
  },
- "ruled_out_winners": [],
- "ruled_out_by_reason": {},
+ "ruled_out_winners": [
+  {
+   "dataset": "soybean",
+   "model": "PR1",
+   "why": "needs A31 data (yours is A32)",
+   "lost": 0.0079
+  },
+  {
+   "dataset": "congressional_voting_records",
+   "model": "LM2",
+   "why": "needs A31 data (yours is A32)",
+   "lost": 0.0038
+  },
+  {
+   "dataset": "1027_ESL",
+   "model": "LM7",
+   "why": "needs A31 data (yours is A32)",
+   "lost": 0.0092
+  },
+  {
+   "dataset": "led7",
+   "model": "LM2",
+   "why": "needs A31 data (yours is A32)",
+   "lost": 0.0017
+  },
+  {
+   "dataset": "led24",
+   "model": "PR1",
+   "why": "needs A31 data (yours is A32)",
+   "lost": 0.0051
+  },
+  {
+   "dataset": "1029_LEV",
+   "model": "LM3",
+   "why": "needs A31 data (yours is A32)",
+   "lost": 0.0223
+  },
+  {
+   "dataset": "1028_SWD",
+   "model": "LM7",
+   "why": "needs A31 data (yours is A32)",
+   "lost": 0.0234
+  },
+  {
+   "dataset": "analcatdata_dmft",
+   "model": "LM2",
+   "why": "needs A31 data (yours is A32)",
+   "lost": 0.0036
+  },
+  {
+   "dataset": "solar_flare",
+   "model": "LM7",
+   "why": "needs A31 data (yours is A32)",
+   "lost": 0.1294
+  }
+ ],
+ "ruled_out_by_reason": {
+  "needs A31 data (yours is A32)": {
+   "datasets": 9,
+   "worst_loss": 0.1294,
+   "models": [
+    "LM2",
+    "LM3",
+    "LM7",
+    "PR1"
+   ]
+  }
+ },
  "most_recommended_first": [
   {
    "task": "regression",
-   "model": "LM1",
-   "times": 17
+   "model": "EN2",
+   "times": 101
   },
   {
    "task": "classification",
-   "model": "TR1",
-   "times": 12
-  },
-  {
-   "task": "classification",
-   "model": "LM2",
-   "times": 8
-  },
-  {
-   "task": "regression",
-   "model": "TR1",
-   "times": 2
-  },
-  {
-   "task": "regression",
-   "model": "LM4",
-   "times": 1
+   "model": "TR3",
+   "times": 94
   }
  ]
 }

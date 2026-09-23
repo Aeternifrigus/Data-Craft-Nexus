@@ -312,7 +312,7 @@ def comparisons(table: pd.DataFrame, chosen: str) -> dict:
 
 
 def report_comparisons(table: pd.DataFrame, chosen: str) -> str:
-    lines = [f"{chosen} against the references, paired over datasets (Wilcoxon, Holm-adjusted):"]
+    lines = [f"{chosen} against the references, paired over independent units (Wilcoxon, Holm-adjusted):"]
     for task, tests in comparisons(table, chosen).items():
         lines.append(f"  {task}")
         for other, t in tests.items():

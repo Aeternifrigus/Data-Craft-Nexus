@@ -2,8 +2,8 @@
  "version": 1,
  "chosen": "prior",
  "trained_on": {
-  "datasets": 40,
-  "rows": 718
+  "datasets": 195,
+  "rows": 3511
  },
  "target": "percentile rank of a model among those that ran on the same dataset",
  "features": [
@@ -96,53 +96,53 @@
  "tasks": {
   "category": {
    "prior": {
-    "DR4": 0.4756,
-    "EN1": 0.3557,
-    "EN2": 0.5909,
-    "EN3": 0.6437,
-    "EN4": 0.6809,
-    "EN6": 0.6059,
-    "EN7": 0.5558,
-    "IB1": 0.3998,
-    "LM2": 0.5237,
-    "NN1": 0.3055,
-    "NN2": 0.6417,
-    "PR1": 0.3379,
-    "SV1": 0.4623,
-    "SV2": 0.5308,
-    "TR1": 0.4352,
-    "TR2": 0.6682,
-    "TR3": 0.7106
+    "DR4": 0.507,
+    "EN1": 0.3511,
+    "EN2": 0.616,
+    "EN3": 0.642,
+    "EN4": 0.6956,
+    "EN6": 0.626,
+    "EN7": 0.5604,
+    "IB1": 0.3404,
+    "LM2": 0.5359,
+    "NN1": 0.2973,
+    "NN2": 0.6822,
+    "PR1": 0.3623,
+    "SV1": 0.5085,
+    "SV2": 0.556,
+    "TR1": 0.4122,
+    "TR2": 0.634,
+    "TR3": 0.6599
    },
    "weights": {},
    "default_prior": 0.5,
-   "datasets": 20
+   "datasets": 94
   },
   "number": {
    "prior": {
-    "EN1": 0.5965,
-    "EN2": 0.8311,
-    "EN3": 0.6754,
-    "EN4": 0.7697,
-    "EN6": 0.6579,
-    "EN7": 0.5526,
-    "IB1": 0.3969,
-    "LM1": 0.4189,
-    "LM3": 0.4627,
-    "LM4": 0.216,
-    "LM5": 0.205,
-    "LM6": 0.4232,
-    "LM7": 0.4605,
-    "NN2": 0.489,
-    "SV1": 0.3399,
-    "SV2": 0.443,
-    "TR1": 0.4605,
-    "TR2": 0.7325,
-    "TR3": 0.7851
+    "EN1": 0.5734,
+    "EN2": 0.8561,
+    "EN3": 0.7198,
+    "EN4": 0.7604,
+    "EN6": 0.6697,
+    "EN7": 0.5724,
+    "IB1": 0.4431,
+    "LM1": 0.3895,
+    "LM3": 0.4411,
+    "LM4": 0.1667,
+    "LM5": 0.1617,
+    "LM6": 0.4256,
+    "LM7": 0.4461,
+    "NN2": 0.5193,
+    "SV1": 0.2772,
+    "SV2": 0.4772,
+    "TR1": 0.4887,
+    "TR2": 0.7479,
+    "TR3": 0.8451
    },
    "weights": {},
    "default_prior": 0.5,
-   "datasets": 20
+   "datasets": 101
   }
  },
  "choice": [
@@ -150,19 +150,19 @@
    "candidate": "prior_fit",
    "against": "prior",
    "replaced": false,
-   "no_worse": false,
+   "no_worse": true,
    "tasks": {
     "classification": {
-     "wins": 1,
-     "losses": 4,
-     "ties": 15,
-     "p_holm": 0.375
+     "wins": 20,
+     "losses": 24,
+     "ties": 50,
+     "p_holm": 1.0
     },
     "regression": {
-     "wins": 3,
-     "losses": 2,
-     "ties": 3,
-     "p_holm": 0.8125
+     "wins": 9,
+     "losses": 10,
+     "ties": 16,
+     "p_holm": 1.0
     }
    }
   },
@@ -173,15 +173,15 @@
    "no_worse": false,
    "tasks": {
     "classification": {
-     "wins": 0,
-     "losses": 2,
-     "ties": 18,
+     "wins": 13,
+     "losses": 13,
+     "ties": 68,
      "p_holm": 1.0
     },
     "regression": {
-     "wins": 1,
-     "losses": 0,
-     "ties": 7,
+     "wins": 8,
+     "losses": 6,
+     "ties": 21,
      "p_holm": 1.0
     }
    }

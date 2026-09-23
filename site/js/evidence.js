@@ -59,7 +59,19 @@ export function formatP(p) {
 export const ALPHA = 0.05;
 export const beyondLuck = (test) => test != null && test.p_holm != null && test.p_holm < ALPHA;
 
+// Under 5% but not under 1% is past the line, but not by much, and should read that way.
+export function luckWords(test) {
+  if (!beyondLuck(test)) return 'within what luck produces';
+  return test.p_holm < 0.01 ? 'more than luck' : 'more than luck, narrowly';
+}
+
 const STRATEGY_KEYS = ['current', 'prior', 'prior_fit', 'prior_knn', 'boosting'];
+
+// "classification datasets", or "independent regression units" when synthetic
+// families were counted once, so a count always says what it counts.
+export function unitNoun(entry, task) {
+  return (entry?.units ?? entry?.datasets) < entry?.datasets ? `independent ${task} units` : `${task} datasets`;
+}
 
 // "101 datasets, 35 independent" when synthetic families were counted once.
 export function unitsLabel(entry) {
@@ -111,7 +123,7 @@ function comparisonTable(ranking) {
       ${tasks.map(t => { const c = ranking.tasks[t].against_chosen[key];
         if (!c) return '<td>—</td>';
         return `<td>better on ${c.wins}, worse on ${c.losses}${c.ties ? `, tied on ${c.ties}` : ''}
-          <span class="ev-sub">p = ${formatP(c.p_holm)}, ${beyondLuck(c) ? 'more than luck' : 'within what luck produces'}</span></td>`;
+          <span class="ev-sub">p = ${formatP(c.p_holm)}, ${luckWords(c)}</span></td>`;
       }).join('')}
     </tr>`).join('')}</tbody>
   </table>`;
@@ -131,7 +143,7 @@ export function choiceNote(ranking) {
   const n = ranking.trained_on?.datasets;
   const lines = decisions.map(d => {
     const detail = Object.entries(d.tasks).map(([task, s]) =>
-      `better on ${s.wins} and worse on ${s.losses} ${task} datasets (p = ${formatP(s.p_holm)})`).join(', ');
+      `better on ${s.wins} and worse on ${s.losses} ${unitNoun(ranking.tasks?.[task], task)} (p = ${formatP(s.p_holm)})`).join(', ');
     return d.replaced
       ? `${what[d.candidate] ?? d.candidate} beat the plain per-model order by more than luck on ${n} datasets: ${detail}. It is the order in use.`
       : `${what[d.candidate] ?? d.candidate} was tried too: ${detail}. That is not better by more than luck, so it is off.`;
@@ -147,8 +159,7 @@ export function boostingVerdict(ranking) {
   for (const [task, entry] of Object.entries(ranking.tasks)) {
     const c = entry.against_chosen?.boosting;
     if (!c) continue;
-    const unit = (entry.units ?? entry.datasets) < entry.datasets ? 'independent units' : 'datasets';
-    parts.push(`${c.wins} of ${c.wins + c.losses + c.ties} ${task} ${unit} (p = ${formatP(c.p_holm)})`);
+    parts.push(`${c.wins} of ${c.wins + c.losses + c.ties} ${unitNoun(entry, task)} (p = ${formatP(c.p_holm)})`);
     if (beyondLuck(c)) beyond.push(task);
   }
   if (!parts.length) return '';
@@ -157,7 +168,9 @@ export function boostingVerdict(ranking) {
       : 'That is within what luck produces on this many datasets.')
     : beyond.length === parts.length
       ? (parts.length > 1 ? 'Both differences are more than luck.' : 'That is more than luck.')
-      : `Only the ${beyond.join(' and ')} difference is more than luck.`;
+      : `Only the ${beyond.join(' and ')} difference is more than luck${
+        parts.length && Object.values(ranking.tasks).some(e => beyondLuck(e.against_chosen?.boosting) &&
+          e.against_chosen.boosting.p_holm >= 0.01) ? ', and only narrowly' : ''}.`;
   return `Against always using boosting, the order in use was better on ${parts.join(' and ')}. ${verdict}`;
 }
 

@@ -5,13 +5,14 @@
 //   1. Rule out what cannot work here. A model that assumes independent rows
 //      is wrong on sequential data, a text model is wrong on a numeric table,
 //      and a supervised model is wrong without labels.
-//   2. Rank what is left by how many of its coordinates the data matches.
+//   2. Order what is left by what each model was worth on the benchmark
+//      (ranking.js), for the tasks the benchmark covered. Tasks it did not
+//      cover fall back to how many of a model's coordinates the data matches.
 //
-// Stage 2 leaves large ties, and the order inside a tie carries no meaning:
-// it is the order the models happen to sit in the taxonomy. The counts
-// returned here (`tied`) exist so the page can say so instead of implying a
-// ranking it cannot justify. Ranking within a tie is what the benchmark is
-// for.
+// Counting coordinates leaves large ties, and the order inside a tie carries
+// no meaning: it is the order the models happen to sit in the taxonomy. The
+// counts returned here (`tied`) exist so the page can say so instead of
+// implying a ranking it cannot justify.
 
 import { matchCodes } from './profile.js';
 import { hasLearnedRanking, learnedScore, rankingFeatures } from './ranking.js';

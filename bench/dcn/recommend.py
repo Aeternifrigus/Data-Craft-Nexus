@@ -1,9 +1,10 @@
 """The ranking, ported from site/js/recommend.js.
 
 The benchmark has to score the recommendations the site actually makes, so
-this mirrors it exactly: the same conflicts rule models out, the same
-coordinate counting ranks what is left, and ties are reported rather than
-broken. tests/test_agreement.py checks both sides against each other.
+this mirrors it exactly: the same conflicts rule models out, the same learned
+order (or, for tasks the benchmark did not cover, the same coordinate
+counting) ranks what is left, and ties are reported rather than broken.
+tests/test_agreement.py checks both sides against each other.
 """
 from __future__ import annotations
 

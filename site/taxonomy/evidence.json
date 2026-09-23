@@ -12093,7 +12093,7 @@
     "tasks": {
      "classification": {
       "damaged": 17,
-      "flagged": 0.824,
+      "flagged": 1.0,
       "datasets": 20,
       "units": 20,
       "median_loss": 0.011,
@@ -12183,7 +12183,7 @@
      },
      "regression": {
       "damaged": 19,
-      "flagged": 0.947,
+      "flagged": 1.0,
       "datasets": 20,
       "units": 8,
       "median_loss": 0.0394,
@@ -12282,7 +12282,7 @@
     },
     "flag": "A64",
     "damaged": 36,
-    "flagged": 0.889,
+    "flagged": 1.0,
     "flagged_clean": 0.0
    },
    "labels_10": {

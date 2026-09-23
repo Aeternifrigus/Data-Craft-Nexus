@@ -40,6 +40,17 @@ test('missing values give A62, and text in a numeric column gives A64', () => {
   assert.equal(measuredAxes(dirty, null).a6, 'A64', 'unparseable values are noise, not missingness');
 });
 
+test('junk in one numeric column of a wide categorical table is still A64', () => {
+  // 1 numeric column with 5% junk among 12: the average over all columns is
+  // under 1%, which is how 4 of 36 damaged benchmark tables went unflagged.
+  const head = ['amount', ...Array.from({ length: 11 }, (_, j) => `c${j}`)].join(',');
+  const body = Array.from({ length: 200 }, (_, i) =>
+    [i % 20 === 0 ? '#VALUE!' : String(i * 3), ...Array.from({ length: 11 }, (_, j) => `v${(i + j) % 4}`)].join(','));
+  const axes = measuredAxes(load2([head, ...body].join('\n') + '\n'), null);
+  assert.ok(axes.noise < 0.01, 'the average alone would miss it');
+  assert.equal(axes.a6, 'A64');
+});
+
 test('labels differing only by case or padding count as noise', () => {
   const values = Array.from({ length: 60 }, (_, i) => (i % 12 === 0 ? ' gdynia ' : 'Gdynia'));
   const csv = 'port\n' + values.join('\n') + '\n';

@@ -15,7 +15,7 @@ dataset,task,condition,first,signature,flags,numeric
 229_pwLinear,regression,missing_10,EN2,A11 A21 A32 A41 A53 A62,,0
 229_pwLinear,regression,missing_30,EN2,A11 A21 A32 A41 A53 A62,,0
 556_analcatdata_apnea2,regression,clean,EN2,A11 A21 A38 A41 A54 A61,,1
-556_analcatdata_apnea2,regression,dirty_5,EN2,A11 A21 A38 A41 A54 A62,,1
+556_analcatdata_apnea2,regression,dirty_5,EN2,A11 A21 A38 A41 A54 A64,,1
 556_analcatdata_apnea2,regression,labels_10,EN2,A11 A21 A38 A41 A54 A61,,1
 556_analcatdata_apnea2,regression,missing_10,EN2,A11 A21 A38 A41 A54 A62,,1
 556_analcatdata_apnea2,regression,missing_30,EN2,A11 A21 A38 A41 A54 A62,,1
@@ -85,12 +85,12 @@ dataset,task,condition,first,signature,flags,numeric
 695_chatfield_4,regression,missing_10,EN2,A11 A21 A31 A41 A54 A62,,12
 695_chatfield_4,regression,missing_30,EN2,A11 A21 A31 A41 A54 A62,,12
 agaricus_lepiota,classification,clean,EN4,A11 A21 A38 A41 A51 A61,A53,1
-agaricus_lepiota,classification,dirty_5,EN4,A11 A21 A38 A41 A51 A61,A53,1
+agaricus_lepiota,classification,dirty_5,EN4,A11 A21 A38 A41 A51 A64,A53,1
 agaricus_lepiota,classification,labels_10,EN4,A11 A21 A38 A41 A51 A61,A53,1
 agaricus_lepiota,classification,missing_10,EN4,A11 A21 A38 A41 A51 A62,A53,1
 agaricus_lepiota,classification,missing_30,EN4,A11 A21 A38 A41 A51 A62,A53,1
 allhypo,classification,clean,EN4,A11 A21 A38 A41 A52 A61,A53,6
-allhypo,classification,dirty_5,EN4,A11 A21 A38 A41 A52 A62,A53,6
+allhypo,classification,dirty_5,EN4,A11 A21 A38 A41 A52 A64,A53,6
 allhypo,classification,labels_10,EN4,A11 A21 A38 A41 A52 A61,A53,6
 allhypo,classification,missing_10,EN4,A11 A21 A38 A41 A52 A62,A53,6
 allhypo,classification,missing_30,EN4,A11 A21 A38 A41 A52 A62,A53,6
@@ -105,7 +105,7 @@ biomed,classification,labels_10,EN4,A11 A21 A38 A41 A51 A61,A54,7
 biomed,classification,missing_10,EN4,A11 A21 A38 A41 A51 A62,A54,7
 biomed,classification,missing_30,EN4,A11 A21 A38 A41 A51 A62,A54,7
 breast_cancer,classification,clean,EN4,A11 A21 A38 A41 A51 A61,A53,1
-breast_cancer,classification,dirty_5,EN4,A11 A21 A38 A41 A51 A62,A53,1
+breast_cancer,classification,dirty_5,EN4,A11 A21 A38 A41 A51 A64,A53,1
 breast_cancer,classification,labels_10,EN4,A11 A21 A38 A41 A51 A61,A53,1
 breast_cancer,classification,missing_10,EN4,A11 A21 A38 A41 A51 A62,A53,1
 breast_cancer,classification,missing_30,EN4,A11 A21 A38 A41 A51 A62,A53,1

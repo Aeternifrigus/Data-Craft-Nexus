@@ -61,6 +61,9 @@ export function profileData(head, body) {
   return { n, feat: columns.length, columns, dateCols: columns.filter(c => c.dateLike) };
 }
 
+// A column with more than this share of values that look wrong is dirty.
+export const DIRTY_COLUMN = 0.01;
+
 // Axes 3, 4 and 6 over the feature columns (everything except the target).
 export function measuredAxes(profile, target) {
   const features = profile.columns.filter(c => c.name !== target);
@@ -88,7 +91,12 @@ export function measuredAxes(profile, target) {
 
   const miss = cols.reduce((s, c) => s + c.missing, 0) / feat;
   const noise = cols.reduce((s, c) => s + c.dirtyRate, 0) / feat;
-  const a6 = noise > 0.01 ? 'A64' : (miss > 0.001 ? 'A62' : 'A61');
+  // Judged per column as well as on average: junk in the few numeric columns
+  // of a wide categorical table disappears into an average over all of them.
+  // On the benchmark's damaged files, 4 of 36 tables with junk went unflagged
+  // that way.
+  const worst = cols.reduce((m, c) => Math.max(m, c.dirtyRate), 0);
+  const a6 = noise > 0.01 || worst > DIRTY_COLUMN ? 'A64' : (miss > 0.001 ? 'A62' : 'A61');
 
   return { a3, a4, a6, feat, numericCols, catCols, textCols, sparsity, miss, noise, highDim };
 }

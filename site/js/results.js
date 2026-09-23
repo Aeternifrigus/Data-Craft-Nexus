@@ -7,6 +7,7 @@ import { paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotC
 import { evidenceFor, evidenceSentence } from './evidence.js';
 import { rankingProvenance } from './ranking.js';
 import { coverageNotes, metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
+import { columnRoles, downloadScript, pythonScript, scriptable } from './export.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
@@ -35,7 +36,7 @@ function chip(code, kind, codes) {
   return `<span class="chip${cls}" ${attr}="${esc(code)}">${esc(code)}</span>`;
 }
 
-export function renderResults(T, sig, task, profile) {
+export function renderResults(T, sig, task, profile, source = null) {
   const codes = matchCodes(sig);
 
   // Where this dataset sits among the benchmark datasets, measured the same
@@ -165,9 +166,35 @@ export function renderResults(T, sig, task, profile) {
     }
   });
 
+  renderTakeHome(T, sig, task, profile, source, models.items.map(m => m.c));
   renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
   renderNeighbours(T, neighbours, task);
   plotSpace(T, sig, meta, neighbours);
+}
+
+// "Take it home": the shortlist as a Python script, for the tasks the
+// benchmark covers (it needs a target to score against).
+function renderTakeHome(T, sig, task, profile, source, codes) {
+  const el = document.getElementById('takehome');
+  if (!el) return;
+  const { run } = scriptable(codes, task);
+  if (!profile || !sig.target || !['category', 'number'].includes(task) || !run.length) {
+    el.innerHTML = '';
+    return;
+  }
+  const names = Object.fromEntries(T.MODELS.map(m => [m.c, m.n]));
+  el.innerHTML = `<p class="takehome-h">Take it home</p>
+    <p class="sect-note">A Python script that runs ${run.map(c => esc(names[c] ?? c)).join(', ')} on your whole file,
+      with the preprocessing and cross-validation the benchmark used, and tuned boosting beside them: on the benchmark, a
+      small tuning budget was worth more than the choice among the top models. It needs pandas and scikit-learn.</p>
+    <button class="run takehome-btn" id="takehome-btn" type="button">Download the script</button>`;
+  document.getElementById('takehome-btn').addEventListener('click', () => {
+    const roles = columnRoles(profile, sig.target);
+    downloadScript(pythonScript({
+      fileName: source?.fileName ?? 'data.csv', read: source?.read, columns: source?.columns ?? profile.columns.map(c => c.name),
+      target: sig.target, task, ordered: sig.codes[1] === 'A22', ...roles, shortlist: codes,
+    }));
+  });
 }
 
 // Outside what was tested: said once, above the map, before any number.

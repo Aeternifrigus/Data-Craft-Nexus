@@ -144,6 +144,35 @@ first recommendation changed on 20 of 20 classification datasets and got
 worse on 12 of them, while the four shown stayed level and the ruled-out
 winners went from 17 datasets to none. A correct pool, an arbitrary order.
 
+## Is it more than luck?
+
+Every comparison the site publishes goes through `dcn/significance.py`:
+
+- **an interval** around each median, from resampling which datasets were in
+  the benchmark (10,000 bootstrap draws)
+- **a paired test**: the Wilcoxon signed-rank test on per-dataset differences,
+  since every strategy was judged on the same datasets, with Holm's correction
+  when the order in use is compared against several alternatives at once
+- **a ranking of every model**: the Friedman test, and the Nemenyi critical
+  difference from Demšar, *Statistical Comparisons of Classifiers over
+  Multiple Data Sets* (JMLR, 2006). Two models whose average ranks differ by
+  less than it cannot be told apart on this benchmark
+
+On the 40-dataset run, the learned order beats counting coordinates by more
+than luck (p = 0.028 on classification, 4 × 10⁻⁵ on regression) and does not
+yet beat always using boosting (p = 0.47 and 0.40). With 20 datasets, two
+classifiers need average ranks 5.9 apart to be separated, so 13 of the 18 are
+indistinguishable from the best one.
+
+Repeated cross-validation seeds are averaged into one score per dataset and
+model before any of this. Seeds measure how much one split can move a score;
+counting them as extra datasets would make every difference look more certain
+than it is.
+
+`python -m dcn.learn` prints the paired comparisons; `python -m dcn.evidence`
+publishes them, and `tests/evidence.test.js` recomputes the medians, the win
+counts and every model's average rank from the committed data.
+
 ## What is in results/
 
 | file | one row per | what it holds |
@@ -157,6 +186,4 @@ winners went from 17 datasets to none. A correct pool, an arbitrary order.
 ## Next
 
 - run all 196 datasets rather than 40
-- say whether the learned order beats boosting by more than luck: confidence
-  intervals and a paired test, not only medians
 - let the order depend on the dataset, not only on each model's average

@@ -24,6 +24,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from .significance import collapse_seeds
+
 BASELINE = "BASE-HGB"
 METRIC = {"classification": "balanced accuracy", "regression": "R²"}
 
@@ -42,7 +44,10 @@ def _why(ruled_out: pd.DataFrame) -> str:
 
 
 def per_dataset(results: pd.DataFrame) -> pd.DataFrame:
-    ok = results[results.status == "ok"]
+    # A run with several cross-validation seeds is judged on each model's mean
+    # score, so a dataset counts once however many seeds it was run under.
+    ok = collapse_seeds(results)
+    ok = ok[ok.status == "ok"]
     rows = []
     for (dataset, task), group in ok.groupby(["dataset", "task"]):
         models = group[group.model != BASELINE]

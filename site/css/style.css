@@ -196,6 +196,30 @@ select.opt{color:var(--ink);padding-right:28px}
   font-size:10px;color:var(--ground);background:var(--chrome);
   padding:1px 6px;margin-left:8px;letter-spacing:.04em;
 }
+/* which models can be told apart: average ranks with the critical difference.
+   The band runs unbroken down the rows, so it reads as one span, not as bars. */
+.cd{margin:16px 0 8px;font-size:12px}
+.cd-row{display:grid;grid-template-columns:minmax(120px,34%) 1fr 118px;gap:0 14px;align-items:stretch}
+.cd-row:not(.cd-axis):hover{background:rgba(127,255,0,.04)}
+.cd-axis{border-bottom:1px solid var(--rule);color:var(--dim);font-size:11px}
+.cd-label,.cd-val{padding:4px 0;align-self:center}
+.cd-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cd-label .rec-code{font-size:12px;display:inline;margin-right:6px}
+.cd-track{position:relative;min-height:26px;margin:0 6px}
+.cd-axis .cd-track{min-height:22px}
+.cd-tick{position:absolute;top:4px;transform:translateX(-50%);font-size:10.5px}
+.cd-band{position:absolute;top:0;bottom:0;background:rgba(127,255,0,.08);
+  border-left:1px dashed var(--chrome-dark);border-right:1px dashed var(--chrome-dark)}
+.cd-dot{position:absolute;top:50%;width:10px;height:10px;border-radius:50%;
+  transform:translate(-50%,-50%);box-shadow:0 0 0 2px var(--ground)}
+.cd-dot.in{background:var(--chrome)}
+.cd-dot.out{background:var(--ground);border:2px solid var(--dim)}
+.cd-val{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cd-state{color:var(--dim);font-size:10.5px;margin-left:8px}
+@media (max-width:640px){
+  .cd-row{grid-template-columns:1fr 116px;gap:0 8px}
+  .cd-track{grid-column:1 / -1;grid-row:2}
+}
 .matchline{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
 .chip{
   font-size:11px;padding:3px 9px;border:1px solid var(--rule);color:var(--dim);

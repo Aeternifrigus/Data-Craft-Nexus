@@ -20,8 +20,10 @@ from .analyze import BASELINE as BASELINE_CODE, METRIC, per_dataset
 from .models import BASELINE
 from .meta import FEATURES
 from .models import BY_CODE, NOT_RUNNABLE  # noqa: F401
+from .learn import comparisons
 from .ranking import load_ranking
 from .recommend import load_taxonomy
+from .significance import bootstrap_ci, collapse_seeds, model_ranking
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -53,26 +55,68 @@ def model_lines(results: pd.DataFrame, table: pd.DataFrame) -> dict:
     return out
 
 
+STRATEGY_LABELS = [("current", "counting matched coordinates"), ("prior", "learned from the benchmark"),
+                   ("prior_fit", "learned, with dataset interactions"), ("boosting", "always use boosting")]
+
+
+def _r(x, digits=4):
+    return None if x is None or pd.isna(x) else round(float(x), digits)
+
+
+def _p(x):
+    """A p-value to four significant figures, so 4e-17 does not round to zero."""
+    return None if x is None or pd.isna(x) else float(f"{float(x):.4g}")
+
+
 def ranking_evidence(lodo_path: Path) -> dict | None:
-    """How the learned order did against the alternatives, leave-one-dataset-out."""
+    """How the learned order did against the alternatives, leave-one-dataset-out.
+
+    Each median comes with a 95% interval from resampling the datasets, and
+    the order in use is tested against every alternative, paired over the
+    same datasets, so the page can say which differences are more than luck.
+    """
     if not lodo_path.exists():
         return None
     table = pd.read_csv(lodo_path)
     ranking = load_ranking() or {}
-    out = {"chosen": ranking.get("chosen"), "trained_on": ranking.get("trained_on"), "tasks": {}}
+    chosen = ranking.get("chosen")
+    tests = comparisons(table, chosen) if chosen in table else {}
+    out = {"chosen": chosen, "trained_on": ranking.get("trained_on"), "level": 0.95, "tasks": {}}
     for task, group in table.groupby("task"):
-        out["tasks"][task] = {"datasets": int(len(group)), "metric": METRIC[task], "strategies": {}}
-        for key, label in [("current", "counting matched coordinates"), ("prior", "learned from the benchmark"),
-                           ("prior_fit", "learned, with dataset interactions"), ("boosting", "always use boosting")]:
+        out["tasks"][task] = {"datasets": int(len(group)), "metric": METRIC[task], "strategies": {},
+                              "against_chosen": {}}
+        for key, label in STRATEGY_LABELS:
             if key not in group:
                 continue
             regret = (group.best - group[key]).dropna()
+            low, high = bootstrap_ci(regret.to_numpy())
             out["tasks"][task]["strategies"][key] = {
                 "label": label,
-                "median_regret": round(float(regret.median()), 4),
+                "median_regret": _r(regret.median()),
+                "ci": [_r(low), _r(high)],
                 "was_best": round(float((regret <= 1e-9).mean()), 3),
                 "within_one_point": round(float((regret <= 0.01).mean()), 3),
             }
+        for other, test in tests.get(task, {}).items():
+            out["tasks"][task]["against_chosen"][other] = {
+                "wins": test["wins"], "ties": test["ties"], "losses": test["losses"],
+                "median_difference": _r(test["median_difference"]),
+                "ci": [_r(test["ci"][0]), _r(test["ci"][1])],
+                "p": _p(test["p"]), "p_holm": _p(test["p_holm"]),
+            }
+    return out
+
+
+def model_significance(results: pd.DataFrame, table: pd.DataFrame, names: dict) -> dict:
+    """Which models the benchmark can actually tell apart, per task."""
+    out = {}
+    for task, group in table.groupby("task"):
+        on_page = results[(results.task == task) & results.dataset.isin(set(group.dataset))]
+        out[task] = model_ranking(on_page, task)
+        out[task]["names"] = {code: names.get(code, code) for code in out[task]["ranks"]}
+        out[task]["critical_difference"] = _r(out[task]["critical_difference"])
+        friedman = out[task]["friedman"]
+        friedman["chi2"], friedman["p"] = _r(friedman["chi2"], 3), _p(friedman["p"])
     return out
 
 
@@ -81,7 +125,7 @@ def load_meta(path: Path) -> pd.DataFrame | None:
 
 
 def build(results_path: Path, run_label: str) -> dict:
-    results = pd.read_csv(results_path)
+    results = collapse_seeds(pd.read_csv(results_path))
     meta = load_meta(results_path.parent / "meta.csv")
     table = per_dataset(results)
     taxonomy = load_taxonomy()
@@ -150,6 +194,7 @@ def build(results_path: Path, run_label: str) -> dict:
                        if meta is not None else None),
         "headline": headline,
         "ranking": ranking_evidence(results_path.parent / "ranking-lodo.csv"),
+        "significance": model_significance(results, table, names),
         "models": model_lines(results, table),
         "datasets": datasets,
     }

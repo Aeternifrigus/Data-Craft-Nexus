@@ -12946,6 +12946,108 @@
     }
    }
   },
+  "quality_order": {
+   "dirty_5": {
+    "tasks": {
+     "classification": {
+      "units": 20,
+      "fixed": 0.0086,
+      "quality": 0.0113,
+      "wins": 7,
+      "losses": 11,
+      "ties": 2,
+      "p_holm": 0.9902
+     },
+     "regression": {
+      "units": 8,
+      "fixed": 0.0084,
+      "quality": 0.007,
+      "wins": 1,
+      "losses": 0,
+      "ties": 7,
+      "p_holm": 1.0
+     }
+    },
+    "no_worse": false,
+    "better_on": [],
+    "replaces": false
+   },
+   "labels_10": {
+    "tasks": {
+     "classification": {
+      "units": 20,
+      "fixed": 0.0188,
+      "quality": 0.0185,
+      "wins": 8,
+      "losses": 12,
+      "ties": 0,
+      "p_holm": 1.0
+     },
+     "regression": {
+      "units": 8,
+      "fixed": 0.0311,
+      "quality": 0.0442,
+      "wins": 1,
+      "losses": 2,
+      "ties": 5,
+      "p_holm": 1.0
+     }
+    },
+    "no_worse": false,
+    "better_on": [],
+    "replaces": false
+   },
+   "missing_10": {
+    "tasks": {
+     "classification": {
+      "units": 20,
+      "fixed": 0.0074,
+      "quality": 0.0082,
+      "wins": 8,
+      "losses": 12,
+      "ties": 0,
+      "p_holm": 1.0
+     },
+     "regression": {
+      "units": 8,
+      "fixed": 0.012,
+      "quality": 0.0085,
+      "wins": 1,
+      "losses": 0,
+      "ties": 7,
+      "p_holm": 1.0
+     }
+    },
+    "no_worse": false,
+    "better_on": [],
+    "replaces": false
+   },
+   "missing_30": {
+    "tasks": {
+     "classification": {
+      "units": 20,
+      "fixed": 0.0114,
+      "quality": 0.0094,
+      "wins": 5,
+      "losses": 12,
+      "ties": 3,
+      "p_holm": 0.1428
+     },
+     "regression": {
+      "units": 8,
+      "fixed": 0.0483,
+      "quality": 0.0957,
+      "wins": 0,
+      "losses": 2,
+      "ties": 6,
+      "p_holm": 0.5
+     }
+    },
+    "no_worse": false,
+    "better_on": [],
+    "replaces": false
+   }
+  },
   "how": "20 classification and 20 regression benchmark datasets, damaged on purpose and run again with every model: cells blanked at random, junk text in numeric columns, and training labels swapped for other rows' labels. Every model is scored on the true labels, and compared with its own score on the same dataset clean."
  }
 }

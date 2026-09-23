@@ -197,6 +197,13 @@ units, 13 of them from Friedman's functions. Medians are over units:
   intervals exclude no change.
 - On classification, Naive Bayes lost least to missing cells, and a single
   decision tree lost most under every kind of damage.
+- An order that reads data quality does not help. Declared first
+  (`quality_order()`): for each kind of damage, rank the models by their
+  average percentile rank on the other datasets' damaged runs, and compare its
+  first pick with the fixed order's, leave-one-dataset-out, by the rule
+  `choose()` applies. It lost more often than it won on classification under
+  every kind of damage (at 30% missing, 5 better and 12 worse) and was level
+  or worse on regression, so it replaces the fixed order nowhere.
 
 Damage made on purpose is random, and real gaps are not. PMLB has datasets
 that arrived with missing values of their own: 10 classification datasets in
@@ -606,6 +613,6 @@ choice. `tests/drift.test.js` recomputes every published rate from
   next run
 - more collected regression data: 35 independent units is what limits every
   regression claim here, and more generated datasets would not help
-- an order that reads data quality: on regression with heavy gaps or noisy
-  targets the fixed prior's first pick lost ground the linear models kept.
-  Declare the rule before running it, as `choose()` does
+- something that does help regression with heavy gaps or noisy targets: the
+  fixed first pick lost ground there, and an order learned from damaged runs
+  did not recover it

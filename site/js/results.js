@@ -4,7 +4,7 @@
 import { esc } from './html.js';
 import { matchCodes } from './profile.js';
 import { driftUnmeasured, paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
-import { driftSentence, evidenceFor, evidenceSentence } from './evidence.js';
+import { driftSentence, evidenceFor, evidenceSentence, messyNote } from './evidence.js';
 import { rankingProvenance } from './ranking.js';
 import { coverageNotes, metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
 import { MODEL_CODE, columnRoles, downloadScript, pythonScript, scriptable } from './export.js';
@@ -60,7 +60,7 @@ export function renderResults(T, sig, task, profile, source = null) {
 
   const note = document.getElementById('model-note');
   if (models.items.length) {
-    note.textContent = `${models.candidates} of the ${paradigmLabel(paradigmOf(sig))} models can produce ${taskLabel} for data shaped like yours.${orderedBy}${tieNote(models)}`;
+    note.textContent = `${models.candidates} of the ${paradigmLabel(paradigmOf(sig))} models can produce ${taskLabel} for data shaped like yours.${orderedBy}${tieNote(models)}${messyNote(T, sig, task, meta?.missing_share)}`;
   } else if (models.ruledOut.length) {
     note.textContent = `No model fits. Every model that could produce ${taskLabel} is ruled out by your data: ${models.ruledOut.slice(0, 3).map(m => `${m.n} ${m.why}`).join('; ')}.`;
   } else {

@@ -1,9 +1,9 @@
 """Turn a benchmark run into what the site shows.
 
 Writes site/taxonomy/evidence.json: the headline numbers, a line per model,
-the per-dataset table, and what the drift benchmark measured. The page reads
-it like any other taxonomy file, so a recommendation can be shown next to
-what it was worth on real data.
+the per-dataset table, what the drift benchmark measured, and what messy data
+did. The page reads it like any other taxonomy file, so a recommendation can
+be shown next to what it was worth on real data.
 
 Everything here comes from results/, nothing is typed by hand.
 
@@ -202,6 +202,15 @@ def drift_evidence(path: Path) -> dict | None:
     return drift_block(pd.read_csv(path))
 
 
+def messy_evidence(results_path: Path) -> dict | None:
+    """What damaging the data did (messy.py), when the damaged runs are there."""
+    folder = results_path.parent
+    if not (folder / "messy.csv").exists():
+        return None
+    from .messy import evidence as messy_block
+    return messy_block(folder / "messy.csv", results_path, picks_cache=folder / "messy-picks.csv")
+
+
 def load_meta(path: Path) -> pd.DataFrame | None:
     return pd.read_csv(path) if path.exists() else None
 
@@ -296,6 +305,8 @@ def build(results_path: Path, run_label: str, ranked_by: str = "counting matched
         "datasets": datasets,
         # The drift checkers, from their own benchmark (drift.py).
         "drift": drift_evidence(results_path.parent / "drift.csv"),
+        # The same datasets damaged on purpose, and the ones that came with gaps (messy.py).
+        "messy": messy_evidence(results_path),
     }
 
 

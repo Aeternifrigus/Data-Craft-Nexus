@@ -100,6 +100,81 @@ function driftSection(T) {
       `<li><span class="rec-code" data-drift="${esc(code)}">${esc(code)}</span> ${esc(names[code] ?? code)}: ${esc(why)}</li>`).join('')}</ul>`;
 }
 
+// The damage the benchmark did on purpose (bench/dcn/corrupt.py).
+export const MESSY_CONDITIONS = {
+  missing_10: { short: '10% missing', with: 'with 10% of their cells blanked' },
+  missing_30: { short: '30% missing', with: 'with 30% of their cells blanked' },
+  dirty_5: { short: 'junk text', with: 'with junk text in 5% of their numeric cells' },
+  labels_10: { short: 'wrong labels', with: 'with 10% of their training labels wrong' },
+};
+
+// Which damaged run to quote for an upload: the kind of mess it has, and the
+// amount nearest to its own. Null when the file is clean or the task was not run.
+export function messyConditionFor(sig, missingShare = null) {
+  const codes = [...sig.codes, ...sig.flags];
+  if (codes.includes('A64')) return 'dirty_5';
+  if (codes.includes('A62')) return missingShare != null && missingShare > 0.2 ? 'missing_30' : 'missing_10';
+  return null;
+}
+
+// A line for the model note when the upload is messy: what the same kind of
+// damage did to the benchmark datasets, and to the order's first pick.
+export function messyNote(T, sig, task, missingShare = null) {
+  const benchTask = task === 'category' ? 'classification' : task === 'number' ? 'regression' : null;
+  const condition = messyConditionFor(sig, missingShare);
+  const entry = T.EVIDENCE?.messy?.conditions?.[condition]?.tasks?.[benchTask];
+  if (!entry) return '';
+  const what = condition === 'dirty_5' ? 'text in numeric columns' : 'missing values';
+  const units = entry.units < entry.datasets ? ` (${entry.units} independent)` : '';
+  return ` Your file has ${what}. On ${entry.datasets} benchmark ${benchTask} datasets${units} ${MESSY_CONDITIONS[condition].with},`
+    + ` scores fell by a median of ${num(entry.median_loss)}, and the model shown first landed ${num(entry.first_regret)}`
+    + ` below the best, against ${num(entry.first_regret_clean)} on the same datasets clean.`;
+}
+
+function messyTable(messy, task) {
+  const conditions = Object.keys(MESSY_CONDITIONS).filter(c => messy.conditions[c]?.tasks?.[task]);
+  if (!conditions.length) return '';
+  const row = (label, cell) => `<tr><td>${esc(label)}</td>${conditions.map(c =>
+    `<td>${cell(messy.conditions[c], messy.conditions[c].tasks[task])}</td>`).join('')}</tr>`;
+  return `<table class="ev-table">
+    <thead><tr><th>${esc(task)}<span class="ev-sub">${messy.datasets[task]} datasets, ${messy.units[task]} independent</span></th>
+      ${conditions.map(c => `<th>${esc(MESSY_CONDITIONS[c].short)}</th>`).join('')}</tr></thead>
+    <tbody>
+      ${row('the profiler noticed', (e, t) => e.flag
+        ? `${pct(t.flagged)}<span class="ev-sub">flagged ${esc(e.flag)}, of ${t.damaged}</span>`
+        : 'cannot<span class="ev-sub">not visible in a file</span>')}
+      ${row('median loss, all models', (e, t) => num(t.median_loss))}
+      ${row('first pick, regret', (e, t) => `${num(t.first_regret)}<span class="ev-sub">clean ${num(t.first_regret_clean)}</span>`)}
+      ${row('boosting, regret', (e, t) => `${num(t.boosting_regret)}<span class="ev-sub">clean ${num(t.boosting_regret_clean)}</span>`)}
+      ${row('hurt least', (e, t) => esc(Object.keys(t.models).slice(0, 3).join(', ')))}
+      ${row('hurt most', (e, t) => esc(Object.keys(t.models).slice(-3).reverse().join(', ')))}
+    </tbody>
+  </table>`;
+}
+
+function messySection(T) {
+  const messy = T.EVIDENCE?.messy;
+  if (!messy?.conditions) return '';
+  const natural = messy.natural?.tasks?.classification;
+  const naturalText = natural
+    ? `${natural.datasets} of the classification datasets in the full run came with missing values of their own
+      (${natural.units} independent). There, the order's first pick landed ${num(natural[`${messy.natural.strategy}_regret`])}
+      below the best, leave-one-dataset-out, against ${num(natural[`${messy.natural.strategy}_regret_complete`])} on the
+      complete ones (Mann-Whitney, p = ${formatP(natural.p)}); default boosting ${num(natural.boosting_regret)} against
+      ${num(natural.boosting_regret_complete)}. On ${natural.units} units that is no evidence of a difference either way,
+      and these gaps are the ones real files have, not blanked at random.`
+    : '';
+  return `<h3 class="ev-h">When the data is messy</h3>
+    <p class="sect-note">${esc(messy.how)} Regret is measured against the best model on the same data, clean or damaged,
+      and a model that failed on the damaged data counts as the worst one there. The order in use is a fixed ranking per
+      model and does not look at data quality, so the same model is shown first on a damaged file as on the clean one: the
+      question is whether that pick still holds up.</p>
+    ${messyTable(messy, 'classification')}
+    <div style="height:18px"></div>
+    ${messyTable(messy, 'regression')}
+    ${naturalText ? `<p class="sect-note" style="margin-top:14px">${naturalText}</p>` : ''}`;
+}
+
 function headlineTable(headline) {
   const tasks = Object.keys(headline);
   const rows = [
@@ -517,6 +592,8 @@ export function buildEvidence(T) {
       return note ? `<h3 class="ev-h">How much is the luck of the split</h3><p class="sect-note">${esc(note)}</p>` : ''; })()}
 
     ${driftSection(T)}
+
+    ${messySection(T)}
 
     <h3 class="ev-h">Every model that ran</h3>
     <p class="sect-note">“Was best” counts datasets where this model scored highest of all that ran.

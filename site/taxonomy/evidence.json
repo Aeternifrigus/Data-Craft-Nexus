@@ -12085,5 +12085,843 @@
    "DR-DL1": "made for images and audio (A35, A36), and needs a network trained per window; the benchmark is tables",
    "DR-DL2": "made for images and audio (A35, A36), and needs a network trained per window; the benchmark is tables"
   }
+ },
+ "messy": {
+  "conditions": {
+   "dirty_5": {
+    "description": "5% of numeric cells replaced by text junk",
+    "tasks": {
+     "classification": {
+      "damaged": 17,
+      "flagged": 0.824,
+      "datasets": 20,
+      "units": 20,
+      "median_loss": 0.011,
+      "models": {
+       "EN1": {
+        "median": 0.0028,
+        "units": 20
+       },
+       "PR1": {
+        "median": 0.0041,
+        "units": 20
+       },
+       "DR4": {
+        "median": 0.0043,
+        "units": 20
+       },
+       "NN1": {
+        "median": 0.0056,
+        "units": 20
+       },
+       "SV2": {
+        "median": 0.006,
+        "units": 20
+       },
+       "EN6": {
+        "median": 0.0084,
+        "units": 20
+       },
+       "EN3": {
+        "median": 0.0086,
+        "units": 20
+       },
+       "EN7": {
+        "median": 0.0087,
+        "units": 20
+       },
+       "TR3": {
+        "median": 0.009,
+        "units": 20
+       },
+       "TR2": {
+        "median": 0.0097,
+        "units": 20
+       },
+       "BASE-HGB": {
+        "median": 0.0098,
+        "units": 20
+       },
+       "EN2": {
+        "median": 0.0099,
+        "units": 18
+       },
+       "EN4": {
+        "median": 0.0099,
+        "units": 20
+       },
+       "LM2": {
+        "median": 0.0099,
+        "units": 20
+       },
+       "SV1": {
+        "median": 0.0099,
+        "units": 20
+       },
+       "IB1": {
+        "median": 0.0115,
+        "units": 20
+       },
+       "NN2": {
+        "median": 0.0158,
+        "units": 20
+       },
+       "TR1": {
+        "median": 0.0253,
+        "units": 20
+       }
+      },
+      "first_regret_clean": 0.0163,
+      "first_regret": 0.0086,
+      "boosting_regret_clean": 0.023,
+      "boosting_regret": 0.0201,
+      "first_regret_change_ci": [
+       -0.0053,
+       0.0
+      ],
+      "first_changed": 0.0
+     },
+     "regression": {
+      "damaged": 19,
+      "flagged": 0.947,
+      "datasets": 20,
+      "units": 8,
+      "median_loss": 0.0394,
+      "models": {
+       "LM4": {
+        "median": 0.0003,
+        "units": 8
+       },
+       "LM5": {
+        "median": 0.004,
+        "units": 8
+       },
+       "SV1": {
+        "median": 0.0135,
+        "units": 8
+       },
+       "LM7": {
+        "median": 0.0202,
+        "units": 8
+       },
+       "LM1": {
+        "median": 0.0228,
+        "units": 8
+       },
+       "LM3": {
+        "median": 0.0228,
+        "units": 8
+       },
+       "SV2": {
+        "median": 0.0233,
+        "units": 8
+       },
+       "IB1": {
+        "median": 0.0277,
+        "units": 8
+       },
+       "TR3": {
+        "median": 0.0307,
+        "units": 8
+       },
+       "EN7": {
+        "median": 0.0323,
+        "units": 8
+       },
+       "LM6": {
+        "median": 0.0363,
+        "units": 8
+       },
+       "TR2": {
+        "median": 0.0373,
+        "units": 8
+       },
+       "EN2": {
+        "median": 0.038,
+        "units": 8
+       },
+       "NN2": {
+        "median": 0.0382,
+        "units": 8
+       },
+       "EN6": {
+        "median": 0.0504,
+        "units": 8
+       },
+       "EN1": {
+        "median": 0.0505,
+        "units": 8
+       },
+       "EN4": {
+        "median": 0.0518,
+        "units": 8
+       },
+       "BASE-HGB": {
+        "median": 0.055,
+        "units": 8
+       },
+       "EN3": {
+        "median": 0.0632,
+        "units": 8
+       },
+       "TR1": {
+        "median": 0.0676,
+        "units": 8
+       }
+      },
+      "first_regret_clean": 0.0033,
+      "first_regret": 0.0078,
+      "boosting_regret_clean": 0.0093,
+      "boosting_regret": 0.0082,
+      "first_regret_change_ci": [
+       -0.0014,
+       0.0056
+      ],
+      "first_changed": 0.0
+     }
+    },
+    "flag": "A64",
+    "damaged": 36,
+    "flagged": 0.889,
+    "flagged_clean": 0.0
+   },
+   "labels_10": {
+    "description": "10% of training labels replaced by another row's",
+    "tasks": {
+     "classification": {
+      "datasets": 20,
+      "units": 20,
+      "median_loss": 0.0172,
+      "models": {
+       "SV2": {
+        "median": 0.0043,
+        "units": 20
+       },
+       "DR4": {
+        "median": 0.0068,
+        "units": 20
+       },
+       "PR1": {
+        "median": 0.0089,
+        "units": 20
+       },
+       "EN6": {
+        "median": 0.0114,
+        "units": 20
+       },
+       "IB1": {
+        "median": 0.0121,
+        "units": 20
+       },
+       "EN7": {
+        "median": 0.0139,
+        "units": 20
+       },
+       "TR2": {
+        "median": 0.0139,
+        "units": 20
+       },
+       "SV1": {
+        "median": 0.015,
+        "units": 20
+       },
+       "EN2": {
+        "median": 0.0151,
+        "units": 18
+       },
+       "TR3": {
+        "median": 0.017,
+        "units": 20
+       },
+       "EN1": {
+        "median": 0.0173,
+        "units": 20
+       },
+       "EN3": {
+        "median": 0.0175,
+        "units": 20
+       },
+       "LM2": {
+        "median": 0.0193,
+        "units": 20
+       },
+       "BASE-HGB": {
+        "median": 0.0197,
+        "units": 20
+       },
+       "EN4": {
+        "median": 0.0199,
+        "units": 20
+       },
+       "NN2": {
+        "median": 0.0388,
+        "units": 20
+       },
+       "NN1": {
+        "median": 0.0468,
+        "units": 20
+       },
+       "TR1": {
+        "median": 0.0681,
+        "units": 20
+       }
+      },
+      "first_regret_clean": 0.0163,
+      "first_regret": 0.0188,
+      "boosting_regret_clean": 0.023,
+      "boosting_regret": 0.0286,
+      "first_regret_change_ci": [
+       -0.0005,
+       0.0104
+      ],
+      "first_changed": 0.0
+     },
+     "regression": {
+      "datasets": 20,
+      "units": 8,
+      "median_loss": 0.0433,
+      "models": {
+       "SV1": {
+        "median": 0.004,
+        "units": 8
+       },
+       "SV2": {
+        "median": 0.009,
+        "units": 8
+       },
+       "LM1": {
+        "median": 0.0109,
+        "units": 8
+       },
+       "LM3": {
+        "median": 0.0113,
+        "units": 8
+       },
+       "LM7": {
+        "median": 0.0114,
+        "units": 8
+       },
+       "NN2": {
+        "median": 0.0142,
+        "units": 8
+       },
+       "LM4": {
+        "median": 0.0175,
+        "units": 8
+       },
+       "LM5": {
+        "median": 0.0217,
+        "units": 8
+       },
+       "LM6": {
+        "median": 0.0246,
+        "units": 8
+       },
+       "EN7": {
+        "median": 0.0483,
+        "units": 8
+       },
+       "IB1": {
+        "median": 0.05,
+        "units": 8
+       },
+       "BASE-HGB": {
+        "median": 0.0571,
+        "units": 8
+       },
+       "EN4": {
+        "median": 0.0585,
+        "units": 8
+       },
+       "TR2": {
+        "median": 0.0669,
+        "units": 8
+       },
+       "EN6": {
+        "median": 0.0745,
+        "units": 8
+       },
+       "TR3": {
+        "median": 0.0759,
+        "units": 8
+       },
+       "EN2": {
+        "median": 0.078,
+        "units": 8
+       },
+       "EN3": {
+        "median": 0.1068,
+        "units": 8
+       },
+       "EN1": {
+        "median": 0.1621,
+        "units": 8
+       },
+       "TR1": {
+        "median": 0.2097,
+        "units": 8
+       }
+      },
+      "first_regret_clean": 0.0033,
+      "first_regret": 0.033,
+      "boosting_regret_clean": 0.0093,
+      "boosting_regret": 0.0145,
+      "first_regret_change_ci": [
+       0.0013,
+       0.0574
+      ],
+      "first_changed": 0.0
+     }
+    },
+    "flag": null
+   },
+   "missing_10": {
+    "description": "10% of feature cells missing, at random",
+    "tasks": {
+     "classification": {
+      "damaged": 20,
+      "flagged": 1.0,
+      "datasets": 20,
+      "units": 20,
+      "median_loss": 0.0269,
+      "models": {
+       "PR1": {
+        "median": 0.013,
+        "units": 20
+       },
+       "SV2": {
+        "median": 0.0164,
+        "units": 20
+       },
+       "EN2": {
+        "median": 0.0167,
+        "units": 18
+       },
+       "EN4": {
+        "median": 0.0195,
+        "units": 20
+       },
+       "EN3": {
+        "median": 0.0205,
+        "units": 20
+       },
+       "EN1": {
+        "median": 0.0215,
+        "units": 20
+       },
+       "TR2": {
+        "median": 0.0217,
+        "units": 20
+       },
+       "SV1": {
+        "median": 0.0218,
+        "units": 20
+       },
+       "BASE-HGB": {
+        "median": 0.0224,
+        "units": 20
+       },
+       "EN7": {
+        "median": 0.0231,
+        "units": 20
+       },
+       "LM2": {
+        "median": 0.0231,
+        "units": 20
+       },
+       "TR3": {
+        "median": 0.0239,
+        "units": 20
+       },
+       "DR4": {
+        "median": 0.0257,
+        "units": 20
+       },
+       "EN6": {
+        "median": 0.0316,
+        "units": 20
+       },
+       "NN1": {
+        "median": 0.0333,
+        "units": 20
+       },
+       "IB1": {
+        "median": 0.0382,
+        "units": 20
+       },
+       "NN2": {
+        "median": 0.0403,
+        "units": 20
+       },
+       "TR1": {
+        "median": 0.055,
+        "units": 20
+       }
+      },
+      "first_regret_clean": 0.0163,
+      "first_regret": 0.0074,
+      "boosting_regret_clean": 0.023,
+      "boosting_regret": 0.0172,
+      "first_regret_change_ci": [
+       -0.0114,
+       0.0013
+      ],
+      "first_changed": 0.0
+     },
+     "regression": {
+      "damaged": 20,
+      "flagged": 1.0,
+      "datasets": 20,
+      "units": 8,
+      "median_loss": 0.1014,
+      "models": {
+       "LM5": {
+        "median": 0.039,
+        "units": 8
+       },
+       "LM4": {
+        "median": 0.0423,
+        "units": 8
+       },
+       "SV1": {
+        "median": 0.0443,
+        "units": 8
+       },
+       "LM7": {
+        "median": 0.0536,
+        "units": 8
+       },
+       "SV2": {
+        "median": 0.0548,
+        "units": 8
+       },
+       "LM1": {
+        "median": 0.0574,
+        "units": 8
+       },
+       "LM3": {
+        "median": 0.0575,
+        "units": 8
+       },
+       "NN2": {
+        "median": 0.0949,
+        "units": 8
+       },
+       "EN7": {
+        "median": 0.0973,
+        "units": 8
+       },
+       "EN4": {
+        "median": 0.1077,
+        "units": 8
+       },
+       "BASE-HGB": {
+        "median": 0.1084,
+        "units": 8
+       },
+       "EN6": {
+        "median": 0.1129,
+        "units": 8
+       },
+       "EN2": {
+        "median": 0.116,
+        "units": 8
+       },
+       "EN1": {
+        "median": 0.1186,
+        "units": 8
+       },
+       "IB1": {
+        "median": 0.1197,
+        "units": 8
+       },
+       "TR2": {
+        "median": 0.1293,
+        "units": 8
+       },
+       "TR3": {
+        "median": 0.1308,
+        "units": 8
+       },
+       "EN3": {
+        "median": 0.1409,
+        "units": 8
+       },
+       "LM6": {
+        "median": 0.1594,
+        "units": 8
+       },
+       "TR1": {
+        "median": 0.2054,
+        "units": 8
+       }
+      },
+      "first_regret_clean": 0.0033,
+      "first_regret": 0.0091,
+      "boosting_regret_clean": 0.0093,
+      "boosting_regret": 0.0088,
+      "first_regret_change_ci": [
+       -0.0018,
+       0.0127
+      ],
+      "first_changed": 0.0
+     }
+    },
+    "flag": "A62",
+    "damaged": 40,
+    "flagged": 1.0,
+    "flagged_clean": 0.05
+   },
+   "missing_30": {
+    "description": "30% of feature cells missing, at random",
+    "tasks": {
+     "classification": {
+      "damaged": 20,
+      "flagged": 1.0,
+      "datasets": 20,
+      "units": 20,
+      "median_loss": 0.069,
+      "models": {
+       "PR1": {
+        "median": 0.0382,
+        "units": 20
+       },
+       "NN1": {
+        "median": 0.0505,
+        "units": 20
+       },
+       "EN3": {
+        "median": 0.0507,
+        "units": 20
+       },
+       "LM2": {
+        "median": 0.0534,
+        "units": 20
+       },
+       "EN1": {
+        "median": 0.0581,
+        "units": 20
+       },
+       "SV2": {
+        "median": 0.0605,
+        "units": 20
+       },
+       "EN4": {
+        "median": 0.0625,
+        "units": 20
+       },
+       "SV1": {
+        "median": 0.0633,
+        "units": 20
+       },
+       "EN2": {
+        "median": 0.064,
+        "units": 18
+       },
+       "EN7": {
+        "median": 0.0687,
+        "units": 20
+       },
+       "DR4": {
+        "median": 0.0715,
+        "units": 20
+       },
+       "BASE-HGB": {
+        "median": 0.0754,
+        "units": 20
+       },
+       "EN6": {
+        "median": 0.0776,
+        "units": 20
+       },
+       "TR3": {
+        "median": 0.0801,
+        "units": 20
+       },
+       "TR2": {
+        "median": 0.0843,
+        "units": 20
+       },
+       "NN2": {
+        "median": 0.085,
+        "units": 20
+       },
+       "IB1": {
+        "median": 0.0869,
+        "units": 20
+       },
+       "TR1": {
+        "median": 0.1272,
+        "units": 20
+       }
+      },
+      "first_regret_clean": 0.0163,
+      "first_regret": 0.0114,
+      "boosting_regret_clean": 0.023,
+      "boosting_regret": 0.0206,
+      "first_regret_change_ci": [
+       -0.0111,
+       0.0014
+      ],
+      "first_changed": 0.0
+     },
+     "regression": {
+      "damaged": 20,
+      "flagged": 1.0,
+      "datasets": 20,
+      "units": 8,
+      "median_loss": 0.268,
+      "models": {
+       "LM5": {
+        "median": 0.0891,
+        "units": 8
+       },
+       "LM4": {
+        "median": 0.0931,
+        "units": 8
+       },
+       "SV1": {
+        "median": 0.1205,
+        "units": 8
+       },
+       "LM7": {
+        "median": 0.1458,
+        "units": 8
+       },
+       "LM1": {
+        "median": 0.1527,
+        "units": 8
+       },
+       "LM3": {
+        "median": 0.1534,
+        "units": 8
+       },
+       "SV2": {
+        "median": 0.1948,
+        "units": 8
+       },
+       "NN2": {
+        "median": 0.2366,
+        "units": 8
+       },
+       "EN7": {
+        "median": 0.263,
+        "units": 8
+       },
+       "EN1": {
+        "median": 0.2794,
+        "units": 8
+       },
+       "BASE-HGB": {
+        "median": 0.2963,
+        "units": 8
+       },
+       "EN4": {
+        "median": 0.2976,
+        "units": 8
+       },
+       "EN2": {
+        "median": 0.2998,
+        "units": 8
+       },
+       "TR2": {
+        "median": 0.3086,
+        "units": 8
+       },
+       "EN6": {
+        "median": 0.3141,
+        "units": 8
+       },
+       "IB1": {
+        "median": 0.3198,
+        "units": 8
+       },
+       "TR3": {
+        "median": 0.3241,
+        "units": 8
+       },
+       "EN3": {
+        "median": 0.3461,
+        "units": 8
+       },
+       "LM6": {
+        "median": 0.3507,
+        "units": 8
+       },
+       "TR1": {
+        "median": 0.5097,
+        "units": 8
+       }
+      },
+      "first_regret_clean": 0.0033,
+      "first_regret": 0.0491,
+      "boosting_regret_clean": 0.0093,
+      "boosting_regret": 0.0352,
+      "first_regret_change_ci": [
+       0.0016,
+       0.1754
+      ],
+      "first_changed": 0.0
+     }
+    },
+    "flag": "A62",
+    "damaged": 40,
+    "flagged": 1.0,
+    "flagged_clean": 0.05
+   }
+  },
+  "datasets": {
+   "classification": 20,
+   "regression": 20
+  },
+  "units": {
+   "classification": 20,
+   "regression": 8
+  },
+  "natural": {
+   "strategy": "prior",
+   "tasks": {
+    "classification": {
+     "datasets": 10,
+     "names": [
+      "breast_cancer_wisconsin_original",
+      "credit_approval_australia",
+      "heart_disease_cleveland",
+      "heart_disease_hungarian",
+      "heart_disease_va_long_beach",
+      "horse_colic_lesion_type",
+      "horse_colic_outcome",
+      "horse_colic_surgery",
+      "penguins",
+      "titanic"
+     ],
+     "units": 8,
+     "complete_units": 70,
+     "prior_regret": 0.0202,
+     "boosting_regret": 0.014,
+     "tuned_regret": 0.0183,
+     "prior_regret_complete": 0.0159,
+     "boosting_regret_complete": 0.0151,
+     "tuned_regret_complete": 0.0096,
+     "p": 0.504
+    },
+    "regression": {
+     "datasets": 1,
+     "names": [
+      "auto_insurance_price"
+     ],
+     "units": 1,
+     "complete_units": 34,
+     "prior_regret": 0.0,
+     "boosting_regret": 0.0525,
+     "tuned_regret": 0.0159,
+     "prior_regret_complete": 0.0131,
+     "boosting_regret_complete": 0.0197,
+     "tuned_regret_complete": 0.006,
+     "p": null
+    }
+   }
+  },
+  "how": "20 classification and 20 regression benchmark datasets, damaged on purpose and run again with every model: cells blanked at random, junk text in numeric columns, and training labels swapped for other rows' labels. Every model is scored on the true labels, and compared with its own score on the same dataset clean."
  }
 }

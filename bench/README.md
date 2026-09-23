@@ -34,6 +34,8 @@ dcn/csvread.py   CSV reading, ported from site/js/csv.js
 dcn/stats.py     PSI and JavaScript number semantics
 dcn/dates.py     the shared date shapes
 dcn/profile.py   the profiler, ported from site/js/profile.js
+dcn/corrupt.py   damage made on purpose: missing cells, junk text, wrong labels
+dcn/messy.py     what that damage did, against the clean run
 dcn/drift.py     the drift checker benchmark
 tools/           the JavaScript side of the agreement test
 tests/           the agreement test and its awkward CSVs
@@ -154,10 +156,53 @@ become text.
 
 ```bash
 OMP_NUM_THREADS=1 python -m dcn.run --limit 20 --corrupt missing_30 --budget 120 --out results/messy.csv
+python -m dcn.messy --messy results/messy.csv --clean results/full.csv   # compare with the clean run
 ```
 
 Results carry a `condition` column; a results file written before it existed
 is upgraded in place the next time the runner appends to it.
+
+`dcn/messy.py` compares each damaged run with the clean run of the same
+datasets, and replays the order's first pick on the damaged file exactly as
+the runner makes it (`results/messy-picks.csv`). All four conditions ran on the
+same 40 datasets, 20 per task; the 20 regression datasets are 8 independent
+units, 13 of them from Friedman's functions. Medians are over units:
+
+| | 10% missing | 30% missing | junk text | wrong labels |
+|---|---|---|---|---|
+| the profiler noticed (flag) | 100% (A62) | 100% (A62) | 89% of 36 (A64) | cannot |
+| median loss, classification | 0.027 | 0.069 | 0.011 | 0.017 |
+| median loss, regression | 0.101 | 0.268 | 0.039 | 0.043 |
+| first pick's regret, classification (0.016 clean) | 0.007 | 0.011 | 0.009 | 0.019 |
+| first pick's regret, regression (0.003 clean) | 0.009 | 0.049 | 0.008 | 0.033 |
+
+- The profiler sees missing cells every time. It missed the junk in 4 of the
+  36 tables that got some, because A64 is judged on the average over all
+  columns: junk in the few numeric columns of a mostly categorical table stays
+  under the threshold. Three of the four were read as having missing values
+  instead, since `n/a` and `-` are missing-value words; one as clean.
+- Label noise cannot be seen in a file, and on classification it cost about
+  what 10% of missing cells cost.
+- The order does not look at data quality: it is a fixed ranking per model,
+  so LightGBM comes first on classification and gradient boosting on
+  regression, damaged or not. On classification that pick held up: its regret
+  did not rise by more than luck under any damage. On regression it did,
+  under 30% missing cells (0.003 to 0.049, 95% interval of the rise 0.002 to
+  0.175) and under noisy targets (0.003 to 0.033, interval 0.001 to 0.057).
+  Tree ensembles chase noisy targets and lose the most to heavy gaps; Lasso,
+  Elastic Net and the linear SVM lost the least. Eight units is thin, but both
+  intervals exclude no change.
+- On classification, Naive Bayes lost least to missing cells, and a single
+  decision tree lost most under every kind of damage.
+
+Damage made on purpose is random, and real gaps are not. PMLB has datasets
+that arrived with missing values of their own: 10 classification datasets in
+the full run (8 independent, the three horse colic tables being one) and one
+regression dataset. OpenML, which has more, could not be reached from where
+this ran. On those 8 units the order's leave-one-dataset-out regret was 0.020,
+against 0.016 on the 70 complete ones (Mann-Whitney, p = 0.50), and default
+boosting's 0.014 against 0.015: no evidence of a difference either way, at a
+size that could only have shown a large one.
 
 ## Running it
 
@@ -526,6 +571,8 @@ choice. `tests/drift.test.js` recomputes every published rate from
 | `delta.csv` | dataset | the two 40-dataset runs side by side and the change |
 | `seeds.csv` | dataset, model and seed | an early three-seed check on seven datasets |
 | `drift.csv` | dataset, cut, scenario and drift checker | whether it fired, its statistic, and the seconds it took |
+| `messy.csv` | dataset, model and kind of damage | the same columns as `full.csv`, on damaged copies of 40 datasets |
+| `messy-picks.csv` | dataset and kind of damage | the order's first pick and the signature the profiler measured, clean and damaged |
 
 ## Next
 
@@ -539,3 +586,8 @@ choice. `tests/drift.test.js` recomputes every published rate from
   next run
 - more collected regression data: 35 independent units is what limits every
   regression claim here, and more generated datasets would not help
+- an order that reads data quality: on regression with heavy gaps or noisy
+  targets the fixed prior's first pick lost ground the linear models kept.
+  Declare the rule before running it, as `choose()` does
+- judge A64 per column: averaged over all columns, junk in the few numeric
+  columns of a wide categorical table goes unflagged

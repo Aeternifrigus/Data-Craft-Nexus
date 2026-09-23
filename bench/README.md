@@ -261,38 +261,38 @@ boosting libraries starved each other, and the baseline timed out on datasets
 it normally fits in a second. Every timeout from that period was deleted and
 refitted alone.)
 
-Leave-one-dataset-out, with synthetic families held out whole and counted once
-(see "A family counts once" below):
+Leave-one-dataset-out, with families held out whole and counted once (see "A
+family counts once" below):
 
-| median regret (95% interval) | classification, 94 datasets | regression, 101 datasets, 35 independent |
+| median regret (95% interval) | classification, 94 datasets, 78 independent | regression, 101 datasets, 35 independent |
 |---|---|---|
-| counting coordinates | 0.046 (0.030 to 0.056) | 0.205 (0.071 to 0.303) |
-| learned prior, in use | 0.015 (0.011 to 0.018) | 0.012 (0.002 to 0.027) |
-| prior + interactions | 0.015 (0.009 to 0.021) | 0.012 (0.003 to 0.025) |
-| prior + neighbours | 0.016 (0.009 to 0.020) | 0.012 (0.001 to 0.025) |
-| always boosting | 0.014 (0.011 to 0.021) | 0.021 (0.009 to 0.055) |
-| boosting, tuned (reference) | 0.012 (0.008 to 0.017) | 0.006 (0.002 to 0.017) |
+| counting coordinates | 0.047 (0.035 to 0.056) | 0.205 (0.071 to 0.303) |
+| learned prior, in use | 0.016 (0.012 to 0.021) | 0.012 (0.002 to 0.027) |
+| prior + interactions | 0.016 (0.010 to 0.021) | 0.012 (0.003 to 0.025) |
+| prior + neighbours | 0.018 (0.013 to 0.023) | 0.012 (0.001 to 0.025) |
+| always boosting | 0.014 (0.011 to 0.022) | 0.021 (0.009 to 0.055) |
+| boosting, tuned (reference) | 0.011 (0.008 to 0.018) | 0.006 (0.002 to 0.017) |
 
 Holm-corrected over three comparisons (coordinates, default boosting, tuned
 boosting):
 
 - The learned order beats counting coordinates by more than luck on both
-  tasks (p = 3e-6 and 3e-5).
-- Against default boosting it is level on both: 47 better and 40 worse on
-  classification (p = 0.52), 21 and 14 of 35 regression units (p = 0.091).
+  tasks (p = 2e-6 and 3e-5).
+- Against default boosting it is level on both: 39 better and 35 worse of 78
+  classification units (p = 0.61), 21 and 14 of 35 regression units (p = 0.091).
   With only two comparisons in the family, before tuned boosting was added,
   the regression edge was p = 0.046.
-- Tuned boosting beats it on classification by more than luck (57 datasets to
-  30, p = 0.016) and is level on regression (19 units to 16, p = 0.55).
+- Tuned boosting beats it on classification by more than luck (49 units to
+  24, p = 0.028) and is level on regression (19 units to 16, p = 0.55).
 - Neither richer order beats the prior, so it stays.
 - Tuned boosting beat default boosting on 62 of 94 classification datasets (25
   worse) and 88 of 101 regression datasets (12 worse), and has the best average
-  rank of everything that ran: 6.1 of 19 on classification, 6.0 of 21 on
-  regression. With 94 datasets two classifiers need average ranks 2.9 apart to
-  be told apart, and 8 of the 19 are within that of it; on regression the 35
+  rank of everything that ran: 6.2 of 19 on classification, 6.0 of 21 on
+  regression. With 78 independent units two classifiers need average ranks 3.2
+  apart to be told apart, and 8 of the 19 are within that of it; on regression the 35
   units give a critical difference of 5.3, with 12 of 21 within it.
-- The gap to the best of everything that ran is 0.016 on classification and
-  0.013 on regression for the order in use, against 0.012 and 0.006 for tuned
+- The gap to the best of everything that ran is 0.017 on classification and
+  0.013 on regression for the order in use, against 0.011 and 0.006 for tuned
   boosting.
 
 Tuned boosting took about 30 fits per dataset and fold, 7 hours of fitting
@@ -330,9 +330,10 @@ Every comparison the site publishes goes through `dcn/significance.py`:
   Multiple Data Sets* (JMLR, 2006). Two models whose average ranks differ by
   less than it cannot be told apart on this benchmark
 
-The order in use is compared with the two things it claims to beat: counting
-coordinates and always using boosting, Holm-corrected over those two. The
-results are in "What the full run found" above.
+The order in use is compared with the two things it claims to beat, counting
+coordinates and always using boosting, and with tuned boosting as a reference,
+Holm-corrected over the three. The results are in "What the full run found"
+above.
 
 Repeated cross-validation seeds are averaged into one score per dataset and
 model before any of this. Seeds measure how much one split can move a score;
@@ -352,8 +353,20 @@ treating them as separate datasets does two things wrong. Leave-one-dataset-out
 lets a Friedman dataset be ranked by weights learned on its 53 siblings, and
 every test counts 54 correlated results as 54 pieces of evidence.
 
+The classification collection has the same problem in another form: tables
+that appear under several names. The Garvan thyroid records are there six
+times with six targets (allbp, allhyper, allhypo, allrep, dis, hypothyroid),
+horse colic three times, the handwritten digits of mfeat as four feature
+sets, chess and kr_vs_kp and mushroom and agaricus_lepiota are exact
+duplicates, and one generator each is behind led7 and led24, waveform_21 and
+waveform_40, and monk1 to monk3. Counted once, 94 classification datasets are
+78 independent units. Before they were, the order in use lost to tuned
+boosting at p = 0.016 and drew with default boosting at 47 to 40; now it is
+p = 0.028 and 39 to 35. Nothing changed direction.
+
 `family_of()` in `dcn/significance.py` groups them (Friedman, Strogatz,
-Feynman, BNG; every other dataset is its own family). `learn.py` holds a
+Feynman, BNG, and the shared tables in `SHARED_TABLES`; every other dataset is
+its own family). `learn.py` holds a
 family out whole when it ranks a member, and every published number counts a
 family once: medians, intervals and paired tests over units, where a family's
 unit is the mean over its datasets, and model ranks over family-averaged

@@ -56,20 +56,20 @@ What is left is **ordered by what those models were worth on the benchmark**, no
 
 The weights are a prior per model, fitted in `bench/dcn/learn.py` on 195 real datasets and judged leave-one-dataset-out, so a dataset never contributes to the weights that rank it:
 
-| median regret, leave-one-dataset-out (95% interval) | classification (94 datasets) | regression (101 datasets, 35 independent) |
+| median regret, leave-one-dataset-out (95% interval) | classification (94 datasets, 78 independent) | regression (101 datasets, 35 independent) |
 |---|---|---|
-| counting matched coordinates (before) | 0.046 (0.030 to 0.056) | 0.205 (0.071 to 0.303) |
-| learned from the benchmark (now) | 0.015 (0.011 to 0.018) | 0.012 (0.002 to 0.027) |
-| always use boosting | 0.014 (0.011 to 0.021) | 0.021 (0.009 to 0.055) |
-| always use boosting, tuned (reference) | 0.012 (0.008 to 0.017) | 0.006 (0.002 to 0.017) |
+| counting matched coordinates (before) | 0.047 (0.035 to 0.056) | 0.205 (0.071 to 0.303) |
+| learned from the benchmark (now) | 0.016 (0.012 to 0.021) | 0.012 (0.002 to 0.027) |
+| always use boosting | 0.014 (0.011 to 0.022) | 0.021 (0.009 to 0.055) |
+| always use boosting, tuned (reference) | 0.011 (0.008 to 0.018) | 0.006 (0.002 to 0.017) |
 
-Datasets generated from one function are not independent. Of the 101 regression datasets, 54 come from Friedman's benchmark functions and 14 from Strogatz's equations: sisters that share a winner. Such a family is held out whole when its members are ranked, and counted once in every number above, so 101 regression datasets are 35 independent units. Counting them one by one made the learned order look better on regression than it is (0.007 instead of 0.012).
+Datasets generated from one function are not independent. Of the 101 regression datasets, 54 come from Friedman's benchmark functions and 14 from Strogatz's equations: sisters that share a winner. Such a family is held out whole when its members are ranked, and counted once in every number above, so 101 regression datasets are 35 independent units. Counting them one by one made the learned order look better on regression than it is (0.007 instead of 0.012). The same holds for datasets cut from one table: PMLB has the Garvan thyroid records under six names with six targets, three horse colic targets, four feature sets of the same handwritten digits, two exact duplicates, and one generator behind each of led7 and led24, waveform_21 and waveform_40, and the three MONK's problems. Counted once, 94 classification datasets are 78 independent units.
 
 The intervals come from resampling those units. The order in use is also compared, unit by unit, with the two things it claims to beat, and with tuned boosting, a reference it makes no claim to beat but a reader will ask about (Wilcoxon signed-rank, Holm-corrected for the three comparisons):
 
-- **Against counting coordinates it is better by more than luck:** on 69 of 94 classification datasets, worse on 22 (p = 3 × 10⁻⁶), and on 27 of 35 regression units (p = 3 × 10⁻⁵).
-- **Against always using default boosting, it is level:** better on 47 classification datasets and worse on 40 (p = 0.52), better on 21 of 35 regression units and worse on 14 (p = 0.091). With two comparisons the regression edge was p = 0.046; adding a third comparison to the family, as honesty requires, puts it back inside luck.
-- **Against tuned boosting, it loses on classification by more than luck:** better on 30 datasets, worse on 57 (p = 0.016). On regression they are level: better on 16 of 35 units, worse on 19 (p = 0.55).
+- **Against counting coordinates it is better by more than luck:** on 57 of 78 classification units, worse on 19 (p = 2 × 10⁻⁶), and on 27 of 35 regression units (p = 3 × 10⁻⁵).
+- **Against always using default boosting, it is level:** better on 39 classification units and worse on 35 (p = 0.61), better on 21 of 35 regression units and worse on 14 (p = 0.091). With two comparisons the regression edge was p = 0.046; adding a third comparison to the family, as honesty requires, puts it back inside luck.
+- **Against tuned boosting, it loses on classification by more than luck:** better on 24 units, worse on 49 (p = 0.028). On regression they are level: better on 16 of 35 units, worse on 19 (p = 0.55).
 
 **What that means for the advice.** The site recommends model families, at their default settings. Choosing among the top families is worth about as much as reaching for boosting; spending ten configurations tuning boosting is worth more. Tuned boosting beat its own defaults on 62 of 94 classification datasets and 88 of 101 regression datasets, and has the best average rank of anything that ran in both tasks. So whichever model the page puts first, tune it before trusting its score. The tuning budget is small on purpose (scikit-learn's defaults and nine random configurations, chosen by cross-validation inside each training fold) and the details are in [`bench/README.md`](bench/README.md#references).
 
@@ -115,14 +115,14 @@ that model did.
 |---|---|---|
 | the first model shown | 0.012 | 0.011 |
 | best of the four shown | 0.005 | 0.002 |
-| always use boosting | 0.014 | 0.021 |
-| a model picked at random from the eligible ones | 0.050 | 0.162 |
+| always use boosting | 0.015 | 0.021 |
+| a model picked at random from the eligible ones | 0.051 | 0.162 |
 
 Regret is how far below the best model that ran a choice landed, in balanced
 accuracy and in R². These are the recommendations as the run recorded them,
 ordered by the prior fitted on the earlier 40-dataset run, which had already
 seen 40 of these datasets; the leave-one-dataset-out table above is the fairer
-test. The four models shown contain the best available choice 29% of the time
+test. The four models shown contain the best available choice 31% of the time
 on classification and 43% on regression.
 
 The full run also measured how much one split decides. Between cross-validation
@@ -141,7 +141,7 @@ disagree with the run behind it.
 
 - **Recommendations are made at default settings.** Tuned boosting beats the site's first pick on classification (see above). Folding a tuning step into the advice, or recommending "tuned boosting" outright when nothing in the data argues against it, is the change the evidence points to.
 - **TabPFN has not been run yet.** The runner supports it; its weights need a Prior Labs login this benchmark's environment could not reach. `bench/README.md` has the three commands to add it on your own machine.
-- **The order in use is a per-model prior, not yet a per-dataset one.** Both ways of making it depend on your data (interactions, and weighting toward the nearest benchmark datasets) are built, tested against the JavaScript, and judged leave-one-dataset-out, and neither beat the prior by more than luck on 195 datasets once synthetic families count once. With only 35 independent regression units, a per-dataset order needs more collected data to prove itself, not more of the same generators.
+- **The order in use is a per-model prior, not yet a per-dataset one.** Both ways of making it depend on your data (interactions, and weighting toward the nearest benchmark datasets) are built, tested against the JavaScript, and judged leave-one-dataset-out, and neither beat the prior by more than luck on 195 datasets once families count once. With only 35 independent regression units, a per-dataset order needs more collected data to prove itself, not more of the same generators.
 - **The prior itself still counts a family's datasets one by one when it is fitted**, so on regression it leans toward what wins on Friedman's functions. Weighting a family once in the fit is the obvious change, and it should be declared before the next run rather than tried after this one.
 - **The benchmark found a rule that throws away winners:** models that need numeric features (A31) are ruled out on all-categorical tables (A32), yet with one-hot encoding they won on 9 datasets, by up to 0.13 R² on solar_flare.
 - **Only classification and regression are benchmarked.** Forecasting, survival, grouping, anomalies, compression and generation still fall back to counting coordinates.

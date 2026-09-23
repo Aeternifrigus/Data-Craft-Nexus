@@ -26,7 +26,7 @@ function readTable(path) {
 
 const perDataset = () => readTable('bench/results/per_dataset.csv');
 
-// Mean regret per synthetic family, the unit every published test counts.
+// Mean regret per family, the unit every published test counts.
 // A strategy missing on a dataset (a reference that skipped it) is averaged
 // over the members it has, as pandas does; a unit with none is NaN.
 function unitRegrets(rows, keys, against = 'best') {
@@ -60,7 +60,7 @@ test('the published headline matches bench/results/per_dataset.csv', () => {
   for (const [task, headline] of Object.entries(EV.headline)) {
     const forTask = rows.filter(r => r.task === task);
     assert.equal(headline.datasets, forTask.length, `${task}: dataset count`);
-    // Mean per synthetic family first: each family counts once.
+    // Mean per family first: each family counts once.
     const families = new Map();
     for (const r of forTask) families.set(r.family, [...(families.get(r.family) ?? []), r]);
     const units = [...families.values()];

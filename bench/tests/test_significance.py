@@ -153,6 +153,20 @@ def test_datasets_from_one_generator_are_one_family():
     assert family_of("nikuradse_1") != family_of("nikuradse_2")
 
 
+def test_datasets_cut_from_one_table_are_one_family():
+    assert len({family_of(d) for d in ["allbp", "allhyper", "allhypo", "allrep", "dis", "hypothyroid"]}) == 1
+    assert family_of("horse_colic_surgery") == family_of("horse_colic_outcome")
+    assert family_of("mfeat_zernike") == family_of("mfeat_fourier")
+    assert family_of("chess") == family_of("kr_vs_kp")
+    assert family_of("mushroom") == family_of("agaricus_lepiota")
+    assert family_of("monk1") == family_of("monk3")
+    assert family_of("waveform_21") == family_of("waveform_40")
+    # A different thyroid table, and a name that merely starts the same way, stand alone.
+    assert family_of("ann_thyroid") == "ann_thyroid"
+    assert family_of("new_thyroid") == "new_thyroid"
+    assert family_of("disclosure_z") == "disclosure_z"
+
+
 def test_a_family_counts_once():
     frame = pd.DataFrame({"dataset": ["581_fri_c3_500_25", "607_fri_c4_1000_50", "yeast"],
                           "regret": [0.1, 0.3, 0.5]})

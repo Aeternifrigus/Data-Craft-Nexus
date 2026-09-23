@@ -70,13 +70,14 @@ const STRATEGY_KEYS = ['current', 'prior', 'prior_fit', 'prior_knn', 'boosting',
 // The references: what the order in use is compared with, beyond counting coordinates.
 const REFERENCE_KEYS = ['boosting', 'tuned', 'tabpfn'];
 
-// "classification datasets", or "independent regression units" when synthetic
-// families were counted once, so a count always says what it counts.
+// "classification datasets", or "independent regression units" when families
+// (sisters from one generator or one table) were counted once, so a count
+// always says what it counts.
 export function unitNoun(entry, task) {
   return (entry?.units ?? entry?.datasets) < entry?.datasets ? `independent ${task} units` : `${task} datasets`;
 }
 
-// "101 datasets, 35 independent" when synthetic families were counted once.
+// "101 datasets, 35 independent" when families were counted once.
 export function unitsLabel(entry) {
   const units = entry.units ?? entry.datasets;
   return units < entry.datasets ? `${entry.datasets} datasets, ${units} independent` : `${entry.datasets} datasets`;
@@ -231,8 +232,8 @@ export function boostingVerdict(ranking) {
 }
 
 // Average rank of every model over the benchmark's independent units,
-// recomputed from the scores on the page. A synthetic family (datasets
-// generated from one function) is one unit, scored by each model's mean over
+// recomputed from the scores on the page. A family (datasets generated from
+// one function, or cut from one table) is one unit, scored by each model's mean over
 // its datasets, rounded to six decimals. A model that did not finish on a unit
 // ranks last there, tied with any other that did not finish. Mirrors
 // score_matrix() and average_ranks() in bench/dcn/significance.py, and the
@@ -333,7 +334,7 @@ function significanceSection(ev) {
     const f = block.friedman;
     const tiedCount = block.tied_with_best.length;
     const where = (block.units ?? block.datasets) < block.datasets
-      ? `${block.datasets} ${task} datasets (${block.units} independent, each synthetic family counted once)`
+      ? `${block.datasets} ${task} datasets (${block.units} independent, each family counted once)`
       : `${block.datasets} ${task} datasets`;
     const lead = `On ${where} the models do differ (Friedman test, p = ${formatP(f.p)}).
       But two models need average ranks more than ${num(block.critical_difference, 2)} apart before the difference is more
@@ -423,8 +424,9 @@ export function buildEvidence(T) {
       the order in use is also compared, dataset by dataset, with the two things it claims to beat, counting coordinates and
       always using default boosting, and with references it makes no claim to beat: boosting that was tuned, and TabPFN
       where it was run (Wilcoxon signed-rank test, Holm-corrected for the number of comparisons). Datasets generated from
-      one function, like PMLB's Friedman and Strogatz families, are held out together and counted once: sisters share a
-      winner, and counting each would claim more certainty than the data holds.
+      one function, like PMLB's Friedman and Strogatz families, or cut from one table, like its six thyroid datasets, are
+      held out together and counted once: sisters share a winner, and counting each would claim more certainty than the
+      data holds.
       ${esc([boostingVerdict(ev.ranking), referenceVerdict(ev.ranking, 'tuned', 'tuned boosting'),
         referenceVerdict(ev.ranking, 'tabpfn', 'TabPFN')].filter(Boolean).join(' '))}</p>
     ${comparisonTable(ev.ranking)}

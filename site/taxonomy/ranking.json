@@ -150,12 +150,12 @@
    "candidate": "prior_fit",
    "against": "prior",
    "replaced": false,
-   "no_worse": true,
+   "no_worse": false,
    "tasks": {
     "classification": {
-     "wins": 20,
-     "losses": 24,
-     "ties": 50,
+     "wins": 19,
+     "losses": 20,
+     "ties": 39,
      "p_holm": 1.0
     },
     "regression": {
@@ -173,9 +173,9 @@
    "no_worse": false,
    "tasks": {
     "classification": {
-     "wins": 13,
-     "losses": 13,
-     "ties": 68,
+     "wins": 11,
+     "losses": 12,
+     "ties": 55,
      "p_holm": 1.0
     },
     "regression": {

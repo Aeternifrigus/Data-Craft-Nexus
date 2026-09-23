@@ -198,6 +198,8 @@ select.opt{color:var(--ink);padding-right:28px}
 .takehome{margin:34px 0;padding-top:22px;border-top:1px solid var(--rule)}
 .takehome:empty{display:none}
 footer .build{margin-top:6px;font-size:11px;color:var(--dim)}
+.savebar{padding:18px 0 0;font-size:12.5px;color:var(--dim)}
+.savebar-note{margin-left:8px}
 .takehome-h{color:var(--chrome);font-size:12px;letter-spacing:.04em;margin-bottom:8px}
 .takehome .sect-note{margin-bottom:16px}
 .takehome-btn{margin-top:0}
@@ -503,6 +505,7 @@ footer .sig{font-size:27px}
   </section>
 
   <div class="results" id="results">
+    <div class="savebar" id="savebar"></div>
     <section class="sect">
       <h2 class="sect-h">Where your data sits</h2>
       <p class="sect-note" id="plot-note">
@@ -1337,7 +1340,7 @@ footer .sig{font-size:27px}
       return (_b = (_a = messy.conditions[c]) == null ? void 0 : _a.tasks) == null ? void 0 : _b[task];
     });
     if (!conditions.length) return "";
-    const row = (label, cell) => `<tr><td>${esc(label)}</td>${conditions.map((c) => `<td>${cell(messy.conditions[c], messy.conditions[c].tasks[task])}</td>`).join("")}</tr>`;
+    const row = (label, cell2) => `<tr><td>${esc(label)}</td>${conditions.map((c) => `<td>${cell2(messy.conditions[c], messy.conditions[c].tasks[task])}</td>`).join("")}</tr>`;
     return `<table class="ev-table">
     <thead><tr><th>${esc(task)}<span class="ev-sub">${messy.datasets[task]} datasets, ${messy.units[task]} independent</span></th>
       ${conditions.map((c) => `<th>${esc(MESSY_CONDITIONS[c].short)}</th>`).join("")}</tr></thead>
@@ -2315,6 +2318,91 @@ self.onmessage = async (event) => {
     return `${n}${suffix}`;
   }
 
+  // site/js/report.js
+  var line = (text) => String(text != null ? text : "").replace(/\s+/g, " ").trim();
+  var cell = (text) => line(text).replace(/\|/g, "\\|");
+  function readingFileName(fileName = "data.csv") {
+    const stem = String(fileName).replace(/\.[^.]*$/, "").replace(/[^\w.-]+/g, "_").slice(0, 60) || "data";
+    return `dcn_reading_${stem}.md`;
+  }
+  function readingMarkdown({
+    T,
+    sig,
+    task,
+    fileName,
+    date,
+    build = null,
+    lead = null,
+    leadText = "",
+    models,
+    drifts,
+    pipelines,
+    notes = {},
+    sentences = {}
+  }) {
+    var _a, _b, _c, _d, _e, _f, _g;
+    const taskLabel = (_b = (_a = T.TASKS.find((t) => t.id === task)) == null ? void 0 : _a.label) != null ? _b : task;
+    const codes = [...sig.codes, ...sig.flags];
+    const out = [];
+    out.push(`# Data Craft Nexus reading: ${line(fileName)}`, "");
+    out.push(
+      `Read on ${date}${build ? ` by the page built from commit ${build}` : ""}.`,
+      `${(_e = (_d = (_c = sig.rows) == null ? void 0 : _c.toLocaleString) == null ? void 0 : _d.call(_c, "en-US")) != null ? _e : sig.rows} rows, ${sig.features} feature columns. Target: ${sig.target ? `\`${line(sig.target)}\`` : "none"}. Predicting: ${line(taskLabel).toLowerCase()}. Row order ${sig.codes[1] === "A22" ? "matters" : "does not matter"}.`,
+      ""
+    );
+    out.push("## Signature", "", `\`${codes.join(" ")}\``, "", "| code | what it means |", "|---|---|");
+    for (const code of codes) {
+      const c = T.CODES[code];
+      out.push(`| ${code} | ${cell(c ? `${c.name}: ${c.note}` : "")} |`);
+    }
+    out.push("");
+    out.push("## Models", "");
+    if (notes.models) out.push(line(notes.models), "");
+    if (lead) out.push(`**Start here: ${lead.n}** (\`${lead.c}\`). ${line(leadText)}`, "");
+    models.items.forEach((m, i) => {
+      out.push(`${i + 1}. **${m.n}** (\`${m.c}\`)` + (m.evidenceScore != null ? `, evidence ${m.evidenceScore.toFixed(2)}` : "") + `, ${m.score} of ${m.of} coordinates matched.`);
+      if (m.caution) out.push(`   Caution: ${line(m.caution)}.`);
+      if (sentences[m.c]) out.push(`   Measured: ${line(sentences[m.c])}`);
+      out.push(`   Watch for: ${line(m.fail)}`);
+    });
+    if ((_f = models.ruledOut) == null ? void 0 : _f.length) {
+      out.push("", "Ruled out:", "");
+      for (const m of models.ruledOut.slice(0, 12)) out.push(`- ${m.n} (\`${m.c}\`): ${line(m.why)}`);
+      if (models.ruledOut.length > 12) out.push(`- and ${models.ruledOut.length - 12} more`);
+    }
+    out.push("");
+    out.push("## Drift checkers", "");
+    if (notes.drifts) out.push(line(notes.drifts), "");
+    drifts.items.forEach((d, i) => {
+      out.push(`${i + 1}. **${d.n}** (\`${d.c}\`). Threshold: ${line(d.thr)}`);
+      if (sentences[d.c]) out.push(`   Measured: ${line(sentences[d.c])}`);
+    });
+    if ((_g = drifts.ruledOut) == null ? void 0 : _g.length) {
+      out.push("", "Ruled out by how it will run:", "");
+      for (const d of drifts.ruledOut) out.push(`- ${d.n} (\`${d.c}\`): ${line(d.why)}`);
+    }
+    out.push("");
+    out.push("## Pipelines", "");
+    pipelines.items.forEach((p, i) => out.push(`${i + 1}. **${p.n}** (\`${p.c}\`): stages ${p.stages.join(", ")}.`));
+    out.push("");
+    out.push(
+      "## Take it home",
+      "",
+      `The page can write a Python script that runs the shortlist on the whole file with the benchmark's preprocessing and cross-validation ("Download the script"), or run the same script in the browser ("Run it here").`,
+      ""
+    );
+    out.push("---", "", 'Generated by Data Craft Nexus, https://aeternifrigus.github.io/Data-Craft-Nexus/. Every "measured" line comes from its published benchmark, on the evidence tab.', "");
+    return out.join("\n");
+  }
+  function downloadReading(text, name) {
+    const url = URL.createObjectURL(new Blob([text], { type: "text/markdown" }));
+    const a = Object.assign(document.createElement("a"), { href: url, download: name });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1e3);
+  }
+
   // site/js/results.js
   function tieNote(result, noun = "models") {
     if (result.tied <= 1) return "";
@@ -2402,7 +2490,7 @@ self.onmessage = async (event) => {
       ruled.innerHTML = "";
     }
     const drifts = rankDrifts(T, sig);
-    const driftMsg = sig.drift ? `Worst shift between the first and second half of your file: PSI ${sig.drift.psi.toFixed(2)} on ${sig.drift.column}${sig.drift.scope === "target" ? " (the target itself)" : ""}, ${sig.drift.psi > 0.25 ? "above" : "below"} the 0.25 cutoff in DR-M2.` : "Drift across the file could not be measured: too few rows, or no column steady enough to compare. These are matched on modality and scale only.";
+    const driftMsg = sig.drift ? `Worst shift between the first and second half of your file: PSI ${sig.drift.psi.toFixed(2)} on ${sig.drift.column}${sig.drift.scope === "target" ? " (the target itself)" : ""}, ${sig.drift.psi > 0.25 ? "above" : "below"} the 0.25 cutoff in DR-M2.` : `Drift across the file could not be measured: too few rows, or no column steady enough to compare.${drifts.rankedBy === "evidence" ? "" : " These are matched on modality and scale only."}`;
     const driftOrder = drifts.rankedBy === "evidence" ? " Ordered by what the drift benchmark measured: the share of injected drift each checker caught, minus how often it fired when nothing had changed." : "";
     document.getElementById("drift-note").textContent = driftMsg + driftOrder + tieNote(drifts, "drift checkers");
     const driftDatasets = (_e = (_d = (_c = (_b = T.EVIDENCE) == null ? void 0 : _b.drift) == null ? void 0 : _c.datasets) == null ? void 0 : _d.length) != null ? _e : 0;
@@ -2450,6 +2538,30 @@ self.onmessage = async (event) => {
     </article>`;
     }).join("");
     renderRuledOut("pipeline-ruled", pipelines.ruledOut, "pipelines");
+    renderSaveBar(() => {
+      var _a2, _b2, _c2, _d2;
+      return readingMarkdown({
+        T,
+        sig,
+        task,
+        fileName: (_a2 = source == null ? void 0 : source.fileName) != null ? _a2 : "data.csv",
+        date: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+        build: (_d2 = (_c2 = (_b2 = document.querySelector('meta[name="dcn-build"]')) == null ? void 0 : _b2.content) == null ? void 0 : _c2.split(" ")[0]) != null ? _d2 : null,
+        lead,
+        leadText: lead ? leadSentence(T, lead) : "",
+        models,
+        drifts,
+        pipelines,
+        notes: {
+          models: document.getElementById("model-note").textContent,
+          drifts: document.getElementById("drift-note").textContent
+        },
+        sentences: Object.fromEntries([
+          ...models.items.map((m) => [m.c, evidenceSentence(evidenceFor(T, m.c, task))]),
+          ...drifts.items.filter((d) => d.measure).map((d) => [d.c, driftSentence(d.measure, driftDatasets)])
+        ].filter(([, text]) => text))
+      });
+    }, readingFileName(source == null ? void 0 : source.fileName));
     pipelines.items.forEach((p) => {
       const el = document.getElementById("diagram-" + p.c);
       if (el && p.flowchart) {
@@ -2464,6 +2576,13 @@ self.onmessage = async (event) => {
     renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
     renderNeighbours(T, neighbours, task);
     plotSpace(T, sig, meta, neighbours);
+  }
+  function renderSaveBar(make, name) {
+    const el = document.getElementById("savebar");
+    if (!el) return;
+    el.innerHTML = `<button class="link" id="save-reading" type="button">Save this reading</button>
+    <span class="savebar-note">as a Markdown file: the signature, what fits, what was ruled out and why. Your rows stay here.</span>`;
+    document.getElementById("save-reading").addEventListener("click", () => downloadReading(make(), name));
   }
   function leadCard(T, lead) {
     var _a, _b;

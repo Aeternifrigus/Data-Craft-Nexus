@@ -43,7 +43,7 @@ test('the deployed page can name the commit it was built from', async () => {
   const stamped = await buildPage({ stamp });
   assert.match(stamped, /<meta name="dcn-build" content="fe43b93 2026-09-24">/);
   assert.match(stamped, /Built from commit fe43b93 on 2026-09-24\./);
-  assert.doesNotMatch(page, /dcn-build|Built from commit|build-stamp/, 'the committed page carries no stamp');
+  assert.doesNotMatch(page, /<meta name="dcn-build"|<div class="build">|build-stamp/, 'the committed page carries no stamp');
   assert.equal(buildStamp(undefined), null);
   assert.throws(() => buildStamp('main"><script>'), /commit hash/);
 });

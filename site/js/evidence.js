@@ -98,10 +98,12 @@ function rankingTable(ranking) {
   if (!ranking) return '';
   const tasks = Object.keys(ranking.tasks);
   const chosenNote = (key) => (key === ranking.chosen ? ' <span class="ev-chosen">in use</span>' : '');
+  // A reference that was never run here (TabPFN) gets no row at all.
+  const keys = STRATEGY_KEYS.filter(k => tasks.some(t => ranking.tasks[t].strategies[k]));
   return `<table class="ev-table">
     <thead><tr><th>median regret, leave-one-dataset-out</th>${tasks.map(t =>
       `<th>${esc(t)}<span class="ev-sub">${esc(ranking.tasks[t].metric)}, ${unitsLabel(ranking.tasks[t])}</span></th>`).join('')}</tr></thead>
-    <tbody>${STRATEGY_KEYS.map(key => `<tr>
+    <tbody>${keys.map(key => `<tr>
       <td>${esc(strategyLabel(ranking, key))}${chosenNote(key)}</td>
       ${tasks.map(t => { const s = ranking.tasks[t].strategies[key];
         if (!s) return '<td>—</td>';

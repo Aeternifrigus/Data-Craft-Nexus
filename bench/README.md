@@ -150,7 +150,8 @@ python -m dcn.run --limit 20 --seeds 3 --budget 60 --out results/full.csv   # se
 python -m dcn.meta --results results/full.csv --out results/meta.csv
 python -m dcn.analyze --results results/full.csv
 python -m dcn.learn --results results/full.csv
-python -m dcn.evidence --results results/full.csv --label "195 PMLB datasets, 5250 model runs" \
+OMP_NUM_THREADS=1 python -m dcn.run --models BASE-HGB-TUNED --reference-budget 1800 --out results/full.csv
+python -m dcn.evidence --results results/full.csv --label "195 PMLB datasets, 5446 model runs" \
     --ranked-by "the per-model prior fitted on the earlier 40-dataset run, which had already seen 40 of these datasets"
 ```
 
@@ -225,8 +226,9 @@ winners went from 17 datasets to none. A correct pool, an arbitrary order.
 ## What the full run found
 
 Every dataset that fits, 196, of which 195 could be scored: auto_insurance_symboling
-has a class with 3 rows and cannot be split five ways. 5,250 model runs, with
-40 of the datasets under three cross-validation seeds. Ten fits ran out of
+has a class with 3 rows and cannot be split five ways. 5,446 model runs, with
+40 of the datasets under three cross-validation seeds and tuned boosting on
+every dataset. Ten fits ran out of
 their 60-second budget, all of them scikit-learn's GradientBoosting on large
 multiclass tables. (An earlier attempt ran two processes on two cores; the
 boosting libraries starved each other, and the baseline timed out on datasets
@@ -243,18 +245,35 @@ Leave-one-dataset-out, with synthetic families held out whole and counted once
 | prior + interactions | 0.015 (0.009 to 0.021) | 0.012 (0.003 to 0.025) |
 | prior + neighbours | 0.016 (0.009 to 0.020) | 0.012 (0.001 to 0.025) |
 | always boosting | 0.014 (0.011 to 0.021) | 0.021 (0.009 to 0.055) |
+| boosting, tuned (reference) | 0.012 (0.008 to 0.017) | 0.006 (0.002 to 0.017) |
+
+Holm-corrected over three comparisons (coordinates, default boosting, tuned
+boosting):
 
 - The learned order beats counting coordinates by more than luck on both
-  tasks (p = 2e-6 and 2e-5).
-- Against always using boosting it is level on classification (better on 47,
-  worse on 40, p = 0.52) and ahead on regression (21 of 35 units, p = 0.046),
-  which is just under the line and not settled: the interval on the median
-  difference touches zero.
+  tasks (p = 3e-6 and 3e-5).
+- Against default boosting it is level on both: 47 better and 40 worse on
+  classification (p = 0.52), 21 and 14 of 35 regression units (p = 0.091).
+  With only two comparisons in the family, before tuned boosting was added,
+  the regression edge was p = 0.046.
+- Tuned boosting beats it on classification by more than luck (57 datasets to
+  30, p = 0.016) and is level on regression (19 units to 16, p = 0.55).
 - Neither richer order beats the prior, so it stays.
-- With 94 datasets, two classifiers need average ranks 2.7 apart to be told
-  apart, and 10 of the 18 are within that of the best (LightGBM). On regression
-  the 35 units give a critical difference of 5.0, with 10 of 20 tied with the
-  best (scikit-learn's GradientBoosting).
+- Tuned boosting beat default boosting on 62 of 94 classification datasets (25
+  worse) and 88 of 101 regression datasets (12 worse), and has the best average
+  rank of everything that ran: 6.1 of 19 on classification, 6.0 of 21 on
+  regression. With 94 datasets two classifiers need average ranks 2.9 apart to
+  be told apart, and 8 of the 19 are within that of it; on regression the 35
+  units give a critical difference of 5.3, with 12 of 21 within it.
+- The gap to the best of everything that ran is 0.016 on classification and
+  0.013 on regression for the order in use, against 0.012 and 0.006 for tuned
+  boosting.
+
+Tuned boosting took about 30 fits per dataset and fold, 7 hours of fitting
+for all 195 datasets, a little under 4 hours of wall time on two cores. It ran
+with one thread per process (`OMP_NUM_THREADS=1`), two processes at once, and
+none of its fits ran out of the 1,800-second reference budget; the slowest,
+`splice` (60 categorical columns, one-hot encoded), took 1,439 seconds.
 - One split decides a lot. Across three seeds the best model stayed the same on
   30% of classification datasets and 50% of regression ones, and the first
   pick and boosting swapped places on 10 of 20 and 4 of 20.
@@ -350,7 +369,7 @@ at it, and compares both rankings on every fixture.
 |---|---|---|
 | `pilot.csv` | dataset and model, before the fixes | signature, eligibility, rank, score, seconds, status |
 | `after-fixes.csv` | dataset and model, after the fixes | the same columns |
-| `full.csv` | dataset, model and seed, the full run | the same columns; what the site publishes |
+| `full.csv` | dataset, model and seed, the full run | the same columns, references included; what the site publishes |
 | `meta.csv` | dataset | the eight meta-features "datasets like yours" and the neighbour order use |
 | `per_dataset.csv` | dataset, full run | best model and score, the first pick, best of four, boosting, and the regret of each |
 | `ranking-lodo.csv` | dataset, full run | the score and model each order picked, leave-one-dataset-out with families held out |
@@ -360,6 +379,10 @@ at it, and compares both rankings on every fixture.
 
 ## Next
 
+- run TabPFN (see "Running TabPFN on your own machine") and let the evidence
+  pick it up
+- fold tuning into the advice: the site recommends families at their
+  defaults, and ten configurations of boosting beat that on classification
 - let numeric-feature models run on all-categorical tables, since the pipeline
   encodes categories, and check the 9 lost winners come back
 - weight a synthetic family once when fitting the prior, declared before the

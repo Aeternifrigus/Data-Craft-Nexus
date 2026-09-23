@@ -193,7 +193,9 @@ test('the page says how the order in use was chosen, and it agrees with ranking.
   const note = choiceNote(EV.ranking);
   for (const d of choice) assert.match(note, d.replaced ? /It is the order in use/ : /so it is off/);
   for (const [task, entry] of Object.entries(EV.ranking.tasks)) {
-    assert.deepEqual(Object.keys(entry.against_chosen).sort(), ['boosting', 'current'], task);
+    // The richer orders are choose()'s question, never part of the published comparisons.
+    const keys = Object.keys(entry.against_chosen);
+    assert.ok(!keys.some(k => ['prior', 'prior_fit', 'prior_knn'].includes(k)), `${task}: ${keys}`);
   }
 });
 

@@ -206,7 +206,9 @@ def model_ranking(results: pd.DataFrame, task: str, alpha: float = 0.05) -> dict
     # ranked against the others; one that was only run on some cannot be.
     matrix = matrix.loc[:, matrix.notna().any(axis=0)]
     run = results[results.task == task]
-    attempted = run.groupby("model").dataset.nunique()
+    # Skipped is not attempted: a reference with a row limit (TabPFN) did not
+    # run on the large datasets, and ranking it last there would be unfair.
+    attempted = run[run.status != "skipped"].groupby("model").dataset.nunique()
     matrix = matrix[[c for c in matrix.columns if attempted.get(c, 0) == run.dataset.nunique()]]
     ranks = average_ranks(matrix)
     n, k = matrix.shape

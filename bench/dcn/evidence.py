@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 
 from .analyze import BASELINE as BASELINE_CODE, METRIC, per_dataset
-from .models import BASELINE
+from .models import BASELINE, REFERENCE_NAMES, TUNED, is_reference
 from .meta import FEATURES
 from .models import BY_CODE, NOT_RUNNABLE  # noqa: F401
 from .learn import comparisons, regret_units
@@ -39,7 +39,7 @@ def model_lines(results: pd.DataFrame, table: pd.DataFrame) -> dict:
 
     out: dict[str, dict] = {}
     for (model, task), group in ok.groupby(["model", "task"]):
-        if model == BASELINE_CODE:
+        if is_reference(model):   # the baseline and the references are never recommended
             continue
         datasets = int(group.dataset.nunique())
         # Regret: how far below the best available model this one landed.
@@ -59,7 +59,8 @@ def model_lines(results: pd.DataFrame, table: pd.DataFrame) -> dict:
 
 STRATEGY_LABELS = [("current", "counting matched coordinates"), ("prior", "learned from the benchmark"),
                    ("prior_fit", "learned, with dataset interactions"),
-                   ("prior_knn", "learned, weighted toward datasets like yours"), ("boosting", "always use boosting")]
+                   ("prior_knn", "learned, weighted toward datasets like yours"), ("boosting", "always use boosting"),
+                   ("tuned", "always use boosting, tuned"), ("tabpfn", "always use TabPFN")]
 
 
 def _r(x, digits=4):
@@ -96,16 +97,32 @@ def ranking_evidence(lodo_path: Path) -> dict | None:
             if key not in units:
                 continue
             regret = units[key].dropna()
+            if regret.empty:
+                continue
             low, high = bootstrap_ci(regret.to_numpy())
             out["tasks"][task]["strategies"][key] = {
                 "label": label,
+                "units": int(len(regret)),    # fewer than the task's when a reference skipped datasets
                 "median_regret": _r(regret.median()),
                 "ci": [_r(low), _r(high)],
                 "was_best": round(float((regret <= 1e-9).mean()), 3),
                 "within_one_point": round(float((regret <= 0.01).mean()), 3),
             }
+        # How far each strategy lands from the best of everything that ran,
+        # references included: the question "how much is left on the table".
+        if "ceiling" in group:
+            out["tasks"][task]["ceiling"] = {}
+            keys = [k for k, _ in STRATEGY_LABELS if k in group and group[k].notna().any()]
+            gaps = by_family(group.assign(**{k: group.ceiling - group[k] for k in keys}), keys)
+            for key in keys:
+                gap = gaps[key].dropna()
+                low, high = bootstrap_ci(gap.to_numpy())
+                out["tasks"][task]["ceiling"][key] = {"units": int(len(gap)), "median_gap": _r(gap.median()),
+                                                      "ci": [_r(low), _r(high)],
+                                                      "at_ceiling": round(float((gap <= 1e-9).mean()), 3)}
         for other, test in tests.get(task, {}).items():
             out["tasks"][task]["against_chosen"][other] = {
+                "units": test.get("units"),
                 "wins": test["wins"], "ties": test["ties"], "losses": test["losses"],
                 "median_difference": _r(test["median_difference"]),
                 "ci": [_r(test["ci"][0]), _r(test["ci"][1])],
@@ -187,7 +204,7 @@ def build(results_path: Path, run_label: str, ranked_by: str = "counting matched
     table = per_dataset(results)
     taxonomy = load_taxonomy()
     names = {m["c"]: m["n"] for m in taxonomy["MODELS"]}
-    names[BASELINE_CODE] = BASELINE.name   # the baseline is not one of the taxonomy models
+    names.update(REFERENCE_NAMES)   # the baseline and the references are not taxonomy models
 
     headline = {}
     for task, group in table.groupby("task"):
@@ -262,6 +279,8 @@ def build(results_path: Path, run_label: str, ranked_by: str = "counting matched
         "coverage": coverage(datasets, FEATURES, meta_scale),
         "headline": headline,
         "ranking": ranking_evidence(results_path.parent / "ranking-lodo.csv"),
+        # How the tuned reference was tuned, in words, for the page to state.
+        "tuning": TUNED.notes,
         "significance": model_significance(results, table, names),
         "seeds": seeds_evidence(raw, results_path.parent / "ranking-lodo.csv"),
         "models": model_lines(results, table),

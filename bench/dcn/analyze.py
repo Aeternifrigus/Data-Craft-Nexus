@@ -24,6 +24,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from .models import TABPFN_CODE, TUNED, is_reference
 from .significance import by_family, collapse_seeds, family_of
 
 BASELINE = "BASE-HGB"
@@ -43,6 +44,11 @@ def _why(ruled_out: pd.DataFrame) -> str:
     return why if isinstance(why, str) and why.strip() else "is not tagged for this task in the taxonomy"
 
 
+def _score(frame: pd.DataFrame, code: str) -> float:
+    row = frame[frame.model == code]
+    return float(row.score.iloc[0]) if len(row) else np.nan
+
+
 def per_dataset(results: pd.DataFrame) -> pd.DataFrame:
     # A run with several cross-validation seeds is judged on each model's mean
     # score, so a dataset counts once however many seeds it was run under.
@@ -50,7 +56,11 @@ def per_dataset(results: pd.DataFrame) -> pd.DataFrame:
     ok = ok[ok.status == "ok"]
     rows = []
     for (dataset, task), group in ok.groupby(["dataset", "task"]):
-        models = group[group.model != BASELINE]
+        models = group[~group.model.map(is_reference)]
+        # "Best" is the best taxonomy model or default boosting, as it always
+        # was; the references are reported beside it, not folded into it.
+        references = group[group.model.map(is_reference) & (group.model != BASELINE)]
+        group = group[~group.model.isin(set(references.model))]
         eligible = models[models.eligible]
         ruled_out = models[~models.eligible]
         if eligible.empty:
@@ -73,6 +83,8 @@ def per_dataset(results: pd.DataFrame) -> pd.DataFrame:
             "first": ranked.iloc[0].score,
             "top4": shown.score.max() if len(shown) else np.nan,
             "boosting": baseline.score.iloc[0] if len(baseline) else np.nan,
+            "tuned": _score(references, TUNED.code),
+            "tabpfn": _score(references, TABPFN_CODE),
             "eligible_mean": eligible.score.mean(),
             "eligible_worst": eligible.score.min(),
             "best_ruled_out": ruled_out.score.max() if len(ruled_out) else np.nan,

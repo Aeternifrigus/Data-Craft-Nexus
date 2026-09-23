@@ -65,7 +65,10 @@ export function luckWords(test) {
   return test.p_holm < 0.01 ? 'more than luck' : 'more than luck, narrowly';
 }
 
-const STRATEGY_KEYS = ['current', 'prior', 'prior_fit', 'prior_knn', 'boosting'];
+const STRATEGY_KEYS = ['current', 'prior', 'prior_fit', 'prior_knn', 'boosting', 'tuned', 'tabpfn'];
+
+// The references: what the order in use is compared with, beyond counting coordinates.
+const REFERENCE_KEYS = ['boosting', 'tuned', 'tabpfn'];
 
 // "classification datasets", or "independent regression units" when synthetic
 // families were counted once, so a count always says what it counts.
@@ -103,10 +106,61 @@ function rankingTable(ranking) {
       ${tasks.map(t => { const s = ranking.tasks[t].strategies[key];
         if (!s) return '<td>—</td>';
         const ci = s.ci && s.ci[0] != null ? `<span class="ev-sub">95% interval ${num(s.ci[0])} to ${num(s.ci[1])}</span>` : '';
-        return `<td>${num(s.median_regret)}${ci}<span class="ev-sub">best ${pct(s.was_best)} of the time</span></td>`;
+        return `<td>${num(s.median_regret)}${ci}<span class="ev-sub">best ${pct(s.was_best)} of the time</span>${
+          subsetNote(s.units, ranking.tasks[t])}</td>`;
       }).join('')}
     </tr>`).join('')}</tbody>
   </table>`;
+}
+
+// A reference that skipped datasets (TabPFN has a row limit) is judged only on
+// the ones it ran on, and the cell says so.
+export function subsetNote(units, entry) {
+  const all = entry?.units ?? entry?.datasets;
+  return units != null && all != null && units < all
+    ? `<span class="ev-sub">only the ${units} it ran on</span>` : '';
+}
+
+// How far each strategy lands from the best of everything that ran, the
+// references included: what is left on the table.
+function ceilingTable(ranking) {
+  const tasks = Object.keys(ranking?.tasks ?? {}).filter(t => ranking.tasks[t].ceiling);
+  if (!tasks.length) return '';
+  const keys = STRATEGY_KEYS.filter(k => tasks.some(t => ranking.tasks[t].ceiling[k]));
+  const chosenNote = (key) => (key === ranking.chosen ? ' <span class="ev-chosen">in use</span>' : '');
+  return `<table class="ev-table">
+    <thead><tr><th>median gap to the best of everything</th>${tasks.map(t =>
+      `<th>${esc(t)}<span class="ev-sub">${esc(ranking.tasks[t].metric)}, ${unitsLabel(ranking.tasks[t])}</span></th>`).join('')}</tr></thead>
+    <tbody>${keys.map(key => `<tr>
+      <td>${esc(strategyLabel(ranking, key))}${chosenNote(key)}</td>
+      ${tasks.map(t => { const c = ranking.tasks[t].ceiling[key];
+        if (!c) return '<td>—</td>';
+        return `<td>${num(c.median_gap)}<span class="ev-sub">95% interval ${num(c.ci[0])} to ${num(c.ci[1])}</span>
+          <span class="ev-sub">the best of everything ${pct(c.at_ceiling)} of the time</span>${subsetNote(c.units, ranking.tasks[t])}</td>`;
+      }).join('')}
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+// One sentence per reference: is the order in use better than always using it?
+export function referenceVerdict(ranking, key, what) {
+  if (!ranking?.chosen || ranking.chosen === key) return '';
+  const parts = [], beyond = [], narrow = [];
+  for (const [task, entry] of Object.entries(ranking.tasks)) {
+    const c = entry.against_chosen?.[key];
+    if (!c) continue;
+    const unit = unitNoun({ datasets: entry.datasets, units: entry.units }, task);
+    parts.push(`${c.wins} of ${c.wins + c.losses + c.ties} ${unit} (p = ${formatP(c.p_holm)})`);
+    if (beyondLuck(c)) {
+      beyond.push(`${task} ${c.wins > c.losses ? 'win' : 'loss'}`);
+      if (c.p_holm >= 0.01) narrow.push(task);
+    }
+  }
+  if (!parts.length) return '';
+  const verdict = beyond.length === 0
+    ? (parts.length > 1 ? 'Neither difference is more than luck.' : 'That is within what luck produces.')
+    : `More than luck: the ${beyond.join(' and the ')}${narrow.length ? ', narrowly' : ''}.`;
+  return `Against ${what}, the order in use was better on ${parts.join(' and ')}. ${verdict}`;
 }
 
 // The order in use against each alternative, dataset by dataset.
@@ -123,7 +177,7 @@ function comparisonTable(ranking) {
       ${tasks.map(t => { const c = ranking.tasks[t].against_chosen[key];
         if (!c) return '<td>—</td>';
         return `<td>better on ${c.wins}, worse on ${c.losses}${c.ties ? `, tied on ${c.ties}` : ''}
-          <span class="ev-sub">p = ${formatP(c.p_holm)}, ${luckWords(c)}</span></td>`;
+          <span class="ev-sub">p = ${formatP(c.p_holm)}, ${luckWords(c)}</span>${subsetNote(c.units, ranking.tasks[t])}</td>`;
       }).join('')}
     </tr>`).join('')}</tbody>
   </table>`;
@@ -364,13 +418,20 @@ export function buildEvidence(T) {
       nothing to the weights that rank it, so this is what the ranking does on data it has not seen.</p>
     ${rankingTable(ev.ranking)}
     <p class="sect-note" style="margin-top:14px">A median over a few dozen datasets moves when a few datasets change, so
-      the order in use is also compared, dataset by dataset, with the two things it claims to beat: counting coordinates and
-      always using boosting (Wilcoxon signed-rank test, Holm-corrected for making two comparisons). Datasets generated from
+      the order in use is also compared, dataset by dataset, with the two things it claims to beat, counting coordinates and
+      always using default boosting, and with references it makes no claim to beat: boosting that was tuned, and TabPFN
+      where it was run (Wilcoxon signed-rank test, Holm-corrected for the number of comparisons). Datasets generated from
       one function, like PMLB's Friedman and Strogatz families, are held out together and counted once: sisters share a
       winner, and counting each would claim more certainty than the data holds.
-      ${esc(boostingVerdict(ev.ranking))}</p>
+      ${esc([boostingVerdict(ev.ranking), referenceVerdict(ev.ranking, 'tuned', 'tuned boosting'),
+        referenceVerdict(ev.ranking, 'tabpfn', 'TabPFN')].filter(Boolean).join(' '))}</p>
     ${comparisonTable(ev.ranking)}
-    <p class="sect-note" style="margin-top:14px">${esc(choiceNote(ev.ranking))}</p>` : ''}
+    <p class="sect-note" style="margin-top:14px">${esc(choiceNote(ev.ranking))}</p>
+    ${ceilingTable(ev.ranking) ? `<h3 class="ev-h">How far from the best of everything</h3>
+    <p class="sect-note">Regret above is measured against the best taxonomy model that ran. This measures against the best of
+      everything that ran, the tuned reference${Object.values(ev.ranking.tasks).some(e => e.ceiling?.tabpfn) ? ' and TabPFN' : ''}
+      included: how much a strategy leaves on the table. Tuned boosting uses ${esc(ev.tuning ?? 'a small search')}.</p>
+    ${ceilingTable(ev.ranking)}` : ''}` : ''}
 
     ${significanceSection(ev)}
     ${(() => { const metrics = Object.fromEntries(Object.entries(ev.headline ?? {}).map(([k, v]) => [k, v.metric]));

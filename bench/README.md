@@ -41,10 +41,12 @@ tests/           the agreement test and its awkward CSVs
 ## Datasets
 
 `dcn/datasets.py` pulls from PMLB (Penn Machine Learning Benchmarks): real
-datasets collected from UCI, OpenML and elsewhere, all in one shape. 229 of
-them are the right size to run here (128 classification, 101 regression,
-between 200 and 20,000 rows and at most 100 columns). The simulated GAMETES
-genetics datasets are excluded: the point is data somebody actually collected.
+datasets collected from UCI, OpenML and elsewhere, all in one shape. 234 of
+them are the right size to run here (between 200 and 20,000 rows and at most
+100 columns). Two kinds are left out: the 5 simulated GAMETES genetics
+datasets, because the point is data somebody actually collected, and the 33
+entries PMLB marks deprecated, which duplicate datasets already in the list.
+That leaves 196: 95 classification and 101 regression.
 
 PMLB stores categorical columns as integers, which would make every dataset
 look like a table of numbers and would quietly rig the modality axis. Each
@@ -154,8 +156,7 @@ winners went from 17 datasets to none. A correct pool, an arbitrary order.
 
 ## Next
 
-- rank by weights learned from these results instead of counting matched
-  coordinates, evaluated leave-one-dataset-out so a dataset never scores its
-  own recommendation
-- run the full 229 datasets rather than 40
-- publish the per-dataset table on the site next to each recommendation
+- run all 196 datasets rather than 40
+- say whether the learned order beats boosting by more than luck: confidence
+  intervals and a paired test, not only medians
+- let the order depend on the dataset, not only on each model's average

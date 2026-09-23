@@ -96,7 +96,7 @@ disagree with the run behind it.
 
 ### Not done yet
 
-- **The learned order is a per-model prior, not yet a per-dataset one.** Interactions between a dataset's measured features and a model's family were fitted and did not beat the plain prior on 20 datasets per task. Running all 229 datasets rather than 40 is what would let the order depend on your data rather than on averages.
+- **The learned order is a per-model prior, not yet a per-dataset one.** Interactions between a dataset's measured features and a model's family were fitted and did not beat the plain prior on 20 datasets per task. Running all 196 datasets rather than 40 is what would let the order depend on your data rather than on averages.
 - **Only classification and regression are benchmarked.** Forecasting, survival, grouping, anomalies, compression and generation still fall back to counting coordinates.
 - Image, audio, graph and spatial data cannot be detected from a CSV, so those models are reachable in the reference but never recommended from an upload.
 - Separability (A55/A56) and weak or self-supervised labelling (A13 to A15) are not measured yet.

@@ -146,7 +146,7 @@ export function buildEvidence(T) {
     ${rankingTable(ev.ranking)}
     <p class="sect-note" style="margin-top:14px">Interactions between a dataset's measured features and a model's family
       were fitted too, and did not beat the plain per-model order on ${ev.ranking.trained_on?.datasets ?? 40} datasets.
-      They stay switched off until the benchmark is large enough to support them, which is an argument for running all 229
+      They stay switched off until the benchmark is large enough to support them, which is an argument for running all 196
       datasets rather than 40.</p>` : ''}
 
     <h3 class="ev-h">Every model that ran</h3>

@@ -1,8 +1,9 @@
 """Turn a benchmark run into what the site shows.
 
 Writes site/taxonomy/evidence.json: the headline numbers, a line per model,
-and the per-dataset table. The page reads it like any other taxonomy file, so
-a recommendation can be shown next to what it was worth on real data.
+the per-dataset table, and what the drift benchmark measured. The page reads
+it like any other taxonomy file, so a recommendation can be shown next to
+what it was worth on real data.
 
 Everything here comes from results/, nothing is typed by hand.
 
@@ -193,6 +194,14 @@ def coverage(datasets: list[dict], names: list[str], scale: dict | None) -> dict
     return out
 
 
+def drift_evidence(path: Path) -> dict | None:
+    """What the drift benchmark (drift.py) measured, when it has been run."""
+    if not path.exists():
+        return None
+    from .drift import evidence as drift_block
+    return drift_block(pd.read_csv(path))
+
+
 def load_meta(path: Path) -> pd.DataFrame | None:
     return pd.read_csv(path) if path.exists() else None
 
@@ -285,6 +294,8 @@ def build(results_path: Path, run_label: str, ranked_by: str = "counting matched
         "seeds": seeds_evidence(raw, results_path.parent / "ranking-lodo.csv"),
         "models": model_lines(results, table),
         "datasets": datasets,
+        # The drift checkers, from their own benchmark (drift.py).
+        "drift": drift_evidence(results_path.parent / "drift.csv"),
     }
 
 

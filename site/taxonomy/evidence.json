@@ -11582,5 +11582,508 @@
    "boosting": 0.4787,
    "eligible": 17
   }
- ]
+ ],
+ "drift": {
+  "how": "Drift of a known kind was injected into real datasets from PMLB and every checker was asked whether it saw it: a reference window of 500 rows against a current window of 250, each dataset cut 5 ways at random.",
+  "datasets": [
+   "allbp",
+   "ann_thyroid",
+   "banana",
+   "churn",
+   "coil2000",
+   "magic",
+   "mfeat_fourier",
+   "page_blocks",
+   "pendigits",
+   "phoneme",
+   "ring",
+   "satimage",
+   "segmentation",
+   "spambase",
+   "texture",
+   "twonorm",
+   "waveform_21",
+   "wine_quality_white"
+  ],
+  "cases": 630,
+  "scenarios": {
+   "none": "nothing changes",
+   "shift": "one feature moves by 0.3 standard deviations",
+   "scale": "one feature's spread widens by half",
+   "correlation": "one feature's link to the others is broken, each feature unchanged on its own",
+   "selection": "rows are drawn more often the higher one feature is",
+   "label_shift": "the most common class is drawn half as often",
+   "concept": "features unchanged, but 30% of labels change in half the space"
+  },
+  "score": "net: the share of the six kinds of drift caught, on average, minus the false alarm rate",
+  "checkers": {
+   "DR-M13": {
+    "false_alarm": 0.067,
+    "caught": {
+     "shift": 0.956,
+     "scale": 0.889,
+     "correlation": 0.133,
+     "selection": 0.989,
+     "label_shift": 0.333,
+     "concept": 0.089
+    },
+    "caught_mean": 0.565,
+    "net": 0.498,
+    "net_ci": [
+     0.456,
+     0.537
+    ],
+    "seconds": 0.01,
+    "how": "scipy.stats.anderson_ksamp on each feature, Bonferroni at 0.05",
+    "sees": "features"
+   },
+   "DR-M3": {
+    "false_alarm": 0.011,
+    "caught": {
+     "shift": 0.7,
+     "scale": 0.889,
+     "correlation": 0.089,
+     "selection": 0.922,
+     "label_shift": 0.167,
+     "concept": 0.044
+    },
+    "caught_mean": 0.469,
+    "net": 0.457,
+    "net_ci": [
+     0.407,
+     0.502
+    ],
+    "seconds": 0.0219,
+    "how": "counts in the PSI bins, scipy.stats.chi2_contingency, Bonferroni at 0.05",
+    "sees": "features"
+   },
+   "DR-M12": {
+    "false_alarm": 0.022,
+    "caught": {
+     "shift": 0.911,
+     "scale": 0.567,
+     "correlation": 0.067,
+     "selection": 0.978,
+     "label_shift": 0.222,
+     "concept": 0.033
+    },
+    "caught_mean": 0.463,
+    "net": 0.441,
+    "net_ci": [
+     0.383,
+     0.483
+    ],
+    "seconds": 0.02,
+    "how": "on each feature, Bonferroni at 0.05; ties handled, and p by permutation on features with few values (cvm_pvalue())",
+    "sees": "features"
+   },
+   "DR-M14": {
+    "false_alarm": 0.022,
+    "caught": {
+     "shift": 0.556,
+     "scale": 0.256,
+     "correlation": 0.333,
+     "selection": 0.989,
+     "label_shift": 0.378,
+     "concept": 0.067
+    },
+    "caught_mean": 0.43,
+    "net": 0.407,
+    "net_ci": [
+     0.343,
+     0.469
+    ],
+    "seconds": 0.122,
+    "how": "energy distance on standardised features, 200 permutations, 0.05",
+    "sees": "joint"
+   },
+   "DR-CV1": {
+    "false_alarm": 0.0,
+    "caught": {
+     "shift": 0.733,
+     "scale": 0.778,
+     "correlation": 0.756,
+     "selection": 0.167,
+     "label_shift": 0.0,
+     "concept": 0.0
+    },
+    "caught_mean": 0.406,
+    "net": 0.406,
+    "net_ci": [
+     0.318,
+     0.487
+    ],
+    "seconds": 1.1159,
+    "how": "gradient boosting, five-fold AUC, alarm above 0.6",
+    "sees": "joint"
+   },
+   "DR-M10": {
+    "false_alarm": 0.033,
+    "caught": {
+     "shift": 0.489,
+     "scale": 0.256,
+     "correlation": 0.389,
+     "selection": 0.967,
+     "label_shift": 0.356,
+     "concept": 0.056
+    },
+    "caught_mean": 0.419,
+    "net": 0.385,
+    "net_ci": [
+     0.319,
+     0.456
+    ],
+    "seconds": 0.1355,
+    "how": "RBF kernel on standardised features, median-distance bandwidth, 200 permutations, 0.05",
+    "sees": "joint"
+   },
+   "DR-M7": {
+    "false_alarm": 0.0,
+    "caught": {
+     "shift": 0.856,
+     "scale": 0.111,
+     "correlation": 0.067,
+     "selection": 0.989,
+     "label_shift": 0.233,
+     "concept": 0.044
+    },
+    "caught_mean": 0.383,
+    "net": 0.383,
+    "net_ci": [
+     0.346,
+     0.428
+    ],
+    "seconds": 0.0176,
+    "how": "scipy.stats.f_oneway on each feature, Bonferroni at 0.05",
+    "sees": "features"
+   },
+   "DR-M6": {
+    "false_alarm": 0.022,
+    "caught": {
+     "shift": 0.567,
+     "scale": 0.744,
+     "correlation": 0.044,
+     "selection": 0.867,
+     "label_shift": 0.167,
+     "concept": 0.033
+    },
+    "caught_mean": 0.404,
+    "net": 0.381,
+    "net_ci": [
+     0.289,
+     0.465
+    ],
+    "seconds": 0.0647,
+    "how": "in reference standard deviations, largest over features; the card sets thresholds in each feature's own units, which cannot be done for many datasets at once, so it is calibrated like DR-M4",
+    "sees": "features"
+   },
+   "DR-M1": {
+    "false_alarm": 0.067,
+    "caught": {
+     "shift": 0.844,
+     "scale": 0.622,
+     "correlation": 0.033,
+     "selection": 0.956,
+     "label_shift": 0.167,
+     "concept": 0.011
+    },
+    "caught_mean": 0.439,
+    "net": 0.372,
+    "net_ci": [
+     0.311,
+     0.43
+    ],
+    "seconds": 0.0186,
+    "how": "scipy.stats.ks_2samp on each feature, Bonferroni at 0.05",
+    "sees": "features"
+   },
+   "DR-M4": {
+    "false_alarm": 0.022,
+    "caught": {
+     "shift": 0.556,
+     "scale": 0.7,
+     "correlation": 0.022,
+     "selection": 0.767,
+     "label_shift": 0.033,
+     "concept": 0.011
+    },
+    "caught_mean": 0.348,
+    "net": 0.326,
+    "net_ci": [
+     0.267,
+     0.381
+    ],
+    "seconds": 0.1187,
+    "how": "PSI bins, KL(reference || current), largest over features; the card says to calibrate the threshold on a stable period, so it is the 95th percentile of the same number between random parts of the reference",
+    "sees": "features"
+   },
+   "DR-MV1": {
+    "false_alarm": 0.244,
+    "caught": {
+     "shift": 0.956,
+     "scale": 0.533,
+     "correlation": 0.178,
+     "selection": 0.956,
+     "label_shift": 0.433,
+     "concept": 0.178
+    },
+    "caught_mean": 0.539,
+    "net": 0.294,
+    "net_ci": [
+     0.209,
+     0.376
+    ],
+    "seconds": 0.0009,
+    "how": "the distance between window means under the reference covariance, as a chi-square with one degree per feature, 0.05",
+    "sees": "joint"
+   },
+   "DR-M2": {
+    "false_alarm": 0.0,
+    "caught": {
+     "shift": 0.5,
+     "scale": 0.611,
+     "correlation": 0.0,
+     "selection": 0.633,
+     "label_shift": 0.0,
+     "concept": 0.0
+    },
+    "caught_mean": 0.291,
+    "net": 0.291,
+    "net_ci": [
+     0.243,
+     0.337
+    ],
+    "seconds": 0.0062,
+    "how": "deciles of the reference (or its values, when it has few), alarm above 0.25 on any feature",
+    "sees": "features"
+   },
+   "DR-M8": {
+    "false_alarm": 0.256,
+    "caught": {
+     "shift": 0.411,
+     "scale": 0.322,
+     "correlation": 0.544,
+     "selection": 0.244,
+     "label_shift": 0.4,
+     "concept": 0.944
+    },
+    "caught_mean": 0.478,
+    "net": 0.222,
+    "net_ci": [
+     0.12,
+     0.317
+    ],
+    "seconds": 0.0001,
+    "how": "gradient boosting's error rate on the current window, alarm at 20% above the reference window's",
+    "sees": "errors"
+   },
+   "DR-C2": {
+    "false_alarm": 0.411,
+    "caught": {
+     "shift": 0.378,
+     "scale": 0.367,
+     "correlation": 0.567,
+     "selection": 0.411,
+     "label_shift": 0.511,
+     "concept": 0.978
+    },
+    "caught_mean": 0.535,
+    "net": 0.124,
+    "net_ci": [
+     0.056,
+     0.187
+    ],
+    "seconds": 0.0003,
+    "how": "river EDDM, defaults, on the error stream",
+    "sees": "errors"
+   },
+   "DR-C1": {
+    "false_alarm": 0.156,
+    "caught": {
+     "shift": 0.167,
+     "scale": 0.111,
+     "correlation": 0.322,
+     "selection": 0.078,
+     "label_shift": 0.133,
+     "concept": 0.811
+    },
+    "caught_mean": 0.27,
+    "net": 0.115,
+    "net_ci": [
+     0.052,
+     0.172
+    ],
+    "seconds": 0.0008,
+    "how": "river DDM, defaults, on the error stream",
+    "sees": "errors"
+   },
+   "DR-MV2": {
+    "false_alarm": 0.156,
+    "caught": {
+     "shift": 0.067,
+     "scale": 0.333,
+     "correlation": 0.556,
+     "selection": 0.244,
+     "label_shift": 0.178,
+     "concept": 0.089
+    },
+    "caught_mean": 0.244,
+    "net": 0.089,
+    "net_ci": [
+     -0.002,
+     0.181
+    ],
+    "seconds": 0.003,
+    "how": "PCA keeping 90% of the variance, fitted on half the reference and calibrated on the other half's 95th percentile; one-sided binomial test at 0.05",
+    "sees": "joint"
+   },
+   "DR-C4": {
+    "false_alarm": 0.0,
+    "caught": {
+     "shift": 0.0,
+     "scale": 0.0,
+     "correlation": 0.078,
+     "selection": 0.0,
+     "label_shift": 0.0,
+     "concept": 0.4
+    },
+    "caught_mean": 0.08,
+    "net": 0.08,
+    "net_ci": [
+     0.048,
+     0.113
+    ],
+    "seconds": 0.0003,
+    "how": "river ADWIN, defaults, on the error stream",
+    "sees": "errors"
+   },
+   "DR-C6": {
+    "false_alarm": 0.0,
+    "caught": {
+     "shift": 0.0,
+     "scale": 0.011,
+     "correlation": 0.078,
+     "selection": 0.0,
+     "label_shift": 0.011,
+     "concept": 0.378
+    },
+    "caught_mean": 0.08,
+    "net": 0.08,
+    "net_ci": [
+     0.057,
+     0.106
+    ],
+    "seconds": 0.0173,
+    "how": "river HDDM_A, defaults, on the error stream",
+    "sees": "errors"
+   },
+   "DR-M5": {
+    "false_alarm": 0.0,
+    "caught": {
+     "shift": 0.167,
+     "scale": 0.133,
+     "correlation": 0.0,
+     "selection": 0.033,
+     "label_shift": 0.0,
+     "concept": 0.0
+    },
+    "caught_mean": 0.056,
+    "net": 0.056,
+    "net_ci": [
+     0.028,
+     0.087
+    ],
+    "seconds": 0.0071,
+    "how": "PSI bins, the divergence in base 2 (scipy returns its square root), alarm above 0.1 on any feature",
+    "sees": "features"
+   },
+   "DR-C9": {
+    "false_alarm": 0.0,
+    "caught": {
+     "shift": 0.0,
+     "scale": 0.011,
+     "correlation": 0.067,
+     "selection": 0.0,
+     "label_shift": 0.0,
+     "concept": 0.122
+    },
+    "caught_mean": 0.033,
+    "net": 0.033,
+    "net_ci": [
+     0.013,
+     0.057
+    ],
+    "seconds": 0.0005,
+    "how": "river FHDDM, defaults, on the stream of correct predictions (see streaming())",
+    "sees": "errors"
+   },
+   "DR-C7": {
+    "false_alarm": 0.022,
+    "caught": {
+     "shift": 0.022,
+     "scale": 0.022,
+     "correlation": 0.067,
+     "selection": 0.0,
+     "label_shift": 0.011,
+     "concept": 0.089
+    },
+    "caught_mean": 0.035,
+    "net": 0.013,
+    "net_ci": [
+     -0.013,
+     0.039
+    ],
+    "seconds": 0.0077,
+    "how": "river HDDM_W, defaults, on the error stream",
+    "sees": "errors"
+   },
+   "DR-C3": {
+    "false_alarm": 0.0,
+    "caught": {
+     "shift": 0.0,
+     "scale": 0.0,
+     "correlation": 0.056,
+     "selection": 0.0,
+     "label_shift": 0.0,
+     "concept": 0.0
+    },
+    "caught_mean": 0.009,
+    "net": 0.009,
+    "net_ci": [
+     0.0,
+     0.028
+    ],
+    "seconds": 0.0006,
+    "how": "river PageHinkley, defaults, on the error stream",
+    "sees": "errors"
+   },
+   "DR-C5": {
+    "false_alarm": 0.0,
+    "caught": {
+     "shift": 0.0,
+     "scale": 0.0,
+     "correlation": 0.022,
+     "selection": 0.0,
+     "label_shift": 0.0,
+     "concept": 0.022
+    },
+    "caught_mean": 0.007,
+    "net": 0.007,
+    "net_ci": [
+     0.0,
+     0.017
+    ],
+    "seconds": 0.4272,
+    "how": "river KSWIN, defaults (seed 0), on the error stream",
+    "sees": "errors"
+   }
+  },
+  "not_measured": {
+   "DR-M9": "not a checker on its own: every test above turns its statistic into a p-value, corrected for the number of features as this card says it must be",
+   "DR-M11": "no implementation among the benchmark's dependencies (Alibi Detect has one)",
+   "DR-C8": "river, which supplies the other streaming detectors, does not ship it",
+   "DR-DL1": "made for images and audio (A35, A36), and needs a network trained per window; the benchmark is tables",
+   "DR-DL2": "made for images and audio (A35, A36), and needs a network trained per window; the benchmark is tables"
+  }
+ }
 }

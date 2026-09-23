@@ -3,8 +3,8 @@
 
 import { esc } from './html.js';
 import { matchCodes } from './profile.js';
-import { paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
-import { evidenceFor, evidenceSentence } from './evidence.js';
+import { driftUnmeasured, paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
+import { driftSentence, evidenceFor, evidenceSentence } from './evidence.js';
 import { rankingProvenance } from './ranking.js';
 import { coverageNotes, metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
 import { MODEL_CODE, columnRoles, downloadScript, pythonScript, scriptable } from './export.js';
@@ -14,6 +14,9 @@ import { PYODIDE_VERSION, verdict, verifyInBrowser } from './verify.js';
 // letting the order on the page look like a verdict.
 function tieNote(result, noun = 'models') {
   if (result.tied <= 1) return '';
+  if (result.rankedBy === 'evidence') {
+    return ` The top ${result.tied} scored the same on the benchmark, so the order between them is arbitrary.`;
+  }
   if (result.tied > result.items.length) {
     return ` ${result.tied} ${noun} match the data equally well, so the order below is arbitrary: the coordinates can't separate them.`;
   }
@@ -111,7 +114,11 @@ export function renderResults(T, sig, task, profile, source = null) {
   const driftMsg = sig.drift
     ? `Worst shift between the first and second half of your file: PSI ${sig.drift.psi.toFixed(2)} on ${sig.drift.column}${sig.drift.scope === 'target' ? ' (the target itself)' : ''}, ${sig.drift.psi > 0.25 ? 'above' : 'below'} the 0.25 cutoff in DR-M2.`
     : 'Drift across the file could not be measured: too few rows, or no column steady enough to compare. These are matched on modality and scale only.';
-  document.getElementById('drift-note').textContent = driftMsg + tieNote(drifts, 'drift checkers');
+  const driftOrder = drifts.rankedBy === 'evidence'
+    ? ' Ordered by what the drift benchmark measured: the share of injected drift each checker caught, minus how often it fired when nothing had changed.'
+    : '';
+  document.getElementById('drift-note').textContent = driftMsg + driftOrder + tieNote(drifts, 'drift checkers');
+  const driftDatasets = T.EVIDENCE?.drift?.datasets?.length ?? 0;
 
   document.getElementById('drifts').innerHTML = drifts.items.map(d => `
     <article class="rec">
@@ -123,6 +130,8 @@ export function renderResults(T, sig, task, profile, source = null) {
         <p class="rec-body">${esc(d.mech)}</p>
         <p class="rec-body"><span style="color:var(--sage)">Threshold.</span> ${esc(d.thr)}</p>
         <p class="rec-body warn">${esc(d.fail)}</p>
+        ${d.measure ? `<p class="rec-body evidence">Measured. ${esc(driftSentence(d.measure, driftDatasets))}</p>`
+          : driftUnmeasured(T, d.c) ? `<p class="rec-body evidence">Not measured: ${esc(driftUnmeasured(T, d.c))}.</p>` : ''}
         <div class="mathline">math:
           ${d.math.map(x => chip(x, 'math')).join('')}
         </div>

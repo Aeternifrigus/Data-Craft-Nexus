@@ -4,6 +4,9 @@ pytest>=8
 numpy>=1.26
 pandas>=2.1
 scikit-learn>=1.4
+scipy>=1.11
+# The streaming drift detectors (dcn/drift.py).
+river==0.26.1   # its detectors run at their defaults, which are part of what is measured
 
 # Optional, added to the field of models when present.
 lightgbm>=4.0

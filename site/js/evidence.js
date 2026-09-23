@@ -26,6 +26,80 @@ export function evidenceSentence(entry) {
   return `On ${datasets} ${task} datasets it ${beaten}, and typically landed ${num(regret)} below the best model that ran.`;
 }
 
+// The drift benchmark's scenarios, as a reader would say them.
+export const DRIFT_SCENARIOS = {
+  shift: 'a shifted feature',
+  scale: 'a wider spread',
+  correlation: 'a broken correlation',
+  selection: 'a change in who is sampled',
+  label_shift: 'a change in class mix',
+  concept: 'labels that mean something else',
+};
+
+// Column headings for the table, where the sentences above do not fit.
+const DRIFT_SHORT = {
+  shift: 'shift', scale: 'spread', correlation: 'correlation', selection: 'sampling',
+  label_shift: 'class mix', concept: 'label meaning',
+};
+
+const DRIFT_SEES = {
+  features: 'each feature on its own',
+  joint: 'all the features together',
+  errors: "the model's errors, so it needs labels",
+};
+
+const listWords = (items) => items.length < 2 ? items.join('')
+  : `${items.slice(0, -1).join(', ')} or ${items[items.length - 1]}`;
+
+// Kinds of drift a checker caught no more often than it fired on nothing.
+export function driftBlindSpots(measure, margin = 0.05) {
+  return Object.keys(DRIFT_SCENARIOS).filter(s => (measure.caught[s] ?? 0) <= measure.false_alarm + margin);
+}
+
+// One sentence for a drift checker's card.
+export function driftSentence(measure, datasets) {
+  if (!measure) return '';
+  const blind = driftBlindSpots(measure).map(s => DRIFT_SCENARIOS[s]);
+  return `On ${datasets} datasets it caught ${pct(measure.caught_mean)} of the injected drift, and fired on `
+    + `${pct(measure.false_alarm)} of the windows where nothing had changed.`
+    + (blind.length === Object.keys(DRIFT_SCENARIOS).length ? ' It caught no kind of drift more often than it fired on nothing.'
+      : blind.length ? ` It caught ${listWords(blind)} no more often than it fired on nothing.` : '');
+}
+
+function driftTable(drift, names) {
+  const scenarios = Object.keys(DRIFT_SCENARIOS);
+  return `<table class="ev-table">
+    <thead><tr><th>checker</th><th>false alarms</th>${scenarios.map(s =>
+      `<th title="${esc(DRIFT_SCENARIOS[s])}">${esc(DRIFT_SHORT[s])}</th>`).join('')}<th>net<span class="ev-sub">95% interval</span></th></tr></thead>
+    <tbody>${Object.entries(drift.checkers).map(([code, m]) => `<tr>
+      <td><span class="rec-code" data-drift="${esc(code)}">${esc(code)}</span> ${esc(names[code] ?? code)}
+        <span class="ev-sub">sees ${esc(DRIFT_SEES[m.sees] ?? m.sees)}</span></td>
+      <td>${pct(m.false_alarm)}</td>
+      ${scenarios.map(s => `<td>${pct(m.caught[s])}</td>`).join('')}
+      <td>${num(m.net, 2)}<span class="ev-sub">${num(m.net_ci[0], 2)} to ${num(m.net_ci[1], 2)}</span></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function driftSection(T) {
+  const drift = T.EVIDENCE?.drift;
+  if (!drift?.checkers) return '';
+  const names = Object.fromEntries(T.DRIFTS.map(d => [d.c, d.n]));
+  return `<h3 class="ev-h">How the drift checkers did</h3>
+    <p class="sect-note">${esc(drift.how)} ${drift.datasets.length} datasets, ${drift.cases.toLocaleString()} cases.
+      The six kinds of drift, each at one strength: ${esc(Object.keys(DRIFT_SCENARIOS).map(s =>
+        `${DRIFT_SHORT[s]}, ${drift.scenarios[s]}`).join('; '))}.
+      Each column is the share of cases in which the checker fired; under “false alarms”, nothing had changed. The net score
+      is the share of the six kinds of drift caught, on average, minus the false alarm rate, and it is what the site orders
+      drift checkers by. Every checker ran as its card says, at the threshold the card states; where a card leaves the
+      threshold open, it was calibrated on the reference window itself. The streaming detectors ran at river's defaults,
+      which is how most people meet them.</p>
+    ${driftTable(drift, names)}
+    <p class="sect-note" style="margin-top:14px">Not measured:</p>
+    <ul class="ruled">${Object.entries(drift.not_measured).map(([code, why]) =>
+      `<li><span class="rec-code" data-drift="${esc(code)}">${esc(code)}</span> ${esc(names[code] ?? code)}: ${esc(why)}</li>`).join('')}</ul>`;
+}
+
 function headlineTable(headline) {
   const tasks = Object.keys(headline);
   const rows = [
@@ -441,6 +515,8 @@ export function buildEvidence(T) {
     ${(() => { const metrics = Object.fromEntries(Object.entries(ev.headline ?? {}).map(([k, v]) => [k, v.metric]));
       const note = seedsNote(ev.seeds, metrics);
       return note ? `<h3 class="ev-h">How much is the luck of the split</h3><p class="sect-note">${esc(note)}</p>` : ''; })()}
+
+    ${driftSection(T)}
 
     <h3 class="ev-h">Every model that ran</h3>
     <p class="sect-note">“Was best” counts datasets where this model scored highest of all that ran.

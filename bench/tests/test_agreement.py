@@ -120,7 +120,10 @@ def test_parsing_and_profile_match_javascript(path: Path, js_results):
             assert models.tied == expected["tied"], (key, run_key)
             assert models.candidates == expected["candidates"], (key, run_key)
             assert [f"{m['c']}:{m['why']}" for m in models.ruled_out] == expected["ruledOut"], (key, run_key)
-            assert [d["c"] for d in rank_drifts(TAXONOMY, sig).items] == expected["drifts"], (key, run_key)
+            drifts = rank_drifts(TAXONOMY, sig)
+            got = [d["c"] + ("" if d["evidence_score"] is None else f"@{d['evidence_score']:.3f}") for d in drifts.items]
+            assert got == expected["drifts"]["items"], (key, run_key)
+            assert drifts.tied == expected["drifts"]["tied"], (key, run_key)
             assert [f"{p['c']}:{p['score']}" for p in rank_pipelines(TAXONOMY, sig, task).items] == expected["pipelines"], (key, run_key)
 
 

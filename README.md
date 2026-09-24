@@ -2,7 +2,7 @@
 
 **Most tabular ML advice fits in one line: tune gradient boosting.** The 195-dataset benchmark behind this site agrees. Data Craft Nexus is for the three things that line leaves out, answered from your own CSV, in your browser, with nothing uploaded:
 
-1. **Is my file the kind of table that advice is for?** It measures column types, size, missing and junk values and drift, asks what a file cannot say (the target, whether row order matters), and rules out what cannot work, with the reason: a text model has nothing to read in a table of numbers, a supervised model has nothing to learn from without labels. Ordered rows get a warning to split by time.
+1. **Is my file the kind of table that advice is for?** It measures column types, size, missing and junk values and drift, asks what a file cannot say (the target, whether row order matters), and rules out what cannot work, with the reason: a text model has nothing to read in a table of numbers, a supervised model has nothing to learn from without labels. Ordered rows get a warning to split by time. And before any score, it checks for what makes every score lie: a column that gives the answer away, an ID column a model can memorise, copied rows on both sides of a split, and dates split at random.
 2. **Does the advice hold on my data?** Tuned boosting comes first, then a shortlist, each model with its benchmark record. A generated Python script runs them against each other on your whole file with the benchmark's cross-validation, or runs right in the page.
 3. **How will I know when the model stops working?** Drift detectors are filtered by how your data arrives and whether the true answers come back, then ranked by what they caught in a drift benchmark of their own.
 
@@ -43,8 +43,9 @@ The live page carries the commit it was built from in a meta tag (`dcn-build`), 
 1. **Drop a CSV**: modality, scale, quality and drift are measured automatically
 2. **Declare your intent**: what to predict, what kind of answer, whether order matters
 3. **Read the specimen**: get the full six-axis signature
-4. **Prescriptions**: models, drift checkers, and pipelines that fit, and what your data rules out
-5. **Take it with you**: the shortlist as a Python script for your whole file, run here in the browser, or the whole reading saved as a Markdown file
+4. **Before you trust a score**: one column that predicts the target almost perfectly on its own, ID-like columns, more repeated rows than chance, and dates with rows declared independent. None of these is fixed by choosing a better model
+5. **Prescriptions**: models, drift checkers, and pipelines that fit, and what your data rules out
+6. **Take it with you**: the shortlist as a Python script for your whole file, run here in the browser, or the whole reading saved as a Markdown file
 
 ### What is measured, and what is asked
 

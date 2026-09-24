@@ -91,8 +91,9 @@ export function takeHomeTask(task, sig, profile, taskLabel = task) {
 // Which columns are which, exactly as the benchmark splits them
 // (bench/dcn/run.py profile_dataset): numeric where the profiler read numbers,
 // everything else categorical, the target in neither.
-export function columnRoles(profile, target) {
-  const features = profile.columns.filter(c => c.name !== target);
+// `leftOut` are columns the checks found should not be features (ID-like ones).
+export function columnRoles(profile, target, leftOut = []) {
+  const features = profile.columns.filter(c => c.name !== target && !leftOut.includes(c.name));
   return {
     numeric: features.filter(c => c.numeric).map(c => c.name),
     categorical: features.filter(c => !c.numeric).map(c => c.name),
@@ -100,7 +101,7 @@ export function columnRoles(profile, target) {
 }
 
 export function pythonScript({ fileName, read, columns, target, task, ordered, numeric, categorical, shortlist,
-  pageUrl = 'https://aeternifrigus.github.io/Data-Craft-Nexus/', date = new Date().toISOString().slice(0, 10) }) {
+  leftOut = [], pageUrl = 'https://aeternifrigus.github.io/Data-Craft-Nexus/', date = new Date().toISOString().slice(0, 10) }) {
   const bench = task === 'category' ? 'classification' : 'regression';
   const { run, skipped } = scriptable(shortlist, task);
   const key = task === 'category' ? 'cls' : 'reg';
@@ -108,6 +109,8 @@ export function pythonScript({ fileName, read, columns, target, task, ordered, n
     MODEL_CODE[c].needs ? py(MODEL_CODE[c].needs) : 'None'}, lambda: ${MODEL_CODE[c][key]}),`).join('\n');
   const skippedNote = skipped.length
     ? `\n# Recommended but not runnable on a table here: ${skipped.join(', ')}.` : '';
+  const leftOutNote = leftOut.length
+    ? `\n# Left out of the features: ${leftOut.join(', ')}. The page found a different value in almost every row,\n# like an ID, which a model can memorise and which says nothing about new rows.` : '';
 
   return `#!/usr/bin/env python3
 """Run the shortlist Data Craft Nexus recommended, on your own data.
@@ -164,7 +167,7 @@ TASK = ${py(bench)}
 ORDERED = ${pyBool(ordered)}   # you said row order matters: split by time, never shuffle
 NUMERIC = ${py(numeric)}
 CATEGORICAL = ${py(categorical)}
-SEED = 0${skippedNote}
+SEED = 0${skippedNote}${leftOutNote}
 
 
 def base_learners():

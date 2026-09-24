@@ -17,7 +17,7 @@ export function readingFileName(fileName = 'data.csv') {
 // The document. `models`, `drifts` and `pipelines` are what the ranking
 // functions returned; `notes` are the sentences the page showed above each list.
 export function readingMarkdown({ T, sig, task, fileName, date, build = null, lead = null, leadText = '',
-  models, drifts, pipelines, notes = {}, sentences = {} }) {
+  models, drifts, pipelines, notes = {}, sentences = {}, checks = null }) {
   const taskLabel = T.TASKS.find(t => t.id === task)?.label ?? task;
   const codes = [...sig.codes, ...sig.flags];
   const out = [];
@@ -27,6 +27,16 @@ export function readingMarkdown({ T, sig, task, fileName, date, build = null, le
     `${sig.rows?.toLocaleString?.('en-US') ?? sig.rows} rows, ${sig.features} feature columns. `
     + `Target: ${sig.target ? `\`${line(sig.target)}\`` : 'none'}. Predicting: ${line(taskLabel).toLowerCase()}. `
     + `Row order ${sig.codes[1] === 'A22' ? 'matters' : 'does not matter'}.`, '');
+
+  if (checks) {
+    out.push('## Before you trust a score', '');
+    if (checks.flags.length) {
+      for (const f of checks.flags) out.push(`- **${line(f.title)}.** ${line(f.text)} What to do: ${line(f.fix)}`);
+    } else {
+      out.push(`Nothing found: ${checks.clear.map(line).join(', ')}.`);
+    }
+    out.push('');
+  }
 
   out.push('## Signature', '', `\`${codes.join(' ')}\``, '', '| code | what it means |', '|---|---|');
   for (const code of codes) {

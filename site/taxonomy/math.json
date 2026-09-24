@@ -59,6 +59,10 @@
   "TS": {
    "name": "Time Series",
    "note": "Autocorrelation, differencing, smoothing"
+  },
+  "AD": {
+   "name": "Anomaly Detection",
+   "note": "Isolation, local density, distance to neighbours, robust covariance, and why width matters"
   }
  },
  "formulas": {
@@ -1548,6 +1552,246 @@
    "ref": {
     "label": "Hyndman and Athanasopoulos, Forecasting: Principles and Practice, 4.3",
     "url": "https://otexts.com/fpp3/stlfeatures.html"
+   }
+  },
+  "AD1": {
+   "name": "Isolation path length",
+   "f": "s(x) = 2^(−E[h(x)] / c(n)),  c(n) = 2H(n−1) − 2(n−1)/n,  H(i) ≈ ln i + 0.5772",
+   "domain": "AD",
+   "mech": "Grow random trees that split a random column at a random value until every point is alone. h(x) is how many splits it took to isolate x. c(n) is the average path length of an unsuccessful search in a binary search tree of n points, so it is what a typical point needs. A point that is few and different is cut off early: E[h(x)] is well below c(n) and s(x) approaches 1, while an ordinary point has E[h(x)] near c(n) and s(x) near 0.5.",
+   "fail": "Splits run along one column at a time, so an anomaly that breaks a relation between columns while every value is ordinary is isolated no sooner than a normal point.",
+   "intu": "Unusual points are the ones a few random cuts separate from everything else.",
+   "ref": {
+    "label": "scikit-learn Isolation Forest",
+    "url": "https://scikit-learn.org/stable/modules/outlier_detection.html#isolation-forest"
+   }
+  },
+  "AD2": {
+   "name": "Local Outlier Factor",
+   "f": "LOF_k(x) = (1/k) Σ_{o∈N_k(x)} lrd_k(o) / lrd_k(x),  lrd_k(x) = 1 / mean_{o∈N_k(x)} max(d_k(o), d(x, o))",
+   "domain": "AD",
+   "mech": "lrd is a local reachability density: the inverse of the average distance from x to its k neighbours, with each distance floored at the neighbour's own k-distance so that points inside a dense cluster are not over-counted. LOF compares the density around x with the density around its neighbours: about 1 inside a cluster of any density, well above 1 for a point sitting in a sparser region than the points next to it.",
+   "fail": "Everything rests on distances to neighbours, which concentrate as columns are added (AD6). k sets what counts as local, and a small cluster of anomalies with at least k members looks normal to it.",
+   "intu": "A point is unusual if its neighbours are much more crowded than it is.",
+   "ref": {
+    "label": "scikit-learn Local Outlier Factor",
+    "url": "https://scikit-learn.org/stable/modules/outlier_detection.html#local-outlier-factor"
+   }
+  },
+  "AD3": {
+   "name": "k-NN distance score",
+   "f": "s(x) = d(x, x_(k)),  and the k-NN density estimate p̂(x) = k / (n · V_d · s(x)^d)",
+   "domain": "AD",
+   "mech": "Score each point by the distance to its k-th nearest other point. Because the k-nearest-neighbour density estimate is k / (n V_d s(x)^d), with V_d the volume of the unit ball, ranking points by s(x) from largest to smallest is ranking them by estimated density from lowest to highest: the least dense points are called unusual.",
+   "fail": "A global threshold on density: a sparse but normal cluster ranks above a dense one. In wide tables every distance looks alike (AD6), and the ranking weakens.",
+   "intu": "The farther you have to walk to meet k other points, the stranger you are.",
+   "ref": {
+    "label": "scikit-learn nearest neighbours",
+    "url": "https://scikit-learn.org/stable/modules/neighbors.html"
+   }
+  },
+  "AD4": {
+   "name": "The ν-property of the one-class SVM",
+   "f": "fraction of training points outside the region ≤ ν ≤ fraction of support vectors (both → ν as n → ∞)",
+   "domain": "AD",
+   "mech": "The one-class SVM separates the data from the origin in the kernel's feature space with maximum margin, solving min ½‖w‖² + (1/(νn)) Σ ξ_i − ρ. Schölkopf and colleagues proved that ν bounds the share of training points it puts outside the region from above and the share of support vectors from below, and that both approach ν as the sample grows. So ν is, in effect, the share of the data the model is told to call unusual.",
+   "fail": "At scikit-learn's default of ν = 0.5 it treats half the data as outside its region, which only works when the ranking, not the cut, is what is read. The RBF kernel's width decides everything, and the default scales it by the number of columns.",
+   "intu": "Draw the tightest boundary that leaves out a chosen share ν of the data.",
+   "ref": {
+    "label": "scikit-learn One-Class SVM",
+    "url": "https://scikit-learn.org/stable/modules/svm.html#density-estimation-novelty-detection"
+   }
+  },
+  "AD5": {
+   "name": "Minimum Covariance Determinant",
+   "f": "(μ̂, Σ̂) = argmin over subsets H with |H| = h of det Σ_H;  s(x) = (x − μ̂)ᵀ Σ̂⁻¹ (x − μ̂)",
+   "domain": "AD",
+   "mech": "Fit the mean and covariance to the h points whose covariance has the smallest determinant, the most tightly packed subset, so anomalies cannot drag the fit toward themselves; up to (n − h)/n of the data, close to half, can be arbitrary without breaking it. The score is the Mahalanobis distance from that robust centre. If the normal data are Gaussian, the scores of normal points follow a chi-squared distribution with d degrees of freedom.",
+   "fail": "It assumes one elliptical cloud, needs comfortably more rows than columns (the benchmark asks for twice as many), and columns with few distinct values make the covariance singular.",
+   "intu": "Find the tightest half of the data, fit an ellipse to it, and measure everyone in units of that ellipse.",
+   "ref": {
+    "label": "scikit-learn robust covariance",
+    "url": "https://scikit-learn.org/stable/modules/covariance.html#robust-covariance-estimation"
+   }
+  },
+  "AD6": {
+   "name": "Concentration of distances",
+   "f": "if Var(‖X_d‖ / E‖X_d‖) → 0 as d → ∞, then (D_max − D_min) / D_min → 0 in probability",
+   "domain": "AD",
+   "mech": "Beyer and colleagues proved this for a query point and n data points: when the relative spread of distances vanishes as columns are added, the farthest point is barely farther than the nearest. With independent columns the squared distance is a sum of d terms, whose relative spread shrinks like 1/√d by the law of large numbers, so the condition holds. Detectors that rank points by the distances to their neighbours (LOF, k-NN, DBSCAN) then rank on noise; isolation by random one-column splits does not average over columns in the same way.",
+   "fail": "Real tables have correlated columns and a low intrinsic dimension, where concentration is much milder than in the independent case. That is why the benchmark treats width as a prediction to test, not a law to apply.",
+   "intu": "In many dimensions, everyone is about equally far from everyone else.",
+   "ref": {
+    "label": "Beyer et al. (1999), When is nearest neighbor meaningful?",
+    "url": "https://doi.org/10.1007/3-540-49257-7_15"
+   }
+  },
+  "TS10": {
+   "name": "Which point forecast a score rewards",
+   "f": "argmin_c E[(Y − c)²] = E[Y | past],  argmin_c E|Y − c| = median(Y | past)",
+   "domain": "TS",
+   "mech": "Differentiate. d/dc E[(Y − c)²] = −2(E[Y] − c), zero at the mean. d/dc E|Y − c| = P(Y < c) − P(Y > c), zero at the median. So squared error (and R², its scaled form) rewards forecasting the conditional mean, and absolute error rewards the conditional median. On intermittent demand with more than half the periods empty, the median is 0: under absolute error, forecasting nothing is optimal, whatever a forecaster knows about the rate.",
+   "fail": "Neither is the right score in general; the right one is what a miss costs you. The page reads the order for the score you said matters.",
+   "intu": "Squared error wants the average outcome, absolute error wants the typical one.",
+   "ref": {
+    "label": "Hyndman and Athanasopoulos, Forecasting: Principles and Practice",
+    "url": "https://otexts.com/fpp3/"
+   }
+  },
+  "TS11": {
+   "name": "The random walk and the last value",
+   "f": "y_t = y_{t−1} + ε_t with E[ε_t | past] = 0  ⇒  E[y_{t+1} | y_1, …, y_t] = y_t",
+   "domain": "TS",
+   "mech": "Take the conditional expectation of y_{t+1} = y_t + ε_{t+1}: the shock has mean zero given the past, so the best forecast under squared error is the last value. No model can beat carrying the last value forward on average, only match it. A random walk has a slowly wandering level, which a trend-strength measure reads as trend, so the series the page calls trending include many random walks: on a third of them in the benchmark, doing nothing beat every forecaster.",
+   "fail": "With a drift μ the best forecast is y_t + μ; with any mean reversion or season it is no longer the last value.",
+   "intu": "If tomorrow is today plus unpredictable noise, today is the best guess for tomorrow.",
+   "ref": {
+    "label": "Hyndman and Athanasopoulos, Forecasting: Principles and Practice",
+    "url": "https://otexts.com/fpp3/"
+   }
+  },
+  "TS12": {
+   "name": "Exponential smoothing is optimal for a noisy level",
+   "f": "y_t = y_{t−1} + ε_t − θ ε_{t−1}  ⇒  ŷ_{t+1} = (1 − θ) Σ_{j≥0} θ^j y_{t−j}   (smoothing with α = 1 − θ)",
+   "domain": "TS",
+   "mech": "Muth (1960): write the model for the differences, y_t − y_{t−1} = ε_t − θ ε_{t−1}, and invert it: ε_t = Σ_j θ^j (y_{t−j} − y_{t−j−1}). The optimal forecast y_t − θ ε_t then collapses, term by term, into an exponentially weighted average of past values with weights (1 − θ) θ^j. So simple exponential smoothing is the best forecast under squared error for a level that wanders with noise on top (an ARIMA(0,1,1)); adding a trend or a season extends the same argument.",
+   "fail": "Only optimal for that model: it cannot anticipate a turning point, and on intermittent demand it jumps after every sale and decays through every gap.",
+   "intu": "When the level wanders and each reading is noisy, weight recent readings more, and let old ones fade geometrically.",
+   "ref": {
+    "label": "Muth (1960), Optimal properties of exponentially weighted forecasts",
+    "url": "https://doi.org/10.1080/01621459.1960.10482064"
+   }
+  },
+  "TS13": {
+   "name": "Croston's bias, and the SBA correction",
+   "f": "E[ẑ/p̂] ≈ (μ/p) · (1 + α/(2 − α) · (p − 1)/p)  →  (μ/p) / (1 − α/2) as p grows",
+   "domain": "TS",
+   "mech": "Demand of mean size μ arrives on average every p periods, so the true rate is μ/p. Croston forecasts ẑ/p̂, and 1/p̂ is convex, so by Jensen's inequality E[1/p̂] > 1/E[p̂]. A second-order Taylor expansion gives E[1/p̂] ≈ 1/p + Var(p̂)/p³, and exponential smoothing of geometric intervals (variance p(p − 1)) gives Var(p̂) = α/(2 − α) · p(p − 1). Multiplying by μ gives the bias above. For long intervals the factor tends to 2/(2 − α) = 1/(1 − α/2), so multiplying the forecast by (1 − α/2) removes it: Syntetos and Boylan's correction.",
+   "fail": "A second-order approximation that assumes sizes and intervals are independent; for small p the correction slightly over-corrects.",
+   "intu": "Dividing by an estimate of the interval inflates the forecast, because small interval estimates count for more than large ones; shrink it by 1 − α/2.",
+   "ref": {
+    "label": "Syntetos and Boylan (2005)",
+    "url": "https://eprints.lancs.ac.uk/id/eprint/73097/"
+   }
+  },
+  "PS22": {
+   "name": "What a one-column test cannot see",
+   "f": "P_ref(x_j) = P_cur(x_j) for every column j  ⇒  every test that reads one column at a time rejects with probability α",
+   "domain": "PS",
+   "mech": "A test of one column has a statistic whose distribution depends only on that column's distribution in the two windows. If the change leaves every column's distribution as it was (a broken correlation, a rotation), each statistic keeps exactly its no-change distribution, so each test fires at its false-alarm rate α and no more. This is why, in the drift benchmark, the tests that check one column at a time caught at most 13% of broken correlations, near their false-alarm rates.",
+   "fail": "Correcting for many columns does not help: every one of them is blind to the change.",
+   "intu": "If every column looks the same on its own, a check that looks at columns on their own sees nothing.",
+   "ref": {
+    "label": "SciPy two-sample Kolmogorov-Smirnov test",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html"
+   }
+  },
+  "PS23": {
+   "name": "A classifier as a two-sample test",
+   "f": "P = Q  ⇒  E[AUC] = 1/2;   best accuracy telling P from Q = 1/2 + TV(P, Q)/2",
+   "domain": "PS",
+   "mech": "Label each row by its window and train a classifier. If the windows come from the same distribution, the label is independent of the row, so any score s(x) is too, and P(s(x_cur) > s(x_ref)) = 1/2: the AUC sits at chance. If they differ, the best possible classifier is right with probability 1/2 + TV/2, where TV is the total variation distance between the two joint distributions, positive for any change at all, including one that keeps every column's distribution. That is adversarial validation, and why it caught 76% of broken correlations in the drift benchmark.",
+   "fail": "The classifier has to be flexible enough to find the difference, and it needs a held-out split to be judged on, or it flatters itself.",
+   "intu": "If a model can tell which window a row came from, the windows differ.",
+   "ref": {
+    "label": "Lopez-Paz and Oquab (2017), Revisiting classifier two-sample tests",
+    "url": "https://arxiv.org/abs/1610.06545"
+   }
+  },
+  "PS24": {
+   "name": "Changed labels behind unchanged inputs",
+   "f": "P_cur(x) = P_ref(x) and P_cur(y | x) ≠ P_ref(y | x)  ⇒  any detector that reads only x fires with probability α",
+   "domain": "PS",
+   "mech": "Concept drift can leave the inputs exactly as they were and change only what they mean. Everything a detector computes from the inputs then has its no-change distribution, so it fires at its false-alarm rate. Only a detector that sees the model's errors, which needs the true labels, can notice; that is why only the error-based detectors saw labels change meaning in the drift benchmark.",
+   "fail": "Error-based detectors need labels, and fire on ordinary noise in the error rate more often than input tests do.",
+   "intu": "If the questions stay the same and only the right answers change, you have to check the answers.",
+   "ref": {
+    "label": "river DDM, an error-based drift detector",
+    "url": "https://riverml.xyz/latest/api/drift/binary/DDM/"
+   }
+  },
+  "IT8": {
+   "name": "PSI on a window with no drift",
+   "f": "E[PSI | no drift] ≈ (B − 1)(1/n + 1/m)   for B bins and windows of n and m rows",
+   "domain": "IT",
+   "mech": "PSI = Σ (q_i − p_i) ln(q_i/p_i) is the symmetric Kullback-Leibler divergence between two binned distributions. For small differences ln(q/p) ≈ (q − p)/p, so PSI ≈ Σ (q_i − p_i)²/p_i. With no drift, each estimated share has variance about p_i(1 − p_i)/n in one window and p_i(1 − p_i)/m in the other, so E[PSI] ≈ Σ (1 − p_i)(1/n + 1/m) = (B − 1)(1/n + 1/m). With 10 bins and the drift benchmark's windows of 500 and 250 rows that is 0.054, far below the usual 0.25 cut-off, which is why PSI above 0.25 never fired on a quiet window. With two windows of 30 rows it is 0.6: a fixed cut-off fires on almost every small window.",
+   "fail": "An approximation for small differences and reasonably full bins; an empty bin makes PSI undefined without a floor, and the floor then dominates.",
+   "intu": "PSI is never zero even when nothing changed, and how far from zero it sits depends on how few rows you compared.",
+   "ref": {
+    "label": "SciPy chi-squared distribution",
+    "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2.html"
+   }
+  },
+  "PS25": {
+   "name": "No free lunch",
+   "f": "Σ_f E[off-training error | f, A] = Σ_f E[off-training error | f, B]   for any two learners A and B",
+   "domain": "PS",
+   "mech": "Wolpert (1996): averaged uniformly over every possible target function, every learning algorithm has the same expected error on points it did not train on. One learner can beat another only on the functions that actually occur. So no argument from mathematics alone can say which model wins on tables in general; the answer depends on which tables occur, and has to be measured on them. That is the reason the site ranks models by a benchmark of real tables rather than by reasoning about them.",
+   "fail": "It says nothing about any particular distribution of problems; on real ones, some learners do win more often, which is what the benchmark measures.",
+   "intu": "Averaged over every problem that could exist, no method is better; only the problems you actually meet can decide.",
+   "ref": {
+    "label": "Wolpert (1996), The lack of a priori distinctions between learning algorithms",
+    "url": "https://doi.org/10.1162/neco.1996.8.7.1341"
+   }
+  },
+  "PS26": {
+   "name": "Optimism, and why noisy targets hurt flexible models more",
+   "f": "E[Err_new] − E[err_train] = (2/n) Σ_i Cov(ŷ_i, y_i) = 2σ²·df / n   (for linear smoothers)",
+   "domain": "PS",
+   "mech": "Efron (2004): a model's error on the rows it trained on understates its error on fresh rows by twice the covariance between its fitted values and the noise in the targets. For a linear smoother that is 2σ² times its effective degrees of freedom over n. Tree ensembles have many effective degrees of freedom, so noise in the target costs them more. That is what the messy-data run found: under noisy targets, the lasso, the elastic net and the linear SVM lost the least, and tree ensembles the most.",
+   "fail": "The clean form is for linear smoothers under squared error; for trees and boosting the degrees of freedom have to be estimated, not read off.",
+   "intu": "The more a model bends to fit the training rows, the more of their noise it learns.",
+   "ref": {
+    "label": "Efron (2004), The estimation of prediction error",
+    "url": "https://doi.org/10.1198/016214504000000692"
+   }
+  },
+  "PS27": {
+   "name": "What a prior-fitted network learns",
+   "f": "argmin_q E_{D ~ prior, (x, y)}[−log q(y | x, D)]  =  p(y | x, D)",
+   "domain": "PS",
+   "mech": "By Gibbs' inequality, E_p[−log q] = H(p) + KL(p ‖ q) ≥ H(p), with equality only when q = p. So a network trained to predict held-out rows from datasets drawn from a prior, by cross-entropy, is pushed toward the Bayesian posterior predictive under that prior (Müller et al., 2022). TabPFN is such a network: on a small table it approximates the Bayes-optimal prediction for the tables its prior generates. Whether real tables look like that prior is an empirical question, which is why the benchmark runs it.",
+   "fail": "Only as good as its prior and its training; outside the sizes it was trained for (here, 1,000 rows, 100 columns, 10 classes for TabPFN-1) the guarantee does not apply.",
+   "intu": "Train on millions of made-up tables until predicting a new one is just remembering how tables like it tend to behave.",
+   "ref": {
+    "label": "Müller et al. (2022), Transformers can do Bayesian inference",
+    "url": "https://arxiv.org/abs/2112.10510"
+   }
+  },
+  "PS28": {
+   "name": "Holm's correction, and Wilcoxon's floor",
+   "f": "adjusted p_(i) = min(1, max_{j ≤ i} (m − j + 1) p_(j));   exact two-sided Wilcoxon p ≥ 2 / 2^n",
+   "domain": "PS",
+   "mech": "Holm's step-down procedure keeps the chance of any false claim across m comparisons at α, less wastefully than dividing α by m. The Wilcoxon signed-rank test on n untied pairs can give no p smaller than 2/2^n, reached when every pair goes one way. Together: with 4 collections the smallest p is 0.125, so the first forecasting run could not have passed; with Holm over two scores, 7 collections that all agree are the fewest that can reach 0.05. The site states this floor wherever a test is too small to pass.",
+   "fail": "Both control false claims, not missed ones: a test too small to pass says nothing either way.",
+   "intu": "The more comparisons you make, the more a single lucky one has to be discounted; and a handful of pairs cannot be convincing however they fall.",
+   "ref": {
+    "label": "statsmodels multiple testing",
+    "url": "https://www.statsmodels.org/stable/generated/statsmodels.stats.multitest.multipletests.html"
+   }
+  },
+  "PS29": {
+   "name": "Repeated rows by chance, and what they leak",
+   "f": "E[copied pairs] = C(n, 2) · Π_j Σ_v k_{jv}(k_{jv} − 1) / (n(n − 1));   P(a pair straddles an 80/20 split) = 2 · 0.8 · 0.2 = 0.32",
+   "domain": "PS",
+   "mech": "If the columns were independent, two different rows would match on column j with probability Σ_v k_{jv}(k_{jv} − 1)/(n(n − 1)), where k_{jv} counts value v, and on every column with the product of those; over C(n, 2) pairs that is the expected number of chance copies, the bar the page's check compares the file with. A copy beyond chance is a leak waiting to happen: a random 80/20 split puts the two twins on opposite sides a third of the time, and the model is then scored on a row it has already seen.",
+   "fail": "Columns are rarely independent, so the bar is approximate; a table of a few categorical columns repeats rows naturally, which is why the check needs a numeric measurement column to judge.",
+   "intu": "Some repeats are coincidence; more than coincidence explains means copied rows, and copies split across train and test flatter the score.",
+   "ref": {
+    "label": "scikit-learn train_test_split",
+    "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html"
+   }
+  },
+  "PS30": {
+   "name": "A column that decides the target",
+   "f": "y = g(x_j)  ⇒  the Bayes error from x_j alone is 0",
+   "domain": "PS",
+   "mech": "If the target is a function of one column, the best possible prediction from that column alone makes no mistakes, so a single column that predicts the target almost perfectly on its own is, almost always, the target in another form (a copy, a rescaling, something computed after the fact). No model choice fixes that: every model will find it, and every score will be too good.",
+   "fail": "Some genuine targets are nearly determined by one feature; the check flags, and the reader decides.",
+   "intu": "If one column already knows the answer, the model is not predicting, it is reading.",
+   "ref": {
+    "label": "scikit-learn common pitfalls: data leakage",
+    "url": "https://scikit-learn.org/stable/common_pitfalls.html#data-leakage"
    }
   }
  }

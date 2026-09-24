@@ -402,3 +402,25 @@ footer .sig{font-size:27px}
   *{transition:none!important;animation:none!important}
   html{scroll-behavior:auto}
 }
+
+/* the evidence tab: contents, parts, subsections and derivations */
+.ev-toc{border:1px solid var(--rule);padding:16px 20px;margin:8px 0 28px;max-width:72ch;font-size:12.5px;line-height:1.9}
+.ev-toc-h{color:var(--dim);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.ev-toc ol{list-style:none;margin:0;padding:0}
+.ev-toc ol ol{padding-left:18px;margin-bottom:6px}
+.ev-toc a{color:var(--ink);text-decoration:none}
+.ev-toc a:hover{color:var(--chrome)}
+.ev-toc ol ol a{color:var(--dim)}
+.ev-part{border-top:1px solid var(--rule);margin-top:34px;padding-top:6px;scroll-margin-top:16px}
+.ev-sub-section{scroll-margin-top:16px}
+.ev-h4{font-size:14px;font-weight:400;color:var(--chrome);letter-spacing:.02em;margin:30px 0 10px}
+.ev-top{display:inline-block;font-size:11.5px;color:var(--dim);margin:18px 0 6px}
+.ev-top:hover{color:var(--chrome)}
+.ev-math{display:grid;gap:14px;margin:6px 0 10px;max-width:78ch}
+.ev-math-item{border-left:2px solid var(--teal);padding:8px 0 8px 16px}
+.ev-math-name{color:var(--ink);font-size:13.5px;margin-bottom:6px}
+.ev-f{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--chrome);background:rgba(127,255,0,.04);
+  padding:8px 10px;margin:4px 0 8px;overflow-x:auto;white-space:pre-wrap}
+.ev-math-why{color:var(--dim);font-size:12.5px;line-height:1.75}
+.ev-math-here{color:var(--sage);font-size:12.5px;line-height:1.7;margin-top:6px}
+.ev-math-here span{color:var(--ink)}

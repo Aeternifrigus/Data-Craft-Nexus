@@ -623,24 +623,48 @@ function datasetTable(datasets, T) {
   </table>`;
 }
 
-// The forecasting benchmark (bench/dcn/forecast_learn.py): which forecaster
-// won on which kind of series, and whether reading the kind earned its place.
+// ── The evidence tab, in parts ─────────────────────────────────────────────
+// Each part is one kind of advice the page gives, with the measurement behind
+// it, the rule that decided what the page does with it, and the mathematics
+// that explains the result where there is any. A contents list at the top
+// jumps to each part and subsection.
+
 const FORECASTERS = { TSM1: 'ARIMA', TSM2: 'smoothing', TSM4: 'Croston (SBA)', TSM5: 'TSB' };
-const SCORE_NAME = { r2: 'R²', mae: 'mean absolute error' };
+const DETECTORS = { TR4: 'Isolation Forest', SV3: 'One-Class SVM', IB3: 'LOF', IB4: 'k-NN distance', PR6: 'robust covariance', CL2: 'DBSCAN' };
+const SCORE_NAME = { r2: 'R²', mae: 'mean absolute error', auc: 'ROC AUC', ap: 'average precision' };
+const pctOrBlank = (x) => (x == null ? '' : pct(x));
+
+// A section's own heading is the subsection's title here, so it is dropped.
+const withoutHeading = (html) => html.replace(/^\s*<h3 class="ev-h">[^<]*<\/h3>/, '');
+const demote = (html) => html.replace(/<h3 class="ev-h">/g, '<h4 class="ev-h4">').replace(/<\/h3>/g, '</h4>');
+
+function decisionTally(decision) {
+  return Object.entries(decision?.metrics ?? {}).map(([m, x]) =>
+    `by ${SCORE_NAME[m] ?? m}, better on ${x.wins} of ${x.units} and worse on ${x.losses} (p = ${formatP(x.p_holm)}, Holm-corrected)`).join('; ');
+}
+
+// Wilcoxon's smallest two-sided p-value with n untied pairs is 2 / 2^n.
+function powerNote(decision) {
+  const changed = Math.max(...Object.values(decision?.metrics ?? {}).map(x => x.wins + x.losses), 0);
+  if (!changed || changed >= 7) return '';
+  return ` The two orders chose differently on only ${changed} units, and with ${changed} the smallest p-value the test can give is ${formatP(2 / 2 ** changed)}: it could not have passed whatever happened there (math PS28).`;
+}
 
 export function forecastDecisionSentence(F) {
   if (!F?.decision) return '';
   const d = F.decision;
-  const tally = Object.entries(d.metrics).map(([m, x]) =>
-    `by ${SCORE_NAME[m] ?? m}, better on ${x.wins} of ${x.units} collections and worse on ${x.losses} (p = ${formatP(x.p_holm)}, Holm-corrected)`).join('; ');
-  // Wilcoxon's smallest two-sided p-value with n untied pairs is 2 / 2^n: below six, 0.05 is out of reach.
-  const changed = Math.max(...Object.values(d.metrics).map(x => x.wins + x.losses));
-  const power = changed < 6
-    ? ` The two orders picked differently in only ${changed} of the ${Object.values(d.metrics)[0].units} collections, and with ${changed} the smallest p-value the test can give is ${formatP(2 / 2 ** changed)}: it could not have passed whatever happened there. Series with intermittent demand came from few collections, and that is where the kinds disagree.`
-    : '';
   return d.replaced
-    ? `Keeping a separate order for each kind of series beat one order for every series by more than luck: ${tally}. The page orders a forecast by its kind.`
-    : `Keeping a separate order for each kind of series did not beat one order for every series by more than luck: ${tally}.${power} The rule, fixed before the run, keeps one order for every series, and the page says so under the cards.`;
+    ? `Keeping a separate order for each kind of series beat one order for every series by more than luck: ${decisionTally(d)}.`
+    : `Keeping a separate order for each kind of series did not beat one order for every series by more than luck: ${decisionTally(d)}.${powerNote(d)}`;
+}
+
+export function confirmationSentence(F) {
+  const c = F?.confirmation;
+  if (!c) return '';
+  const d = c.decision;
+  return `Both orders were frozen as the first run fitted them and judged on ${c.series} intermittent series from ${c.units} collections the first run never saw: ${decisionTally(d)}. ${d.replaced
+    ? 'By the rule, the kind order replaces the fixed one, and the page now orders forecasters by the kind of series.'
+    : 'By the rule, that is not more than luck, and the fixed order stays.'}`;
 }
 
 // TabPFN against tuned boosting on the small tables it could take, by the
@@ -655,49 +679,70 @@ export function smallLeadSentence(ranking) {
     : 'By the rule written before it ran, that is not more than luck, so tuned boosting stays first on small tables too.'}`;
 }
 
-function forecastSection(T) {
-  const F = T.FORECAST;
-  if (!F) return '';
-  const kinds = Object.entries(F.per_kind ?? {});
+export function anomalyDecisionSentence(A) {
+  if (!A?.decision) return '';
+  const d = A.decision;
+  return d.replaced
+    ? `Keeping a separate order for each width of table beat one order for every table by more than luck: ${decisionTally(d)}.`
+    : `Keeping a separate order for each width of table did not beat one order for every table by more than luck: ${decisionTally(d)}.${powerNote(d)}`;
+}
+
+// One derivation: its name and code (which opens the drawer), the formula, the
+// argument, and what it explains in this part of the evidence.
+function mathBlock(T, items) {
+  const rows = items.filter(([code]) => T.MATH[code]).map(([code, explains]) => {
+    const m = T.MATH[code];
+    return `<div class="ev-math-item">
+      <div class="ev-math-name">${esc(m.name)} ${codeTag('math', code)}</div>
+      <div class="ev-f">${esc(m.f)}</div>
+      <p class="ev-math-why">${esc(m.mech)}</p>
+      ${explains ? `<p class="ev-math-here"><span>Here:</span> ${esc(explains)}</p>` : ''}
+    </div>`;
+  });
+  return rows.length ? `<div class="ev-math">${rows.join('')}</div>` : '';
+}
+
+function forecastKindTable(F, perKind) {
+  const kinds = Object.entries(perKind ?? {});
   const codes = Object.keys(FORECASTERS).filter(c => kinds.some(([, e]) => e.best_share?.[c] != null));
-  return `<h3 class="ev-h">Forecasting</h3>
-    <p class="sect-note">The take-home script's own forecasters, generated by this page and run on ${F.series} real series
-      from ${F.collections.length} public collections (${F.units} independent: M5's two are cut from one table), each value
-      predicted from the values before it, one step ahead, in five time-ordered folds. Each series was sorted into a kind the
-      way the page sorts an upload. The table shows how often each forecaster was the best of the four on series of that kind,
-      and how often doing nothing (the last value, the value a season earlier, or the average so far) beat all four.</p>
-    <table class="ev-table">
+  return `<table class="ev-table">
       <thead><tr><th>kind of series</th><th>series</th>${codes.map(c => `<th>${esc(FORECASTERS[c])}</th>`).join('')}
         <th>nothing beat all four</th></tr></thead>
       <tbody>${kinds.map(([kind, e]) => `<tr>
         <td>${esc(F.kinds?.[kind] ?? kind)}<span class="ev-sub">${e.units} ${e.units === 1 ? 'collection' : 'collections'}</span></td>
         <td>${e.series}</td>
-        ${codes.map(c => `<td>${e.best_share?.[c] == null ? '' : pct(e.best_share[c])}</td>`).join('')}
+        ${codes.map(c => `<td>${pctOrBlank(e.best_share?.[c])}</td>`).join('')}
         <td>${pct(e.nothing_beat_every_model)}</td>
       </tr>`).join('')}</tbody>
-    </table>
-    <p class="sect-note" style="margin-top:14px">${esc(forecastDecisionSentence(F))} Regret is judged leave-one-collection-out:
-      the collection being ordered contributed nothing to the order. Median regret over collections, one order for every series
-      against one per kind: ${Object.entries(F.median_unit_regret ?? {}).map(([m, r]) =>
-        `${esc(SCORE_NAME[m] ?? m)} ${num(r.fixed)} against ${num(r.kind)}`).join('; ')}${
-        F.median_unit_regret?.mae ? ' (mean absolute error in units of what carrying the last value forward missed by)' : ''}.</p>`;
+    </table>`;
 }
 
-export function buildEvidence(T) {
-  const intro = document.getElementById('ev-intro');
-  const body = document.getElementById('ev-body');
+function confirmationTable(c) {
+  const units = Object.keys(c.per_unit?.r2 ?? {});
+  return `<table class="ev-table">
+      <thead><tr><th>collection</th><th>R² regret, smoothing first</th><th>R² regret, TSB first</th>
+        <th>absolute-error regret, smoothing first</th><th>absolute-error regret, TSB first</th></tr></thead>
+      <tbody>${units.map(u => `<tr><td>${esc(u)}</td>
+        <td>${num(c.per_unit.r2[u]?.fixed)}</td><td>${num(c.per_unit.r2[u]?.kind)}</td>
+        <td>${num(c.per_unit.mae?.[u]?.fixed)}</td><td>${num(c.per_unit.mae?.[u]?.kind)}</td></tr>`).join('')}</tbody>
+    </table>`;
+}
+
+function anomalyKindTable(A) {
+  const kinds = Object.entries(A.per_kind ?? {});
+  const codes = Object.keys(DETECTORS).filter(c => kinds.some(([, e]) => e.best_share?.[c] != null));
+  return `<table class="ev-table">
+      <thead><tr><th>width of table</th><th>tables</th>${codes.map(c => `<th>${esc(DETECTORS[c])}</th>`).join('')}</tr></thead>
+      <tbody>${kinds.map(([kind, e]) => `<tr>
+        <td>${esc(A.kinds?.[kind] ?? kind)}<span class="ev-sub">${e.units} independent sources</span></td>
+        <td>${e.datasets}</td>
+        ${codes.map(c => `<td>${pctOrBlank(e.best_share?.[c])}<span class="ev-sub">AUC ${e.median_auc?.[c] == null ? '' : e.median_auc[c].toFixed(2)}</span></td>`).join('')}
+      </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+function tablesPart(T) {
   const ev = T.EVIDENCE;
-
-  if (!ev) {
-    intro.textContent = 'No benchmark run is recorded in this copy.';
-    body.innerHTML = '';
-    return;
-  }
-
-  intro.innerHTML = `${esc(ev.how)} The datasets come from
-    <a href="${esc(ev.source_url)}" target="_blank" rel="noopener noreferrer">${esc(ev.source)} &#8599;</a>:
-    ${esc(ev.run)}. Lower regret is better, and zero means the choice was the best model available.`;
-
   const head = ev.headline;
   const classification = head.classification, regression = head.regression;
   const rankedBy = ev.ranked_by ?? 'counting matched coordinates';
@@ -705,62 +750,203 @@ export function buildEvidence(T) {
   const verdict = `These are the numbers for the run as it happened, when models were ordered by ${esc(rankedBy)}. The four
     shown contained the best available choice ${pct(classification.top4_was_best)} of the time on classification, and the
     model shown first trailed the best by ${num(classification.first)} on classification and ${num(regression.first)} on
-    regression${worse ? ', which is worse than reaching for boosting' : ''}. The next table is the fairer test of the order
+    regression${worse ? ', which is worse than reaching for boosting' : ''}. The next subsection is the fairer test of the order
     the site uses now, because every number in it is leave-one-dataset-out.`;
+  const metrics = Object.fromEntries(Object.entries(ev.headline ?? {}).map(([k, v]) => [k, v.metric]));
+  const seeds = seedsNote(ev.seeds, metrics);
+  const small = ev.ranking?.small_lead;
+  const subs = [
+    { id: 'advice', title: 'How the advice did', html: `${headlineTable(head)}<p class="sect-note" style="margin-top:18px">${verdict}</p>` },
+    ev.ranking && { id: 'order', title: 'What the order is worth', html: `
+      <p class="sect-note">The site used to show whichever model matched the most coordinates. It now shows them in the order
+        they were worth on the benchmark. Every number here is leave-one-dataset-out: the dataset being ranked contributed
+        nothing to the weights that rank it, so this is what the ranking does on data it has not seen.</p>
+      ${rankingTable(ev.ranking)}
+      <p class="sect-note" style="margin-top:14px">A median over a few dozen datasets moves when a few datasets change, so
+        the order in use is also compared, dataset by dataset, with the two things it claims to beat, counting coordinates and
+        always using default boosting, and with references it makes no claim to beat: boosting that was tuned, and TabPFN
+        where it was run (Wilcoxon signed-rank test, Holm-corrected for the number of comparisons). Datasets generated from
+        one function, like PMLB's Friedman and Strogatz families, or cut from one table, like its six thyroid datasets, are
+        held out together and counted once: sisters share a winner, and counting each would claim more certainty than the
+        data holds.
+        ${esc([boostingVerdict(ev.ranking), referenceVerdict(ev.ranking, 'tuned', 'tuned boosting'),
+          referenceVerdict(ev.ranking, 'tabpfn', 'TabPFN')].filter(Boolean).join(' '))}</p>
+      ${comparisonTable(ev.ranking)}
+      <p class="sect-note" style="margin-top:14px">${esc(choiceNote(ev.ranking))}</p>
+      ${ceilingTable(ev.ranking) ? `<h4 class="ev-h4">How far from the best of everything</h4>
+      <p class="sect-note">Regret above is measured against the best taxonomy model that ran. This measures against the best of
+        everything that ran, the tuned reference${Object.values(ev.ranking.tasks).some(e => e.ceiling?.tabpfn) ? ' and TabPFN' : ''}
+        included: how much a strategy leaves on the table. Tuned boosting uses ${esc(ev.tuning ?? 'a small search')}.</p>
+      ${ceilingTable(ev.ranking)}` : ''}` },
+    ev.significance && { id: 'luck', title: 'Which models can be told apart', html: demote(significanceSection(ev)) },
+    seeds && { id: 'split', title: 'How much is the luck of the split', html: `<p class="sect-note">${esc(seeds)}</p>` },
+    small && { id: 'small', title: 'Small tables: a pretrained model', html: `<p class="sect-note">${esc(smallLeadSentence(ev.ranking))}
+      The size of a table does not, on this evidence, change the first recommendation. A pass would have been evidence for
+      the whole family of pretrained small-table models; TabPFN-2 and later, which their authors report stronger, were not
+      reachable from where the benchmark ran.</p>` },
+    ev.messy && { id: 'messy', title: 'When the data is messy', html: withoutHeading(messySection(T)) },
+    { id: 'math', title: 'Why, mathematically', html: `<p class="sect-note">Most of this part is measured, not derived, and
+      the first result below is why it has to be. The others explain what the measurements found.</p>${mathBlock(T, [
+      ['PS25', 'no model can be shown best on tables in general from first principles, so the order is fitted on 195 real tables and judged on tables it did not see.'],
+      ['PS28', 'every comparison above is corrected for how many were made, and a comparison over too few independent units says so instead of passing.'],
+      ['PS27', small ? smallLeadSentence(ev.ranking) : 'why a pretrained small-table model is worth testing on small tables.'],
+      ['PS26', 'under noisy targets the lasso, the elastic net and the linear SVM lost least, and tree ensembles most.'],
+    ])}` },
+  ].filter(Boolean);
+  return { id: 'tables', title: 'Tables: a number or a category', lede: `${esc(ev.how)} The datasets come from
+    <a href="${esc(ev.source_url)}" target="_blank" rel="noopener noreferrer">${esc(ev.source)} &#8599;</a>:
+    ${esc(ev.run)}. Lower regret is better, and zero means the choice was the best model available.`, subs };
+}
 
-  body.innerHTML = `
-    <h3 class="ev-h">How the advice did</h3>
-    ${headlineTable(head)}
-    <p class="sect-note" style="margin-top:18px">${verdict}</p>
+function forecastPart(T) {
+  const F = T.FORECAST;
+  if (!F) return null;
+  const c = F.confirmation;
+  const kind = (k) => F.per_kind?.[k];
+  const nothing = (k) => (kind(k) ? pct(kind(k).nothing_beat_every_model) : '');
+  const subs = [
+    { id: 'winners', title: 'Which forecaster wins, by kind of series', html: `
+      <p class="sect-note">The take-home script's own forecasters, generated by this page and run on ${F.series} real series
+        from ${F.collections.length} public collections (${F.units} independent: M5's two are cut from one table), each value
+        predicted from the values before it, one step ahead, in five time-ordered folds. Each series was sorted into a kind the
+        way the page sorts an upload. The table shows how often each forecaster was the best of the four on series of that
+        kind, and how often doing nothing (the last value, the value a season earlier, or the average so far) beat all four.</p>
+      ${forecastKindTable(F, F.per_kind)}` },
+    { id: 'first', title: 'First run: should the kind decide the order?', html: `<p class="sect-note">${esc(forecastDecisionSentence(F))}
+      Regret is judged leave-one-collection-out: the collection being ordered contributed nothing to the order. Median regret over
+      collections, one order for every series against one per kind: ${Object.entries(F.median_unit_regret ?? {}).map(([m, r]) =>
+        `${esc(SCORE_NAME[m] ?? m)} ${num(r.fixed)} against ${num(r.kind)}`).join('; ')}.</p>` },
+    c && { id: 'confirm', title: 'Second run: confirmation on new data', html: `<p class="sect-note">The first run could not decide,
+      so a second one was declared before it ran and built to decide. ${esc(confirmationSentence(F))} On a series the page reads as
+      intermittent the kind order puts TSB first and the fixed order puts exponential smoothing first; the table gives each
+      collection's regret under each, averaged over its series (absolute error in units of what carrying the last value forward
+      missed by).</p>${confirmationTable(c)}
+      <p class="sect-note" style="margin-top:14px">How often each forecaster was the best on those new series:</p>
+      ${forecastKindTable(F, c.per_kind)}` },
+    { id: 'math', title: 'Why, mathematically', html: mathBlock(T, [
+      ['TS10', `the order is read for the score you say a miss costs; under absolute error on intermittent demand, forecasting zero can be optimal${
+        c?.per_kind?.intermittent ? `, and on the second run's ${c.per_kind.intermittent.series} intermittent series doing nothing beat all four forecasters on ${pct(c.per_kind.intermittent.nothing_beat_every_model)} of them` : ''}.`],
+      ['TS11', `doing nothing beat every forecaster on ${nothing('trend')} of the series read as trending, many of which are random walks.`],
+      ['TS12', `exponential smoothing leads the order: it was the best of the four on ${pctOrBlank(kind('seasonal-trend')?.best_share?.TSM2)} of seasonal and trending series.`],
+      ['TS13', `on intermittent series TSB and Croston's method were best on ${pctOrBlank((kind('intermittent')?.best_share?.TSM5 ?? 0) + (kind('intermittent')?.best_share?.TSM4 ?? 0))} between them, and smoothing on ${pctOrBlank(kind('intermittent')?.best_share?.TSM2)}.`],
+      ['TS8', 'how the page decides that a series is intermittent or lumpy.'],
+      ['TS9', 'how the page decides that a series is seasonal or trending.'],
+    ]) },
+  ].filter(Boolean);
+  return { id: 'forecast', title: 'Forecasting: a future value', lede: `Measured on ${F.series + (c?.series ?? 0)} real series from ${
+    F.collections.length + (c?.collections?.length ?? 0)} public collections, by the functions the take-home script runs.`, subs };
+}
 
-    ${ev.ranking ? `<h3 class="ev-h">What the order is worth</h3>
-    <p class="sect-note">The site used to show whichever model matched the most coordinates. It now shows them in the order
-      they were worth on the benchmark. Every number here is leave-one-dataset-out: the dataset being ranked contributed
-      nothing to the weights that rank it, so this is what the ranking does on data it has not seen.</p>
-    ${rankingTable(ev.ranking)}
-    <p class="sect-note" style="margin-top:14px">A median over a few dozen datasets moves when a few datasets change, so
-      the order in use is also compared, dataset by dataset, with the two things it claims to beat, counting coordinates and
-      always using default boosting, and with references it makes no claim to beat: boosting that was tuned, and TabPFN
-      where it was run (Wilcoxon signed-rank test, Holm-corrected for the number of comparisons). Datasets generated from
-      one function, like PMLB's Friedman and Strogatz families, or cut from one table, like its six thyroid datasets, are
-      held out together and counted once: sisters share a winner, and counting each would claim more certainty than the
-      data holds.
-      ${esc([boostingVerdict(ev.ranking), referenceVerdict(ev.ranking, 'tuned', 'tuned boosting'),
-        referenceVerdict(ev.ranking, 'tabpfn', 'TabPFN'), smallLeadSentence(ev.ranking)].filter(Boolean).join(' '))}</p>
-    ${comparisonTable(ev.ranking)}
-    <p class="sect-note" style="margin-top:14px">${esc(choiceNote(ev.ranking))}</p>
-    ${ceilingTable(ev.ranking) ? `<h3 class="ev-h">How far from the best of everything</h3>
-    <p class="sect-note">Regret above is measured against the best taxonomy model that ran. This measures against the best of
-      everything that ran, the tuned reference${Object.values(ev.ranking.tasks).some(e => e.ceiling?.tabpfn) ? ' and TabPFN' : ''}
-      included: how much a strategy leaves on the table. Tuned boosting uses ${esc(ev.tuning ?? 'a small search')}.</p>
-    ${ceilingTable(ev.ranking)}` : ''}` : ''}
+function anomalyPart(T) {
+  const A = T.ANOMALY;
+  if (!A) return null;
+  const fails = Object.entries(A.failures ?? {}).filter(([, n]) => n).map(([code, n]) => `${DETECTORS[code] ?? code} on ${n}`).join(', ');
+  const subs = [
+    { id: 'winners', title: 'Which detector wins, by width of table', html: `
+      <p class="sect-note">Every detector the page can recommend for unusual records, fitted without labels on ${A.datasets} tables
+        with known anomalies (ADBench's classical tables, from ${A.units} independent sources), then scored against the labels by
+        ROC AUC, where 0.5 is a guess and 1 ranks every anomaly above every normal row. The table gives how often each detector
+        was the best of the six on tables of that width, and its median AUC there.${fails ? ` Some could not run on every table: ${esc(fails)}.` : ''}</p>
+      ${anomalyKindTable(A)}` },
+    { id: 'rule', title: 'Should the width decide the order?', html: `<p class="sect-note">${esc(anomalyDecisionSentence(A))} The rule
+      and the cut-offs (${A.thresholds.low_columns} and ${A.thresholds.high_columns} columns) were fixed before the run. Median regret
+      over sources, one order for every table against one per width: ${Object.entries(A.median_unit_regret ?? {}).map(([m, r]) =>
+        `${esc(SCORE_NAME[m] ?? m)} ${num(r.fixed)} against ${num(r.kind)}`).join('; ')}.</p>` },
+    { id: 'math', title: 'Why, mathematically', html: mathBlock(T, [
+      ['AD6', `why width was the thing to measure: detectors that rank by distances to neighbours should lose contrast on wide tables${
+        A.per_kind?.high ? `, and on the ${A.per_kind.high.datasets} wide tables LOF was the best on ${pct(A.per_kind.high.best_share.IB3)} and k-NN distance on ${pct(A.per_kind.high.best_share.IB4)}, while Isolation Forest took ${pct(A.per_kind.high.best_share.TR4)} and robust covariance ${pct(A.per_kind.high.best_share.PR6)}` : ''}.`],
+      ['AD1', 'how Isolation Forest scores a row.'],
+      ['AD2', 'how the Local Outlier Factor scores a row.'],
+      ['AD3', 'how the k-NN distance scores a row, and why it is a density ranking.'],
+      ['AD4', "what the one-class SVM's ν means, and why its default of 0.5 matters."],
+      ['AD5', 'how robust covariance scores a row, and why it needs more rows than columns.'],
+    ]) },
+  ];
+  return { id: 'anomaly', title: 'Anomalies: unusual records', lede: 'Measured on tables whose anomalies are known, so a detector fitted without labels can be scored afterwards.', subs };
+}
 
-    ${significanceSection(ev)}
-    ${(() => { const metrics = Object.fromEntries(Object.entries(ev.headline ?? {}).map(([k, v]) => [k, v.metric]));
-      const note = seedsNote(ev.seeds, metrics);
-      return note ? `<h3 class="ev-h">How much is the luck of the split</h3><p class="sect-note">${esc(note)}</p>` : ''; })()}
+function driftPart(T) {
+  if (!T.EVIDENCE?.drift?.checkers) return null;
+  return { id: 'drift', title: 'Drift checkers', lede: 'Measured on real datasets with drift injected on purpose, and on quiet windows where nothing changed.', subs: [
+    { id: 'caught', title: 'What each checker caught', html: withoutHeading(driftSection(T)) },
+    { id: 'math', title: 'Why, mathematically', html: mathBlock(T, [
+      ['PS22', 'the tests that read one column at a time caught few broken correlations: a broken correlation leaves every column looking the same.'],
+      ['PS23', 'adversarial validation, a classifier telling the windows apart, caught most of them.'],
+      ['PS24', 'only the checkers that watch the model\'s errors saw labels change meaning, and they need the labels to come back.'],
+      ['IT8', 'PSI above 0.25 never fired on a quiet window of 250 rows, and would fire on most windows of 30.'],
+    ]) },
+  ] };
+}
 
-    ${driftSection(T)}
+function checksPart(T) {
+  if (!T.EVIDENCE?.checks) return null;
+  return { id: 'checks', title: 'Before you trust a score', lede: 'Measured on the benchmark datasets as uploaded, and with problems planted on purpose.', subs: [
+    { id: 'caught', title: 'What the checks catch', html: withoutHeading(checksSection(T)) },
+    { id: 'math', title: 'Why, mathematically', html: mathBlock(T, [
+      ['PS30', 'a column that predicts the target on its own is almost always the target in another form, and no model choice fixes it.'],
+      ['PS29', 'the repeated-rows check compares the file with what chance gives, and a copy beyond chance leaks across a random split a third of the time.'],
+    ]) },
+  ] };
+}
 
-    ${forecastSection(T)}
+function referencePart(T) {
+  const ev = T.EVIDENCE;
+  return { id: 'reference', title: 'Reference', lede: 'The raw material: every model and every dataset in the table benchmark.', subs: [
+    { id: 'models', title: 'Every model that ran', html: `<p class="sect-note">“Was best” counts datasets where this model scored
+      highest of all that ran. “Shown first” counts datasets where the instrument put it at the top <em>during that run</em>, when
+      models were ordered by ${esc(ev.ranked_by ?? 'counting matched coordinates')}.</p>${modelTable(ev.models)}` },
+    { id: 'datasets', title: 'Every dataset', html: `<p class="sect-note">${ev.datasets.length} datasets, ${ev.model_runs} model runs.
+      Click any code to open its definition.</p>${datasetTable(ev.datasets, T)}` },
+    { id: 'untested', title: 'What could not be tested', html: `<p class="sect-note">A CSV cannot hold an image, a graph or a
+      sequence, so these models are in the reference but never in a benchmark. Survival, groupings, simpler views and new examples
+      still have no benchmark, and their cards are ordered by coordinates.</p>
+      <ul class="ruled">${Object.entries(ev.not_runnable).map(([code, why]) =>
+        `<li>${esc(T.MODELS.find(m => m.c === code)?.n ?? code)} ${codeTag('model', code)}: ${esc(why)}</li>`).join('')}</ul>` },
+  ] };
+}
 
-    ${messySection(T)}
+// All the parts, in the order the contents list shows them.
+export function evidenceParts(T) {
+  if (!T.EVIDENCE) return [];
+  return [tablesPart(T), forecastPart(T), anomalyPart(T), driftPart(T), checksPart(T), referencePart(T)].filter(Boolean)
+    .map((part, i) => ({ ...part, n: i + 1, subs: part.subs.map((sub, j) => ({ ...sub, n: `${i + 1}.${j + 1}`, anchor: `ev-${part.id}-${sub.id}` })) }));
+}
 
-    ${checksSection(T)}
+function contents(parts) {
+  return `<nav class="ev-toc" aria-label="Contents of the evidence">
+    <div class="ev-toc-h">Contents</div>
+    <ol>${parts.map(p => `<li><a href="#ev-${p.id}" data-ev-jump="ev-${p.id}">${p.n}. ${esc(p.title)}</a>
+      <ol>${p.subs.map(s => `<li><a href="#${s.anchor}" data-ev-jump="${s.anchor}">${s.n} ${esc(s.title)}</a></li>`).join('')}</ol></li>`).join('')}</ol>
+  </nav>`;
+}
 
-    <h3 class="ev-h">Every model that ran</h3>
-    <p class="sect-note">“Was best” counts datasets where this model scored highest of all that ran.
-      “Shown first” counts datasets where the instrument put it at the top <em>during that run</em>, when models were
-      ordered by ${esc(ev.ranked_by ?? 'counting matched coordinates')}.</p>
-    ${modelTable(ev.models)}
-
-    <h3 class="ev-h">Every dataset</h3>
-    <p class="sect-note">${ev.datasets.length} datasets, ${ev.model_runs} model runs. Click any code to open its definition.</p>
-    ${datasetTable(ev.datasets, T)}
-
-    <h3 class="ev-h">What could not be tested</h3>
-    <p class="sect-note">A CSV cannot hold an image, a graph or a sequence, so these models are in the reference
-      but never in the benchmark:</p>
-    <ul class="ruled">${Object.entries(ev.not_runnable).map(([code, why]) =>
-      `<li>${esc(T.MODELS.find(m => m.c === code)?.n ?? code)} ${codeTag('model', code)}: ${esc(why)}</li>`).join('')}</ul>`;
+export function buildEvidence(T) {
+  const intro = document.getElementById('ev-intro');
+  const body = document.getElementById('ev-body');
+  if (!T.EVIDENCE) {
+    intro.textContent = 'No benchmark run is recorded in this copy.';
+    body.innerHTML = '';
+    return;
+  }
+  const parts = evidenceParts(T);
+  intro.innerHTML = `Every recommendation on this page is measured, and this is the record: what each benchmark ran, what it
+    found, the rule written down before it ran that decided what the page does with the result, and, where the mathematics can
+    say why, the argument. Regret means how far a choice landed below the best one available; independent units are datasets
+    counted once per source.`;
+  body.innerHTML = contents(parts) + parts.map(p => `
+    <section class="ev-part" id="ev-${p.id}">
+      <h3 class="ev-h">${p.n}. ${esc(p.title)}</h3>
+      ${p.lede ? `<p class="sect-note">${p.lede}</p>` : ''}
+      ${p.subs.map(s => `<section class="ev-sub-section" id="${s.anchor}">
+        <h4 class="ev-h4">${s.n} ${esc(s.title)}</h4>
+        ${s.html}
+      </section>`).join('')}
+      <a class="ev-top" href="#ev-body" data-ev-jump="ev-body">Back to contents</a>
+    </section>`).join('');
+  body.onclick = (e) => {
+    const link = e.target.closest('[data-ev-jump]');
+    if (!link) return;
+    e.preventDefault();
+    document.getElementById(link.dataset.evJump)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 }

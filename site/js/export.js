@@ -490,8 +490,8 @@ after: one step ahead, in time-ordered folds. Two ways of doing nothing are
 scored the same way, carrying the last value forward and the average of
 every earlier value, and tuned boosting on the last few values runs beside
 them as the reference: on real business data it is often what wins. The
-benchmark behind the site never measured forecasting, so none of these has a
-measured record, and this run is the evidence. The other columns are not used.
+site's forecasting benchmark ran these same functions on real series, and
+this run is the evidence on yours. The other columns are not used.
 ${pricedNote}
     python dcn_shortlist.py path/to/${fileName}
 

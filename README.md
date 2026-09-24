@@ -97,7 +97,7 @@ The intervals come from resampling those units. The order in use is also compare
 
 Two richer orders are built and judged the same way, and either can replace the per-model prior: one adds interactions between the dataset's measured features and each model's family, and one weights each model toward what it did on the benchmark datasets nearest to yours. Which one ships is decided by a rule fixed before the results were seen (`choose()` in `bench/dcn/learn.py`): a richer order replaces the prior only if it is no worse on either task and better by more than luck on at least one. Neither qualified on the full run (interactions: 9 better and 10 worse of 35 regression units; neighbours: 8 and 6), so the order in use is still the prior. The evidence tab reports each decision with its numbers.
 
-A model the benchmark never ran is shown below the ones it did, with no score attached, and a task the benchmark never covered (forecasting, grouping, anomalies) still falls back to coordinates. The page says which of the two it used.
+A model the benchmark never ran is shown below the ones it did, with no score attached. A future value is ordered by a forecasting benchmark of its own (below), and a task no benchmark covered (grouping, anomalies, survival) still falls back to coordinates. The page says which of the two it used.
 
 ### Datasets like yours
 
@@ -124,7 +124,7 @@ python dcn_shortlist.py shipments.csv
 
 **Doing nothing is scored too.** Beside the models, the script scores a guess that learns nothing: always the most common answer for a category, always the average (or the median, when every unit of a miss costs the same) for a number, and the last known value when rows are in time order. The last line says whether any model beat it. On a small file that matters: on the 20-row sample, LightGBM and tuned boosting cannot make a single split with that few rows, so they predict the average, and the page used to call that a win.
 
-The script is offered when you answer "A number", "A category" or "A future value". **A future number is forecast for real:** each value is predicted from the values before it and never from a later row, one step ahead, in time-ordered folds, by the forecasting models on the cards that can run here (ARIMA, its order chosen by AIC on the training rows; exponential smoothing, with a trend when AIC prefers one), by tuned boosting on the last few changes, and by two ways of doing nothing (carrying the last value forward, and the average so far). Prophet is named and not run: it needs Stan, a compiled backend the page cannot load. The other columns are not used, and when a date column shows the rows run newest first, they are turned around. The benchmark never measured forecasting, so the cards stay in coordinate order and the page says so; the run on your file is the only evidence. A future category is predicted from the other columns, split by time, and the page says that too. For any other kind of answer, the section says why there is no script and what to answer instead, rather than leaving a gap.
+The script is offered when you answer "A number", "A category" or "A future value". **A future number is forecast for real:** each value is predicted from the values before it and never from a later row, one step ahead, in time-ordered folds, by the forecasting models on the cards that can run here (ARIMA, its order chosen by AIC on the training rows; exponential smoothing, with a trend and a season where AIC prefers them; Croston's method with Syntetos and Boylan's correction, and TSB, for intermittent demand), by tuned boosting on the last few changes, and by doing nothing (carrying the last value forward, the value a season earlier, and the average so far). The season comes from the date column: a daily series repeats weekly, a monthly one yearly. Prophet is named and not run: it needs Stan, a compiled backend the page cannot load. The other columns are not used, and when a date column shows the rows run newest first, they are turned around. The cards are in the order the forecasting benchmark measured, and the page says when your kind of series points elsewhere; the run on your file settles it for your data. A future category is predicted from the other columns, split by time, and the page says that too. For any other kind of answer, the section says why there is no script and what to answer instead, rather than leaving a gap.
 
 `bench/tests/test_export.py` checks that no forecast moves when every value from a later row onward is changed, that doing nothing is what it says, and that on a series with a trend and a weekly swing the forecasting models beat carrying the last value forward.
 
@@ -191,6 +191,23 @@ TabPFN is a transformer pretrained on synthetic tables to predict a small table 
 
 Against tuned boosting it was better on 21 units and worse on 16 (p = 0.26). The rule asks for more than luck, so tuned boosting stays first on small tables too, and the size of a table still does not change the first recommendation. It did beat the order's own first pick more often than not (25 units better, 12 worse, p = 0.13 after correcting for four comparisons). None of this measures TabPFN-2 or later, which their authors report stronger.
 
+### What forecasting was worth
+
+The take-home script's forecasters now have a benchmark of their own (`bench/dcn/forecast.py`): the functions the page writes, run on 240 real series from 12 public collections (M4 at six frequencies, car parts, Australian prescriptions, retail and livestock, and M5's Walmart sales), 11 independent units, each value predicted from the values before it. Every series was sorted into a kind the way the page sorts an upload (`site/js/series.js`): intermittent or lumpy demand by Syntetos, Boylan and Croston's cut-offs, otherwise by seasonal and trend strength.
+
+| kind of series | series | ARIMA | smoothing | Croston (SBA) | TSB | nothing beat all four |
+|---|---|---|---|---|---|---|
+| seasonal and trending | 68 | 7% | 91% | 0% | 2% | 19% |
+| seasonal | 17 | 35% | 65% | 0% | 0% | 47% |
+| trending | 100 | 41% | 47% | 0% | 12% | 33% |
+| neither | 13 | 15% | 46% | 8% | 31% | 8% |
+| intermittent | 34 | 9% | 12% | 38% | 41% | 21% |
+| lumpy | 8 | 25% | 0% | 50% | 25% | 38% |
+
+- **The kind of series changes the winner.** Smoothing wins nine seasonal-and-trending series in ten; on intermittent demand the two methods built for it win four in five, and smoothing one in eight.
+- **Doing nothing is a real contender.** It beat every forecaster on almost half the seasonal series without a trend and a third of the trending ones, which is why the script scores it beside them.
+- **Whether the page should read the kind was decided by a rule fixed before the run.** An order kept by kind cut the median regret on intermittent series from 0.121 to 0.034 R², and by R² it was worse on no collection. But the two orders chose differently in only 4 of the 11 collections, and with 4 the smallest p-value the test can give is 0.125: it could not have passed. So the cards keep one order for every series (exponential smoothing, ARIMA, TSB, Croston), and on a series of a kind where the evidence points elsewhere the page says so, with the numbers. More collections of intermittent demand would settle it.
+
 ### What the checks catch
 
 The first section of the results, **Before you trust a score**, was measured the same way: on the 195 benchmark datasets as a user would upload them, and on 40 of them with a problem planted. It caught the target renamed or rescaled in 40 of 40, shuffled row numbers and random row codes in 40 of 40, and 2% of rows copied in 32 of 40. On clean data its flags are mostly real: body fat computed from density, a phone number in a churn table, and 22 datasets with more copied rows than chance, the thyroid and wine quality tables among them. It cannot catch a leak with a few percent of mistakes in it (0 of 40 at 5%), and it looks at one column at a time. Details in [`bench/README.md`](bench/README.md#before-you-trust-a-score).
@@ -204,7 +221,8 @@ The first section of the results, **Before you trust a score**, was measured the
 - **The prior itself still counts a family's datasets one by one when it is fitted**, so on regression it leans toward what wins on Friedman's functions. Weighting a family once in the fit is the obvious change, and it should be declared before the next run rather than tried after this one.
 - **Heavy gaps and noisy targets still cost the first pick on regression.** An order that reads data quality was tested and did not help, so nothing here fixes that yet; it rests on 8 independent units either way.
 - **Drift was injected at one strength per kind**, on classification datasets, with 500- and 250-row windows, so the rates hold for that setting. Detectors tuned to their stream would beat river's defaults.
-- **Only classification and regression are benchmarked.** Forecasting, survival, grouping, anomalies, compression and generation still fall back to counting coordinates.
+- **Classification, regression and forecasting are benchmarked.** Survival, grouping, anomalies, compression and generation still fall back to counting coordinates.
+- **The forecasting kinds need more intermittent demand.** Reading the kind of series changed the first forecaster in only 4 of 11 collections, too few for the test to pass or fail it. Six collections where the orders disagree is the least it needs; tuned boosting on recent changes, the script's reference, is not in that run yet either.
 - Image, audio, graph and spatial data cannot be detected from a CSV, so those models are reachable in the reference but never recommended from an upload.
 - Separability (A55/A56) and weak or self-supervised labelling (A13 to A15) are not measured yet.
 

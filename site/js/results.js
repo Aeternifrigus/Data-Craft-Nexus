@@ -14,6 +14,7 @@ import { checksSummary, runChecks } from './checks.js';
 import { costSentence, resolveCost } from './costs.js';
 import { codeTag, nameChip, plainFlowchart, plainReason } from './names.js';
 import { forecastSetup } from './series.js';
+import { describeSeries, forecastMetric, forecastNote, forecasterSentence } from './forecasting.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
@@ -53,12 +54,20 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
   // way. The order can depend on it, so it is measured first.
   const meta = profile ? metaFeatures(profile, sig.target ?? null) : null;
   if (meta && sig.drift) meta.drift_psi = Math.min(sig.drift.psi, 5);
+  // A future number: measure the series the way the forecasting benchmark
+  // did, since its kind (intermittent, seasonal, trending...) can decide the order.
+  const targetColumn = profile?.columns.find(c => c.name === sig.target);
+  if (task === 'forecast' && targetColumn?.numeric && sig.codes[1] === 'A22') {
+    sig.series = describeSeries(forecastSetup(profile, sig.target),
+      forecastMetric(resolveCost('number', answer, targetColumn)));
+  }
   const models = rankModels(T, sig, task, 4, meta);
   const neighbours = meta ? nearestDatasets(T, meta, task) : [];
   const taskLabel = T.TASKS.find(t => t.id === task).label.toLowerCase();
 
   const provenance = rankingProvenance(T, task);
-  const orderedBy = models.rankedBy === 'evidence' && provenance
+  const orderedBy = models.forecast ? forecastNote(T, models.forecast)
+    : models.rankedBy === 'evidence' && provenance
     ? (provenance.chosen === 'prior_knn'
       ? ` Ordered by what each model was worth on ${provenance.datasets} benchmark datasets, weighted toward the ones most like yours, not by how many coordinates it matches.`
       : ` Ordered by what each model was worth on ${provenance.datasets} benchmark datasets, not by how many coordinates it matches.`)
@@ -95,6 +104,8 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
         ${m.caution ? `<p class="rec-body caution">Caution. ${esc(m.caution)}</p>` : ''}
         ${(() => { const e = evidenceFor(T, m.c, task); return e
           ? `<p class="rec-body evidence">Measured. ${esc(evidenceSentence(e))}</p>` : ''; })()}
+        ${(() => { const f = models.forecast?.kind ? forecasterSentence(T, models.forecast.kind, m.c) : ''; return f
+          ? `<p class="rec-body evidence">Measured. ${esc(f)}</p>` : ''; })()}
         ${(() => { const n = neighbours.length ? performanceOn(neighbours, m.c) : null; return n
           ? `<p class="rec-body evidence">Nearby. On the ${n.datasets} benchmark datasets closest to yours it was best
              ${n.wins} ${n.wins === 1 ? 'time' : 'times'}, typically ${n.medianGap.toFixed(3)} below the winner.</p>` : ''; })()}
@@ -320,10 +331,13 @@ function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftO
   if (home.forecast) {
     body = `<p class="sect-note">A Python script that forecasts ${esc(sig.target)} from its own past, on your whole file:
       each value predicted from the values before it, one step ahead, in time-ordered folds, never from a later row.
-      It runs ${run.length ? `${list(run)} from the cards above, ` : ''}tuned boosting on the last few changes, and two
-      ways of doing nothing (carrying the last value forward, and the average so far), so a model that cannot beat a
-      guess is plain to see.${notRun} The other columns are not used. The benchmark never measured forecasting, so this
-      run is the only evidence for any of these on your data. ${costNote} It needs pandas, scikit-learn and statsmodels.</p>`;
+      It runs ${run.length ? `${list(run)} from the cards above, ` : ''}tuned boosting on the last few changes, and ${
+      sig.series?.season ? 'three ways of doing nothing (carrying the last value forward, the value a season earlier, and the average so far)'
+        : 'two ways of doing nothing (carrying the last value forward, and the average so far)'}, so a model that cannot beat a
+      guess is plain to see.${notRun} The other columns are not used. ${T.FORECAST
+      ? `The forecasting benchmark ran these same functions on ${T.FORECAST.series} real series; this run is the evidence on yours.`
+      : 'The benchmark never measured forecasting, so this run is the only evidence for any of these on your data.'}${
+      sig.series?.season ? ` The dates give a season of ${sig.series.season} rows, and smoothing tries it.` : ''} ${costNote} It needs pandas, scikit-learn and statsmodels.</p>`;
   } else {
     const framing = home.framed
       ? `<p class="sect-note">The forecasting models above predict a number from its own past, and ${esc(sig.target)} is a

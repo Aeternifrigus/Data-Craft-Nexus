@@ -17,6 +17,7 @@
 import { matchCodes } from './profile.js';
 import { hasLearnedRanking, learnedScore, rankingFeatures, rankingNeighbours } from './ranking.js';
 import { forecastOrder } from './forecasting.js';
+import { anomalyOrder } from './anomalies.js';
 
 const STRUCTURE = ['A21', 'A22', 'A23', 'A24', 'A25', 'A26'];
 const MODALITY = ['A31', 'A32', 'A33', 'A34', 'A35', 'A36', 'A37', 'A38'];
@@ -66,6 +67,11 @@ export function conflict(model, sig) {
   // Croston's method and TSB forecast demand, which is never negative.
   if (['TSM4', 'TSM5'].includes(model.c) && sig.series && !sig.series.features.nonNegative) {
     return 'forecasts demand, which is never negative, and yours has negative values';
+  }
+  // Robust covariance fits a covariance to about half the rows, which needs
+  // comfortably more rows than columns (math AD5).
+  if (model.c === 'PR6' && sig.rows != null && sig.features != null && sig.rows <= 2 * sig.features) {
+    return `needs more than twice as many rows as columns, and yours has ${sig.rows} rows for ${sig.features} columns`;
   }
   // A forecaster reads only the target's own past (the take-home script uses
   // no other column), so what the other columns hold cannot rule it out.
@@ -147,19 +153,25 @@ function scored(list, codes, limit, T, sig, task, meta = null) {
   // data has in common with the model, which is worth reading even when it is
   // not what decides the order. A forecast is ordered by the forecasting
   // benchmark (forecasting.js), per kind of series when that earned its place.
-  const forecast = T && task === 'forecast' ? forecastOrder(T, sig?.series) : null;
-  const learned = !forecast && T && sig && task && hasLearnedRanking(T, task);
+  // Forecasts and anomalies have benchmarks of their own, each with its own order.
+  const measured = T && task === 'forecast' ? forecastOrder(T, sig?.series)
+    : T && task === 'anomaly' ? anomalyOrder(T, sig) : null;
+  const learned = !measured && T && sig && task && hasLearnedRanking(T, task);
   const features = learned ? rankingFeatures(sig) : null;
   const neighbours = learned ? rankingNeighbours(T, task, meta) : null;
 
   const ranked = list.map(x => {
     const own = x.data || x.fits;
     const hits = own.filter(d => codes.includes(d));
-    const evidence = forecast ? (forecast.prior[x.c] ?? null)
+    const evidence = measured ? (measured.prior[x.c] ?? null)
       : learned ? learnedScore(T, x, task, features, neighbours) : null;
     return { ...x, hits, score: hits.length, of: own.length, evidenceScore: evidence };
   });
-  return { ...ordered(ranked, limit, learned || Boolean(forecast)), forecast };
+  return {
+    ...ordered(ranked, limit, learned || Boolean(measured)),
+    forecast: task === 'forecast' ? measured : null,
+    anomaly: task === 'anomaly' ? measured : null,
+  };
 }
 
 // A reference the page shows before the order's first pick: tuned boosting,

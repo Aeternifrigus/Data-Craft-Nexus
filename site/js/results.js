@@ -15,6 +15,7 @@ import { costSentence, resolveCost } from './costs.js';
 import { codeTag, nameChip, plainFlowchart, plainReason } from './names.js';
 import { forecastSetup } from './series.js';
 import { describeSeries, forecastMetric, forecastNote, forecasterSentence } from './forecasting.js';
+import { anomalyNote, detectorSentence } from './anomalies.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
@@ -67,6 +68,7 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
 
   const provenance = rankingProvenance(T, task);
   const orderedBy = models.forecast ? forecastNote(T, models.forecast)
+    : models.anomaly ? anomalyNote(T, models.anomaly)
     : models.rankedBy === 'evidence' && provenance
     ? (provenance.chosen === 'prior_knn'
       ? ` Ordered by what each model was worth on ${provenance.datasets} benchmark datasets, weighted toward the ones most like yours, not by how many coordinates it matches.`
@@ -104,7 +106,8 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
         ${m.caution ? `<p class="rec-body caution">Caution. ${esc(m.caution)}</p>` : ''}
         ${(() => { const e = evidenceFor(T, m.c, task); return e
           ? `<p class="rec-body evidence">Measured. ${esc(evidenceSentence(e))}</p>` : ''; })()}
-        ${(() => { const f = models.forecast?.kind ? forecasterSentence(T, models.forecast.kind, m.c) : ''; return f
+        ${(() => { const f = models.forecast?.kind ? forecasterSentence(T, models.forecast.kind, m.c)
+          : models.anomaly?.kind ? detectorSentence(T, models.anomaly.kind, m.c) : ''; return f
           ? `<p class="rec-body evidence">Measured. ${esc(f)}</p>` : ''; })()}
         ${(() => { const n = neighbours.length ? performanceOn(neighbours, m.c) : null; return n
           ? `<p class="rec-body evidence">Nearby. On the ${n.datasets} benchmark datasets closest to yours it was best

@@ -40,6 +40,8 @@ def load_taxonomy(root: Path = ROOT) -> dict:
         # What the benchmarks measured, as the site reads it (taxonomy.js).
         "EVIDENCE": json.loads(evidence_path.read_text()) if evidence_path.exists() else None,
         "FORECAST": json.loads(forecast_path.read_text()) if forecast_path.exists() else None,
+        "ANOMALY": json.loads((root / "site" / "taxonomy" / "anomaly.json").read_text())
+        if (root / "site" / "taxonomy" / "anomaly.json").exists() else None,
         "AXES": axes["axes"], "CODES": axes["codes"],
         "MATH_DOMAINS": math["domains"], "MATH": math["formulas"],
         "MODEL_DOMAINS": models["domains"], "MODELS": models["models"],
@@ -78,6 +80,10 @@ def conflict(model: dict, sig: dict):
     series = sig.get("series")
     if model["c"] in ("TSM4", "TSM5") and series and not series["features"]["nonNegative"]:
         return "forecasts demand, which is never negative, and yours has negative values"
+    # Robust covariance needs comfortably more rows than columns (math AD5).
+    rows, features = sig.get("rows"), sig.get("features")
+    if model["c"] == "PR6" and rows is not None and features is not None and rows <= 2 * features:
+        return f"needs more than twice as many rows as columns, and yours has {rows} rows for {features} columns"
     # A forecaster reads only the target's own past, so the other columns cannot rule it out.
     if series and model.get("dom") == "Time series":
         return None
@@ -129,7 +135,8 @@ def rank_models(taxonomy: dict, sig: dict, task: str, limit: int = 4, ranking: d
     """`meta` is the dataset's meta-features (meta.py), which the neighbour order needs."""
     codes = match_codes(sig)
     ranking = ranking if ranking is not None else _ranking()
-    forecast = forecast_order(taxonomy, sig.get("series")) if task == "forecast" else None
+    forecast = (forecast_order(taxonomy, sig.get("series")) if task == "forecast"
+                else anomaly_order(taxonomy, sig) if task == "anomaly" else None)
     learned = forecast is None and has_learned_ranking(ranking, task)
     features = ranking_features(sig) if learned else {}
     neighbours = ranking_neighbours(ranking, task, meta) if learned else None
@@ -187,6 +194,17 @@ def forecast_order(taxonomy: dict, series: dict | None) -> dict | None:
     by_kind = forecast["chosen"] == "kind" and kind and forecast["kind_prior"].get(metric, {}).get(kind)
     return {"prior": by_kind or forecast["prior"][metric], "by": "kind" if by_kind else "fixed", "kind": kind,
             "metric": metric}
+
+
+def anomaly_order(taxonomy: dict, sig: dict) -> dict | None:
+    """The prior detectors are ordered by: per width of table when that passed its rule. Mirrors anomalyOrder()."""
+    anomaly = taxonomy.get("ANOMALY")
+    if not anomaly:
+        return None
+    columns = sig.get("features")
+    kind = None if columns is None else "low" if columns <= 10 else "high" if columns > 50 else "mid"
+    by_kind = anomaly["chosen"] == "kind" and kind and anomaly["kind_prior"]["auc"].get(kind)
+    return {"prior": by_kind or anomaly["prior"]["auc"], "by": "kind" if by_kind else "fixed", "kind": kind}
 
 
 # How the thing will run decides which drift checkers and pipelines can be

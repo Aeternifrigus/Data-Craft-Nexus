@@ -212,6 +212,7 @@
     }
    }
   },
+  "small_lead": null,
   "tasks": {
    "classification": {
     "datasets": 94,
@@ -13049,5 +13050,84 @@
    }
   },
   "how": "20 classification and 20 regression benchmark datasets, damaged on purpose and run again with every model: cells blanked at random, junk text in numeric columns, and training labels swapped for other rows' labels. Every model is scored on the true labels, and compared with its own score on the same dataset clean."
+ },
+ "checks": {
+  "how": "The page's own checks, run on every benchmark dataset as a user would upload it, and on the 40 datasets the messy-data benchmark damaged with one problem planted in each.",
+  "datasets": 195,
+  "fired": {
+   "leak": [
+    "560_bodyfat",
+    "cars",
+    "collins",
+    "irish",
+    "strogatz_vdp2"
+   ],
+   "id": [
+    "695_chatfield_4",
+    "churn",
+    "collins"
+   ],
+   "duplicates": [
+    "561_cpu",
+    "allbp",
+    "allhyper",
+    "allhypo",
+    "allrep",
+    "bupa",
+    "calendarDOW",
+    "dis",
+    "horse_colic_lesion_type",
+    "horse_colic_outcome",
+    "horse_colic_surgery",
+    "hypothyroid",
+    "irish",
+    "movement_libras",
+    "page_blocks",
+    "segmentation",
+    "spambase",
+    "spectf",
+    "titanic",
+    "wine_quality_red",
+    "wine_quality_white",
+    "yeast"
+   ]
+  },
+  "planted_on": 40,
+  "caught": {
+   "leak": 40,
+   "leak_1": 19,
+   "leak_5": 0,
+   "id_run": 40,
+   "id_code": 40,
+   "copies_2": 32
+  },
+  "leak_thresholds": {
+   "0.95": {
+    "clean": 14,
+    "leak": 39,
+    "leak_1": 38,
+    "leak_5": 16
+   },
+   "0.97": {
+    "clean": 9,
+    "leak": 39,
+    "leak_1": 38,
+    "leak_5": 1
+   },
+   "0.99": {
+    "clean": 5,
+    "leak": 39,
+    "leak_1": 19,
+    "leak_5": 0
+   }
+  },
+  "planted": {
+   "leak": "the target under another name",
+   "leak_1": "the target under another name, 1% of rows changed",
+   "leak_5": "the target under another name, 5% of rows changed",
+   "id_run": "the row numbers, shuffled",
+   "id_code": "a short random code per row",
+   "copies_2": "2% of the rows copied"
+  }
  }
 }

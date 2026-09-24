@@ -179,6 +179,10 @@ The drift checkers get a benchmark of their own (`bench/dcn/drift.py`): 18 real 
 
 It also found five defects, now fixed: six drift cards linked to the wrong function, error drift claimed to work without labels, mixed tables (most real files) were never offered a distribution test, SciPy's Cramér-von Mises test calls two samples of one mostly-zero column different at p < 10⁻⁹, and river's FHDDM, fed errors as its documentation says, fires when the model gets better. The full table is in the evidence tab and in [`bench/README.md`](bench/README.md#drift-checkers).
 
+### What the checks catch
+
+The first section of the results, **Before you trust a score**, was measured the same way: on the 195 benchmark datasets as a user would upload them, and on 40 of them with a problem planted. It caught the target renamed or rescaled in 40 of 40, shuffled row numbers and random row codes in 40 of 40, and 2% of rows copied in 32 of 40. On clean data its flags are mostly real: body fat computed from density, a phone number in a churn table, and 22 datasets with more copied rows than chance, the thyroid and wine quality tables among them. It cannot catch a leak with a few percent of mistakes in it (0 of 40 at 5%), and it looks at one column at a time. Details in [`bench/README.md`](bench/README.md#before-you-trust-a-score).
+
 ### Not done yet
 
 - **Only boosting was tuned.** The page puts tuned boosting first because it beat the order's first pick, but the families below it are still ranked by what they were worth at their defaults. Tuning each of them the same way, and ranking them on that, would need a run the size of the tuned one for every family.

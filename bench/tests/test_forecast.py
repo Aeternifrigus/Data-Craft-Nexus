@@ -72,5 +72,22 @@ def test_the_benchmark_runs_the_script_the_page_writes():
 @pytest.mark.skipif(not RESULTS.exists(), reason="the forecasting run has not been committed")
 def test_the_published_evidence_is_the_committed_run(tmp_path):
     out = tmp_path / "forecast.json"
-    forecast_learn.main(["--results", str(RESULTS), "--out", str(out), "--report", str(tmp_path / "lodo.csv")])
+    second = ROOT / "bench" / "results" / "forecast-2.csv"
+    forecast_learn.main(["--results", str(RESULTS), "--out", str(out), "--report", str(tmp_path / "lodo.csv"),
+                         *(["--confirm", str(second), "--confirm-report", str(tmp_path / "picks.csv")]
+                           if second.exists() else [])])
     assert json.loads(out.read_text()) == json.loads((ROOT / "site" / "taxonomy" / "forecast.json").read_text())
+
+
+def test_the_confirmation_judges_frozen_orders_on_new_collections_only():
+    """The orders are fitted on the first run alone, so nothing the second run holds can shape them."""
+    first = forecast_learn.load(RESULTS) if RESULTS.exists() else None
+    if first is None:
+        pytest.skip("the forecasting run has not been committed")
+    frozen = forecast_learn.frozen_orders(first)
+    assert max(frozen["r2"]["kind"]["intermittent"], key=frozen["r2"]["kind"]["intermittent"].get) == "TSM5"
+    assert max(frozen["r2"]["fixed"], key=frozen["r2"]["fixed"].get) == "TSM2"
+    published = json.loads((ROOT / "site" / "taxonomy" / "forecast.json").read_text())
+    for metric in forecast_learn.METRICS:
+        assert published["prior"][metric] == {c: round(v, 4) for c, v in sorted(frozen[metric]["fixed"].items())}
+

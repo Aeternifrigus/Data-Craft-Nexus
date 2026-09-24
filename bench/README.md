@@ -822,8 +822,48 @@ each card says how often it was the best on the upload's kind of series, and
 when the kind order would have put a different forecaster first, the note
 above the cards says which, how often it won, and why the order did not
 change. The rule is not loosened after the fact: a follow-up run with enough
-collections of intermittent demand for the orders to disagree in at least six,
+collections of intermittent demand for the orders to disagree in more of them,
 declared before it runs, is what would change the order.
+
+### Forecasting, second run: declared before it ran
+
+The first run could not decide, for want of collections where the two orders
+disagree. This run is built to decide, and nothing about the orders or the rule
+is changed for it.
+
+- **What is tested**: the two orders exactly as the first run fitted them,
+  frozen (`frozen_orders()` refits them from `results/forecast.csv` alone, so
+  nothing here can leak into them). On a series the page reads as intermittent
+  the kind order puts TSB first, by R² and by mean absolute error, and the fixed
+  order puts exponential smoothing first; on every other kind they agree.
+- **The series**: up to 20 per collection, drawn with a fixed seed from the
+  series the page reads as intermittent (the most recent 200 values; the kind is
+  measured on those, with dates at the collection's step), from nine public
+  sources the first run never saw: daily departures on each New York route
+  (nycflights13), weekly syphilis cases per US state (ZIM), US births of each
+  rarer name per year since 1950 (babynames), daily trips of ten Citi Bikes
+  (tsibbledata), US police officers killed on duty per state and month
+  (fivethirtyeight), yearly cases of seven diseases per US state (dslabs), monthly
+  ratings of each film on MovieLens (dslabs), weekly purchases of each CDNOW
+  customer (lifetimes), and Atlantic storms active each month by status (dplyr).
+  Each is its own unit: nine units, 137 series. Two collections hold fewer than
+  20 intermittent series (US diseases 2, storms 7) and give all they have.
+- **The rule** is `choose()` unchanged, applied by `confirm()` to the new units
+  only: the kind order replaces the fixed one only if its median regret over
+  units is no worse under either score and it is better by more than luck under
+  at least one (paired Wilcoxon, Holm over the two scores, more wins than
+  losses). With Holm over two scores, seven units that all go one way are the
+  fewest that can pass; nine leave room for a loss or two.
+- **What follows**: this run's verdict replaces the first run's as the one the
+  page follows. If it passes, the page orders forecasters by kind, using the
+  frozen first-run orders, which are what was tested. If it fails, the fixed
+  order stays, and the evidence tab says the kind was tested twice and did not
+  earn it.
+
+```bash
+python -m dcn.forecast --run 2 --out results/forecast-2.csv
+python -m dcn.forecast_learn --results results/forecast.csv --confirm results/forecast-2.csv
+```
 
 ## What is in results/
 
@@ -849,9 +889,8 @@ declared before it runs, is what would change the order.
 
 - run TabPFN-2 or later (`tools/run_tabpfn.sh`, with a Prior Labs login),
   judged by the same rule TabPFN-1 was
-- a second forecasting run with enough collections of intermittent demand
-  for the kind order and the fixed one to disagree in at least six, declared
-  before it runs, and tuned boosting on recent changes in it
+- tuned boosting on recent changes, the script's reference, in a forecasting
+  run
 - tune every family the way boosting was tuned, and rank them on that: the
   page puts tuned boosting first, but ranks the rest at their defaults
 - weight a synthetic family once when fitting the prior, declared before the

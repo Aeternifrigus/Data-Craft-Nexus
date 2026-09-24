@@ -25,7 +25,14 @@ it is better by more than luck under at least one: paired Wilcoxon over units,
 Holm-corrected over the two scores, more wins than losses. It is the rule every
 other change of order on the page has had to pass.
 
-  python -m dcn.forecast_learn --results results/forecast.csv
+The first run could not decide: the orders disagree only on intermittent
+demand, which came from four collections, and four cannot give Wilcoxon a p
+below 0.125. The confirmation run (confirm(), bench/README.md "Forecasting,
+second run") freezes both orders as the first run fitted them and judges them
+on intermittent series from nine collections the first run never saw, by the
+same rule. Its verdict is the one the page follows.
+
+  python -m dcn.forecast_learn --results results/forecast.csv --confirm results/forecast-2.csv
 """
 from __future__ import annotations
 
@@ -150,6 +157,36 @@ def choose(per_series: pd.DataFrame) -> dict:
     }
 
 
+def frozen_orders(frame: pd.DataFrame) -> dict:
+    """Both orders as the first run fits them on all of its series, per score."""
+    out = {}
+    for metric in METRICS:
+        table = wide(frame, metric)
+        table = table[table[[c for c in CANDIDATES if c in table]].notna().sum(axis=1) >= 2]
+        ranks = targets(table)
+        fixed = fit_fixed(ranks)
+        out[metric] = {"fixed": fixed, "kind": fit_kind(ranks, fixed)}
+    return out
+
+
+def confirm(first: pd.DataFrame, second: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
+    """The confirmation run: both orders frozen from the first run, judged on the second run's collections."""
+    orders = frozen_orders(first)
+    rows = []
+    for metric in METRICS:
+        table = wide(second, metric)
+        table = table[table[[c for c in CANDIDATES if c in table]].notna().sum(axis=1) >= 2]
+        fixed, kind = orders[metric]["fixed"], orders[metric]["kind"]
+        for strategy, order in (("fixed", lambda cell: fixed), ("kind", lambda cell: kind.get(cell, fixed))):
+            chosen = pick(table, order)
+            for (dataset, unit, series, cell), gap in regret(table, metric, chosen, second).items():
+                rows.append({"metric": metric, "strategy": strategy, "dataset": dataset, "unit": unit,
+                             "series": series, "cell": cell, "pick": chosen[(dataset, unit, series, cell)],
+                             "regret": gap})
+    per_series = pd.DataFrame(rows)
+    return choose(per_series), per_series
+
+
 def per_kind(frame: pd.DataFrame, per_series: pd.DataFrame) -> dict:
     """What happened on each kind of series: who won, how often nothing beat every model, what each order cost."""
     out = {}
@@ -182,7 +219,8 @@ def per_kind(frame: pd.DataFrame, per_series: pd.DataFrame) -> dict:
     return out
 
 
-def export(frame: pd.DataFrame, decision: dict, kinds: dict, per_series: pd.DataFrame, out: Path) -> dict:
+def export(frame: pd.DataFrame, decision: dict, kinds: dict, per_series: pd.DataFrame, out: Path,
+           confirmation: dict | None = None) -> dict:
     """Fit both orders on every series and write what the page reads."""
     priors, kind_priors = {}, {}
     for metric in METRICS:
@@ -198,9 +236,12 @@ def export(frame: pd.DataFrame, decision: dict, kinds: dict, per_series: pd.Data
         units = unit_regret(per_series, metric)
         summary[metric] = {s: round(float(units[s].median()), 4) for s in units.columns}
     series = frame.drop_duplicates(["dataset", "series"])
+    # The confirmation run's verdict, when there is one, is what the page follows.
+    verdict = confirmation["decision"]["replaced"] if confirmation else decision["replaced"]
     payload = {
         "version": 1,
-        "chosen": "kind" if decision["replaced"] else "fixed",
+        "chosen": "kind" if verdict else "fixed",
+        "confirmation": confirmation,
         "decision": decision,
         "fixed_before": "the kinds, their thresholds, KIND_STRENGTH and the rule were committed before the run",
         "thresholds": {"intermittent_adi": INTERMITTENT_ADI, "lumpy_cv2": LUMPY_CV2, "strength": STRENGTH,
@@ -224,6 +265,8 @@ def main(argv=None) -> int:
     ap.add_argument("--results", default="results/forecast.csv")
     ap.add_argument("--out", default=str(ROOT / "site" / "taxonomy" / "forecast.json"))
     ap.add_argument("--report", default="results/forecast-lodo.csv")
+    ap.add_argument("--confirm", default=None, help="the confirmation run's results (results/forecast-2.csv)")
+    ap.add_argument("--confirm-report", default="results/forecast-2-picks.csv")
     args = ap.parse_args(argv)
 
     frame = load(Path(args.results))
@@ -243,8 +286,30 @@ def main(argv=None) -> int:
         print(f"{cell:15} {entry['series']:4} series, {entry['units']:2} units, best {entry['best_share']}, "
               f"nothing beat every model on {entry['nothing_beat_every_model']:.0%}")
 
+    confirmation = None
+    if args.confirm and Path(args.confirm).exists():
+        second = load(Path(args.confirm))
+        verdict, picks = confirm(frame, second)
+        seen = second.drop_duplicates(["dataset", "series"])
+        print(f"\nconfirmation: {len(seen)} series from {seen.dataset.nunique()} new collections "
+              f"({seen.unit.nunique()} units), both orders frozen from the first run")
+        for metric, d in verdict["metrics"].items():
+            print(f"{metric:4} kind vs fixed: better on {d['wins']}, worse on {d['losses']}, tied {d['ties']} units, "
+                  f"p = {d['p_holm']:.3g} (Holm); median unit regret {d['median_regret']}")
+        print(f"kind {'replaces' if verdict['replaced'] else 'does not replace'} fixed")
+        confirmation = {
+            "decision": verdict,
+            "series": int(len(seen)), "units": int(seen.unit.nunique()),
+            "collections": sorted(seen.dataset.unique().tolist()),
+            "per_kind": per_kind(second, picks),
+            "per_unit": {m: {u: {s: round(float(v), 4) for s, v in row.items()}
+                             for u, row in unit_regret(picks, m).iterrows()} for m in METRICS},
+            "runs": int(len(second)),
+        }
+        picks.to_csv(args.confirm_report, index=False)
+
     per_series.to_csv(args.report, index=False)
-    export(frame, decision, kinds, per_series, Path(args.out))
+    export(frame, decision, kinds, per_series, Path(args.out), confirmation)
     print(f"\nwrote {args.out} and {args.report}")
     return 0
 

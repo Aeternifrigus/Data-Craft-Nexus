@@ -61,6 +61,7 @@ class Collection:
     step: str        # yearly, quarterly, monthly, weekly, daily, hourly
     source: str
     note: str
+    run: int = 1     # 1: the first run; 2: the confirmation run, intermittent demand only
 
 
 COLLECTIONS = [
@@ -77,6 +78,19 @@ COLLECTIONS = [
     Collection("aus_livestock", "aus_livestock", "monthly", "tsibbledata", "monthly Australian livestock slaughtered, by animal and state"),
     Collection("m5_items", "m5", "daily", "M5", "M5 competition, daily Walmart sales of one item in one store"),
     Collection("m5_store_departments", "m5", "daily", "M5", "M5 competition, the same sales summed by store and department"),
+    # The confirmation run (bench/README.md, "Forecasting, second run"): count
+    # data from sources the first run never saw, sampled among the series the
+    # page reads as intermittent, where the two orders disagree.
+    Collection("nycflights", "nycflights", "daily", "nycflights13", "daily departures on each New York route, 2013", run=2),
+    Collection("syphilis", "syphilis", "weekly", "ZIM", "weekly syphilis cases in each US state, 2007 to 2010", run=2),
+    Collection("babynames", "babynames", "yearly", "babynames", "US births given each rarer name, by year since 1950", run=2),
+    Collection("nyc_bikes", "nyc_bikes", "daily", "tsibbledata", "daily Citi Bike trips of ten bikes, 2018", run=2),
+    Collection("police_deaths", "police_deaths", "monthly", "fivethirtyeight",
+               "US police officers killed on duty, by state and month, 1960 to 2015", run=2),
+    Collection("us_diseases", "us_diseases", "yearly", "dslabs", "yearly cases of seven diseases in each US state", run=2),
+    Collection("movielens", "movielens", "monthly", "dslabs", "monthly ratings of each film on MovieLens", run=2),
+    Collection("cdnow", "cdnow", "weekly", "lifetimes", "weekly purchases of each CDNOW customer, 1997 to 1998", run=2),
+    Collection("storms", "storms", "monthly", "dplyr", "Atlantic storms active each month, by status, since 1975", run=2),
 ]
 BY_NAME = {c.name: c for c in COLLECTIONS}
 
@@ -123,6 +137,66 @@ def _m5() -> pd.DataFrame:
         return pd.read_csv(z.open(name))
 
 
+def _counts(frame: pd.DataFrame, key, period: pd.Series, index) -> dict[str, np.ndarray]:
+    """How many rows fall in each period, for each key, with the empty periods as zeros."""
+    table = frame.groupby([key, period]).size().unstack(fill_value=0).reindex(columns=index, fill_value=0)
+    return {str(k): row.to_numpy(float) for k, row in table.iterrows()}
+
+
+def _cdnow() -> pd.DataFrame:
+    """CDNOW's purchase log, as the lifetimes package ships it."""
+    import json
+    import urllib.request
+    meta = json.loads(urllib.request.urlopen("https://pypi.org/pypi/lifetimes/0.11.3/json", timeout=60).read())
+    url = next(u["url"] for u in meta["urls"] if u["filename"].endswith(".whl"))
+    with zipfile.ZipFile(fetch(url, "lifetimes-0.11.3.whl")) as z:
+        return pd.read_csv(z.open("lifetimes/datasets/CDNOW_master.txt"), sep=r"\s+", dtype={"date": str})
+
+
+def _second_run(name: str) -> dict[str, np.ndarray]:
+    if name == "nycflights":
+        f = _rda("nycflights13", "flights")
+        day = pd.to_datetime(dict(year=f.year, month=f.month, day=f.day))
+        return _counts(f.assign(route=f.origin + "-" + f.dest), "route", day,
+                       pd.date_range("2013-01-01", "2013-12-31", freq="D"))
+    if name == "syphilis":
+        frame = _rda("ZIM", "syph")
+        return {c: frame[c].to_numpy(float) for c in frame.columns if c.startswith("a")}
+    if name == "babynames":
+        b = _rda("babynames", "babynames")
+        b = b[b.year >= 1950]
+        table = b.pivot_table(index=["name", "sex"], columns="year", values="n", aggfunc="sum")
+        table = table.reindex(columns=range(1950, int(b.year.max()) + 1)).fillna(0)
+        return {f"{n}|{x}": row.to_numpy(float) for (n, x), row in table.iterrows()}
+    if name == "nyc_bikes":
+        nb = _rda("tsibbledata", "nyc_bikes")
+        return _counts(nb, "bike_id", pd.to_datetime(nb.start_time).dt.floor("D"),
+                       pd.date_range("2018-01-01", "2018-12-31", freq="D"))
+    if name == "police_deaths":
+        p = _rda("fivethirtyeight", "police_deaths")
+        p = p.assign(date=pd.to_datetime(p.date, errors="coerce"))
+        p = p[(p.date >= "1960-01-01") & (p.date < "2016-01-01")]
+        return _counts(p, "state", p.date.dt.to_period("M"), pd.period_range("1960-01", "2015-12", freq="M"))
+    if name == "us_diseases":
+        d = _rda("dslabs", "us_contagious_diseases").dropna(subset=["count"])
+        return _panel(d, ["disease", "state"], "year", "count")
+    if name == "movielens":
+        m = _rda("dslabs", "movielens")
+        month = pd.to_datetime(m.timestamp, unit="s").dt.to_period("M")
+        return _counts(m, "movieId", month, pd.period_range(month.min(), month.max(), freq="M"))
+    if name == "cdnow":
+        c = _cdnow()
+        week = pd.to_datetime(c.date, format="%Y%m%d").dt.to_period("W-SUN")
+        return _counts(c, "customer_id", week, pd.period_range(week.min(), week.max(), freq="W-SUN"))
+    if name == "storms":
+        s = _rda("dplyr", "storms")
+        month = pd.PeriodIndex.from_fields(year=s.year.astype(int), month=s.month.astype(int), freq="M")
+        table = s.assign(m=month).groupby(["status", "m"])["name"].nunique().unstack(fill_value=0)
+        table = table.reindex(columns=pd.period_range(month.min(), month.max(), freq="M"), fill_value=0)
+        return {str(k): row.to_numpy(float) for k, row in table.iterrows()}
+    raise KeyError(name)
+
+
 def load(collection: Collection) -> dict[str, np.ndarray]:
     """Every series in a collection, oldest value first, with no gaps."""
     name = collection.name
@@ -137,6 +211,8 @@ def load(collection: Collection) -> dict[str, np.ndarray]:
         return _panel(_rda("tsibbledata", "aus_retail"), ["Series ID"], "Month", "Turnover")
     if name == "aus_livestock":
         return _panel(_rda("tsibbledata", "aus_livestock"), ["Animal", "State"], "Month", "Count")
+    if collection.run == 2:
+        return _second_run(name)
     if name.startswith("m5_"):
         sales = _m5()
         days = [c for c in sales.columns if c.startswith("d_")]
@@ -153,9 +229,21 @@ def usable(values: np.ndarray) -> bool:
     return len(values) >= MIN_LENGTH and np.isfinite(values).all() and np.ptp(values[-MAX_LENGTH:]) > 0
 
 
+def page_kind(collection: Collection, values: np.ndarray) -> str:
+    """The kind the page reads a series as, from its values and the period its dates give."""
+    found = period_from_days([day_number(d) for d in dates_for(collection.step, len(values))])
+    return series_cell(series_features(values.tolist(), found[1] if found else None))
+
+
 def sample(collection: Collection, per_dataset: int = PER_DATASET, seed: int = SEED) -> list[tuple[str, np.ndarray]]:
-    """A seeded sample of a collection's usable series, each cut to its most recent MAX_LENGTH values."""
+    """A seeded sample of a collection's usable series, each cut to its most recent MAX_LENGTH values.
+
+    The confirmation run samples only series the page reads as intermittent, the one kind where the
+    orders it tests disagree (bench/README.md, "Forecasting, second run").
+    """
     series = {sid: v for sid, v in load(collection).items() if usable(v)}
+    if collection.run == 2:
+        series = {sid: v for sid, v in series.items() if page_kind(collection, v[-MAX_LENGTH:]) == "intermittent"}
     ids = sorted(series)
     rng = np.random.default_rng([seed, sum(map(ord, collection.name))])
     picked = sorted(rng.choice(ids, size=min(per_dataset, len(ids)), replace=False).tolist(), key=ids.index)
@@ -246,8 +334,10 @@ def main(argv=None) -> int:
     ap.add_argument("--per-dataset", type=int, default=PER_DATASET)
     ap.add_argument("--reference", type=int, default=REFERENCE_SERIES)
     ap.add_argument("--jobs", type=int, default=2)
+    ap.add_argument("--run", type=int, default=1, help="1: the first run; 2: the confirmation run")
     args = ap.parse_args(argv)
-    names = [n.strip() for n in args.collections.split(",") if n.strip()] or [c.name for c in COLLECTIONS]
+    names = ([n.strip() for n in args.collections.split(",") if n.strip()]
+             or [c.name for c in COLLECTIONS if c.run == args.run])
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)

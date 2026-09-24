@@ -10,6 +10,8 @@ river==0.26.1   # its detectors run at their defaults, which are part of what is
 # ARIMA and exponential smoothing: the take-home script's forecasts, which the
 # tests run (site/js/export.js).
 statsmodels>=0.14
+# The forecasting benchmark's collections that come as R data files (dcn/forecast.py).
+pyreadr>=0.5
 
 # Optional, added to the field of models when present.
 lightgbm>=4.0

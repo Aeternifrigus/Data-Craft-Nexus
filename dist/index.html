@@ -122,15 +122,16 @@ a.sig-link:hover{border-bottom:none}
   min-height:122px;display:flex;flex-direction:column;justify-content:space-between;
 }
 .slot:last-child{border-right:none}
-.slot-code{
-  font-size:27px;font-weight:500;letter-spacing:.02em;
+.slot-val{
+  font-size:16px;font-weight:500;line-height:1.3;overflow-wrap:break-word;
   color:var(--dim);transition:color .35s ease;
 }
-.slot.filled .slot-code{color:var(--chrome)}
-.slot-axis{font-size:10.5px;color:var(--dim);line-height:1.5;letter-spacing:.03em}
-.slot-val{font-size:11.5px;color:var(--ink);line-height:1.5;min-height:2.2em;opacity:0;transition:opacity .4s ease}
-.slot.filled .slot-val{opacity:1}
-.slot.declared .slot-code{color:var(--amber)}
+.slot.filled .slot-val{color:var(--chrome)}
+.slot.declared .slot-val{color:var(--amber)}
+.slot-extra{display:block;font-size:11.5px;font-weight:400;color:var(--ink);margin-top:4px}
+.slot-axis{font-size:10.5px;color:var(--dim);line-height:1.5;letter-spacing:.03em;margin-top:10px}
+.slot-code{color:var(--ink)}
+.slot-code:not(:empty)::after{content:' · ';color:var(--dim)}
 
 /* intake */
 .intake{padding:36px 0 72px}
@@ -192,13 +193,14 @@ select.opt{color:var(--ink);padding-right:28px}
 .rec{border-top:1px solid var(--rule);padding:26px 0;display:grid;
   grid-template-columns:96px 1fr;gap:26px;align-items:start}
 .rec:last-child{border-bottom:1px solid var(--rule)}
-.rec-code{font-size:19px;font-weight:500;color:var(--chrome);cursor:pointer;line-height:1.3}
-.rec-code:hover{color:var(--ink)}
-.rec-code-plain{cursor:default}
-.rec-code-plain:hover{color:var(--chrome)}
+.rec-code{font-size:11.5px;font-weight:400;color:var(--dim);cursor:pointer;line-height:1.3;letter-spacing:.04em;
+  display:inline-block;border-bottom:1px dotted var(--rule)}
+.rec-code:hover{color:var(--chrome);border-bottom-color:var(--chrome)}
+.rec-code-plain{cursor:default;border-bottom:none}
+.rec-code-plain:hover{color:var(--dim)}
 .rec.lead{border-top:2px solid var(--chrome)}
 .rec.lead .rec-rank{color:var(--chrome)}
-.rec.lead .rec-code{font-size:13px;word-break:break-all}
+.rec.lead .rec-code{word-break:break-all}
 .rec-rank{font-size:11px;color:var(--dim);margin-top:2px}
 .rec-rank-sub{display:block;font-size:10px;color:var(--rule);margin-top:2px}
 .rec-name{font-size:17px;color:var(--ink);margin-bottom:7px}
@@ -226,7 +228,7 @@ select.opt{color:var(--ink);padding-right:28px}
 .takehome-fine{font-size:12px;margin-top:12px}
 .verify{margin-top:18px}
 .verify-status{color:var(--ink);font-size:13px;line-height:1.7;max-width:72ch;margin-bottom:12px}
-.verify-table .rec-code{font-size:12.5px;display:inline;margin-right:8px;cursor:default}
+.verify-table .rec-code{display:inline;margin-left:6px;cursor:default;border-bottom:none}
 
 /* an upload outside what the benchmark tested */
 .coverage{border-left:2px solid var(--amber);background:rgba(224,164,88,.06);
@@ -275,7 +277,7 @@ select.opt{color:var(--ink);padding-right:28px}
 .cd-axis{border-bottom:1px solid var(--rule);color:var(--dim);font-size:11px}
 .cd-label,.cd-val{padding:4px 0;align-self:center}
 .cd-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cd-label .rec-code{font-size:12px;display:inline;margin-right:6px}
+.cd-label .rec-code{display:inline;margin-left:6px}
 .cd-track{position:relative;min-height:26px;margin:0 6px}
 .cd-axis .cd-track{min-height:22px}
 .cd-tick{position:absolute;top:4px;transform:translateX(-50%);font-size:10.5px}
@@ -344,7 +346,7 @@ ul.ruled li{
   font-size:12.5px;color:var(--dim);line-height:1.8;
   padding:9px 0;border-bottom:1px solid var(--rule);
 }
-ul.ruled .rec-code{font-size:12.5px;display:inline;margin-right:8px}
+ul.ruled .rec-code{display:inline;margin-left:2px}
 
 /* library */
 .lib-group{margin-bottom:38px}
@@ -390,8 +392,8 @@ ul.ruled .rec-code{font-size:12.5px;display:inline;margin-right:8px}
   cursor:pointer;float:right;line-height:1;padding:0 2px;
 }
 .drawer-x:hover{color:var(--ink)}
-.d-code{font-size:26px;font-weight:500;color:var(--chrome);margin-bottom:3px}
-.d-name{font-family:'Instrument Serif',serif;font-size:23px;margin-bottom:18px;line-height:1.25}
+.d-name{font-family:'Instrument Serif',serif;font-size:26px;margin-bottom:4px;line-height:1.2}
+.d-code{font-size:11.5px;color:var(--dim);letter-spacing:.04em;margin-bottom:18px}
 .d-formula{
   background:var(--ground);border:1px solid var(--rule);padding:14px 16px;
   font-size:14px;color:var(--chrome);overflow-x:auto;margin-bottom:20px;
@@ -415,6 +417,7 @@ footer .sig{font-size:27px}
 
 @media (max-width:820px){
   .readout{grid-template-columns:repeat(3,1fr)}
+  .slot-val{font-size:13.5px}
   .slot:nth-child(3){border-right:none}
   .slot:nth-child(-n+3){border-bottom:1px solid var(--rule)}
   .qrow{grid-template-columns:1fr;gap:12px}
@@ -452,8 +455,8 @@ footer .sig{font-size:27px}
     <h1 class="hero-lede">Every dataset has <em>coordinates</em>.</h1>
     <p class="hero-sub">
       Feed it a snippet. It reads six axes, returns a signature, and prescribes the models,
-      drift checkers, and pipelines that fit those coordinates. Every code is clickable, down to the
-      formula underneath. Then take the shortlist home as a Python script, or run it here in your browser.
+      drift checkers, and pipelines that fit those coordinates. Every name opens its definition, down to
+      the formula underneath. Then take the shortlist home as a Python script, or run it here in your browser.
     </p>
 
     <div class="readout" id="readout"></div>
@@ -1266,6 +1269,49 @@ footer .sig{font-size:27px}
     };
   }
 
+  // site/js/names.js
+  var ATTR = {
+    code: "data-code",
+    math: "data-math",
+    stage: "data-stage",
+    pipeline: "data-pipeline",
+    model: "data-model",
+    drift: "data-drift"
+  };
+  function nameOf(T, kind, code) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
+    switch (kind) {
+      case "code":
+        return (_b = (_a = T.CODES[code]) == null ? void 0 : _a.name) != null ? _b : null;
+      case "math":
+        return (_d = (_c = T.MATH[code]) == null ? void 0 : _c.name) != null ? _d : null;
+      case "stage":
+        return (_f = (_e = T.STAGES[code]) == null ? void 0 : _e.name) != null ? _f : null;
+      case "pipeline":
+        return (_h = (_g = T.PIPELINES.find((p) => p.c === code)) == null ? void 0 : _g.n) != null ? _h : null;
+      case "model":
+        return (_j = (_i = T.MODELS.find((m) => m.c === code)) == null ? void 0 : _i.n) != null ? _j : null;
+      case "drift":
+        return (_l = (_k = T.DRIFTS.find((d) => d.c === code)) == null ? void 0 : _k.n) != null ? _l : null;
+      default:
+        return null;
+    }
+  }
+  var hover = (code) => `${code}: click for the definition`;
+  function nameChip(T, kind, code, { cls = "", lower = false } = {}) {
+    var _a;
+    const name = (_a = nameOf(T, kind, code)) != null ? _a : code;
+    return `<span class="chip${cls}" ${ATTR[kind]}="${esc(code)}" title="${esc(hover(code))}">${esc(lower ? name.toLowerCase() : name)}</span>`;
+  }
+  function codeTag(kind, code, cls = "rec-code") {
+    return `<span class="${cls}" ${ATTR[kind]}="${esc(code)}" title="${esc(hover(code))}">${esc(code)}</span>`;
+  }
+  var plainFlowchart = (text) => String(text).replace(/(["[{(])PL-S\d+\s+/g, "$1");
+  var plainReason = (T, text) => String(text).replace(/\bA\d\d\b/g, (code) => {
+    var _a, _b;
+    return (_b = (_a = T.CODES[code]) == null ? void 0 : _a.name.toLowerCase()) != null ? _b : code;
+  });
+
   // site/js/evidence.js
   var pct = (x) => `${Math.round(Math.round(x * 1e3) / 10)}%`;
   var num = (x, digits = 3) => x == null || Number.isNaN(x) ? "\u2014" : x.toFixed(digits);
@@ -1322,7 +1368,7 @@ footer .sig{font-size:27px}
     <tbody>${Object.entries(drift.checkers).map(([code, m]) => {
       var _a, _b;
       return `<tr>
-      <td><span class="rec-code" data-drift="${esc(code)}">${esc(code)}</span> ${esc((_a = names[code]) != null ? _a : code)}
+      <td>${esc((_a = names[code]) != null ? _a : code)} ${codeTag("drift", code)}
         <span class="ev-sub">sees ${esc((_b = DRIFT_SEES[m.sees]) != null ? _b : m.sees)}</span></td>
       <td>${pct(m.false_alarm)}</td>
       ${scenarios.map((s) => `<td>${pct(m.caught[s])}</td>`).join("")}
@@ -1348,7 +1394,7 @@ footer .sig{font-size:27px}
     <p class="sect-note" style="margin-top:14px">Not measured:</p>
     <ul class="ruled">${Object.entries(drift.not_measured).map(([code, why]) => {
       var _a2;
-      return `<li><span class="rec-code" data-drift="${esc(code)}">${esc(code)}</span> ${esc((_a2 = names[code]) != null ? _a2 : code)}: ${esc(why)}</li>`;
+      return `<li>${esc((_a2 = names[code]) != null ? _a2 : code)} ${codeTag("drift", code)}: ${esc(why)}</li>`;
     }).join("")}</ul>`;
   }
   var MESSY_CONDITIONS = {
@@ -1675,7 +1721,7 @@ footer .sig{font-size:27px}
       const name = (_a = names[code]) != null ? _a : code;
       const tip = `${code} ${name}: average rank ${rank.toFixed(2)}, ` + (inBand ? "within the critical difference of the best" : "separated from the best");
       return `<div class="cd-row" role="row" title="${esc(tip)}">
-        <div class="cd-label" role="cell">${code.startsWith("BASE-") ? `<span class="rec-code">${esc(code)}</span>` : `<span class="rec-code" data-model="${esc(code)}">${esc(code)}</span>`} ${esc(name)}</div>
+        <div class="cd-label" role="cell">${esc(name)} ${code.startsWith("BASE-") ? `<span class="rec-code">${esc(code)}</span>` : codeTag("model", code)}</div>
         <div class="cd-track" aria-hidden="true">
           <span class="cd-band" style="left:${bandLeft.toFixed(2)}%;width:${bandWidth.toFixed(2)}%"></span>
           <span class="cd-dot ${inBand ? "in" : "out"}" style="left:${pos(rank).toFixed(2)}%"></span>
@@ -1725,7 +1771,7 @@ footer .sig{font-size:27px}
     <thead><tr><th>model</th><th>task</th><th>was best</th><th>shown first</th>
       <th>median regret</th><th>median seconds</th></tr></thead>
     <tbody>${rows.map((r) => `<tr>
-      <td><span class="rec-code" data-model="${esc(r.code)}">${esc(r.code)}</span> ${esc(r.name)}</td>
+      <td>${esc(r.name)} ${codeTag("model", r.code)}</td>
       <td>${esc(r.task)}</td>
       <td>${r.was_best} of ${r.datasets}</td>
       <td>${r.recommended_first}</td>
@@ -1734,16 +1780,19 @@ footer .sig{font-size:27px}
     </tr>`).join("")}</tbody>
   </table>`;
   }
-  function datasetTable(datasets) {
+  function datasetTable(datasets, T) {
     return `<table class="ev-table">
     <thead><tr><th>dataset</th><th>shape</th><th>signature</th>
       <th>best model</th><th>shown first</th><th>boosting</th></tr></thead>
     <tbody>${datasets.map((d) => `<tr>
       <td>${esc(d.dataset)}<span class="ev-sub">${esc(d.task)}</span></td>
       <td>${d.rows} \xD7 ${d.features}</td>
-      <td class="ev-sig">${d.signature.split(" ").map((c) => `<span class="chip" data-code="${esc(c)}">${esc(c)}</span>`).join("")}</td>
-      <td><span class="rec-code" data-model="${esc(d.best.model)}">${esc(d.best.model)}</span> ${num(d.best.score)}</td>
-      <td><span class="rec-code" data-model="${esc(d.first.model)}">${esc(d.first.model)}</span> ${num(d.first.score)}
+      <td class="ev-sig">${d.signature.split(" ").map((c) => {
+      var _a, _b;
+      return `<span class="chip" data-code="${esc(c)}" title="${esc((_b = (_a = T == null ? void 0 : T.CODES[c]) == null ? void 0 : _a.name) != null ? _b : c)}">${esc(c)}</span>`;
+    }).join("")}</td>
+      <td><span class="rec-code" data-model="${esc(d.best.model)}" title="${esc(d.best.name)}">${esc(d.best.model)}</span> ${num(d.best.score)}</td>
+      <td><span class="rec-code" data-model="${esc(d.first.model)}" title="${esc(d.first.name)}">${esc(d.first.model)}</span> ${num(d.first.score)}
         <span class="ev-sub">best of four ${num(d.top4)}</span></td>
       <td>${num(d.boosting)}</td>
     </tr>`).join("")}</tbody>
@@ -1826,12 +1875,15 @@ footer .sig{font-size:27px}
 
     <h3 class="ev-h">Every dataset</h3>
     <p class="sect-note">${ev.datasets.length} datasets, ${ev.model_runs} model runs. Click any code to open its definition.</p>
-    ${datasetTable(ev.datasets)}
+    ${datasetTable(ev.datasets, T)}
 
     <h3 class="ev-h">What could not be tested</h3>
     <p class="sect-note">A CSV cannot hold an image, a graph or a sequence, so these models are in the reference
       but never in the benchmark:</p>
-    <ul class="ruled">${Object.entries(ev.not_runnable).map(([code, why]) => `<li><span class="rec-code" data-model="${esc(code)}">${esc(code)}</span> ${esc(why)}</li>`).join("")}</ul>`;
+    <ul class="ruled">${Object.entries(ev.not_runnable).map(([code, why]) => {
+      var _a2, _b2;
+      return `<li>${esc((_b2 = (_a2 = T.MODELS.find((m) => m.c === code)) == null ? void 0 : _a2.n) != null ? _b2 : code)} ${codeTag("model", code)}: ${esc(why)}</li>`;
+    }).join("")}</ul>`;
   }
 
   // site/js/nearest.js
@@ -3056,11 +3108,6 @@ self.onmessage = async (event) => {
     if (!rows.length) return "";
     return `<div class="mathline">read: ${rows.map((l) => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} &#8599;</a>`).join(" \xB7 ")}</div>`;
   }
-  function chip(code, kind, codes) {
-    const attr = kind === "stage" ? "data-stage" : kind === "pipeline" ? "data-pipeline" : kind === "math" ? "data-math" : "data-code";
-    const cls = codes ? ` ${codes.includes(code) ? "hit" : "miss"}` : "";
-    return `<span class="chip${cls}" ${attr}="${esc(code)}">${esc(code)}</span>`;
-  }
   function renderResults(T, sig, task, profile, source = null, answer = null) {
     var _a, _b, _c, _d, _e, _f, _g;
     const codes = matchCodes(sig);
@@ -3080,7 +3127,7 @@ self.onmessage = async (event) => {
     if (models.items.length) {
       note.textContent = `${models.candidates} of the ${paradigmLabel(paradigmOf(sig))} models can produce ${taskLabel} for data shaped like yours.${orderedBy}${tieNote(models)}${leadNote}${messyNote(T, sig, task, meta == null ? void 0 : meta.missing_share)}`;
     } else if (models.ruledOut.length) {
-      note.textContent = `No model fits. Every model that could produce ${taskLabel} is ruled out by your data: ${models.ruledOut.slice(0, 3).map((m) => `${m.n} ${m.why}`).join("; ")}.`;
+      note.textContent = `No model fits. Every model that could produce ${taskLabel} is ruled out by your data: ${models.ruledOut.slice(0, 3).map((m) => `${m.n} ${plainReason(T, m.why)}`).join("; ")}.`;
     } else {
       note.textContent = `No model in the taxonomy produces ${taskLabel}.`;
     }
@@ -3089,7 +3136,7 @@ self.onmessage = async (event) => {
       return `
     <article class="rec">
       <div>
-        <div class="rec-code" data-model="${esc(m.c)}">${esc(m.c)}</div>
+        ${codeTag("model", m.c)}
         <div class="rec-rank">${m.evidenceScore == null ? `${m.score} of ${m.of} coordinates` : `evidence ${m.evidenceScore.toFixed(2)}<span class="rec-rank-sub">${m.score} of ${m.of} coordinates</span>`}</div>
       </div>
       <div>
@@ -3097,7 +3144,7 @@ self.onmessage = async (event) => {
         <div class="rec-meta">${esc(((_a2 = T.MODEL_DOMAINS[m.dom]) == null ? void 0 : _a2.name) || m.dom)} \xB7 ${paradigmLabel(m.p)}</div>
         <p class="rec-metaphor">${esc(m.met)}</p>
         <div class="matchline">
-          ${m.data.map((d) => `<span class="chip ${codes.includes(d) ? "hit" : "miss"}" data-code="${esc(d)}">${esc(d)} ${T.CODES[d] ? esc(T.CODES[d].name.toLowerCase()) : ""}</span>`).join("")}
+          ${m.data.map((d) => nameChip(T, "code", d, { cls: codes.includes(d) ? " hit" : " miss", lower: true })).join("")}
         </div>
         <p class="rec-body">${esc(m.mech)}</p>
         ${m.caution ? `<p class="rec-body caution">Caution. ${esc(m.caution)}</p>` : ""}
@@ -3112,7 +3159,7 @@ self.onmessage = async (event) => {
       })()}
         <p class="rec-body warn">${esc(m.fail)}</p>
         <div class="mathline">math:
-          ${m.math.map((x) => chip(x, "math")).join("")}
+          ${m.math.map((x) => nameChip(T, "math", x)).join("")}
         </div>
         ${refLinks(m)}
       </div>
@@ -3122,7 +3169,7 @@ self.onmessage = async (event) => {
     if (models.ruledOut.length) {
       const shown = models.ruledOut.slice(0, 8);
       const rest = models.ruledOut.length - shown.length;
-      ruled.innerHTML = `<p class="sect-note" style="margin-bottom:12px">Ruled out for this data:</p><ul class="ruled">${shown.map((m) => `<li><span class="rec-code" data-model="${esc(m.c)}">${esc(m.c)}</span> ${esc(m.n)}: ${esc(m.why)}</li>`).join("")}` + (rest ? `<li>and ${rest} more</li>` : "") + `</ul>`;
+      ruled.innerHTML = `<p class="sect-note" style="margin-bottom:12px">Ruled out for this data:</p><ul class="ruled">${shown.map((m) => `<li>${esc(m.n)} ${codeTag("model", m.c)}: ${esc(plainReason(T, m.why))}</li>`).join("")}` + (rest ? `<li>and ${rest} more</li>` : "") + `</ul>`;
     } else {
       ruled.innerHTML = "";
     }
@@ -3135,7 +3182,7 @@ self.onmessage = async (event) => {
       var _a2;
       return `
     <article class="rec">
-      <div><div class="rec-code" data-drift="${esc(d.c)}">${esc(d.c)}</div></div>
+      <div>${codeTag("drift", d.c)}</div>
       <div>
         <div class="rec-name">${esc(d.n)}</div>
         <div class="rec-meta">${esc(((_a2 = T.DRIFT_DOMAINS[d.domain]) == null ? void 0 : _a2.name) || d.domain)}</div>
@@ -3145,7 +3192,7 @@ self.onmessage = async (event) => {
         <p class="rec-body warn">${esc(d.fail)}</p>
         ${d.measure ? `<p class="rec-body evidence">Measured. ${esc(driftSentence(d.measure, driftDatasets))}</p>` : driftUnmeasured(T, d.c) ? `<p class="rec-body evidence">Not measured: ${esc(driftUnmeasured(T, d.c))}.</p>` : ""}
         <div class="mathline">math:
-          ${d.math.map((x) => chip(x, "math")).join("")}
+          ${d.math.map((x) => nameChip(T, "math", x)).join("")}
         </div>
         ${refLinks(d)}
       </div>
@@ -3159,7 +3206,7 @@ self.onmessage = async (event) => {
       var _a2;
       return `
     <article class="rec">
-      <div><div class="rec-code" data-pipeline="${esc(p.c)}">${esc(p.c)}</div></div>
+      <div>${codeTag("pipeline", p.c)}</div>
       <div>
         <div class="rec-name">${esc(p.n)}</div>
         <div class="rec-meta">${esc(((_a2 = T.PIPELINE_DOMAINS[p.p]) == null ? void 0 : _a2.name) || p.p)}</div>
@@ -3167,7 +3214,7 @@ self.onmessage = async (event) => {
         <p class="rec-body">${esc(p.mech)}</p>
         <p class="rec-body warn">${esc(p.fail)}</p>
         <div class="mathline">stages:
-          ${p.stages.map((s) => chip(s, pipelineCodes.has(s) ? "pipeline" : "stage")).join("")}
+          ${p.stages.map((s) => nameChip(T, pipelineCodes.has(s) ? "pipeline" : "stage", s)).join("")}
         </div>
         ${refLinks(p)}
         <div class="pipeline-diagram" id="diagram-${esc(p.c)}"></div>
@@ -3206,10 +3253,11 @@ self.onmessage = async (event) => {
         ].filter(([, text]) => text))
       });
     }, readingFileName(source == null ? void 0 : source.fileName));
+    initMermaid();
     pipelines.items.forEach((p) => {
       const el = document.getElementById("diagram-" + p.c);
       if (el && p.flowchart) {
-        mermaid.render("mermaid-" + p.c, p.flowchart).then(({ svg }) => {
+        mermaid.render("mermaid-" + p.c, plainFlowchart(p.flowchart)).then(({ svg }) => {
           el.innerHTML = svg;
         }).catch(() => {
           el.innerHTML = '<p style="color:var(--clay);font-size:12px">Flowchart unavailable.</p>';
@@ -3231,6 +3279,27 @@ self.onmessage = async (event) => {
     renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
     renderNeighbours(T, neighbours, task);
     plotSpace(T, sig, meta, neighbours);
+  }
+  var mermaidReady = false;
+  function initMermaid() {
+    if (mermaidReady || typeof mermaid === "undefined") return;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "base",
+      fontFamily: '"JetBrains Mono", monospace',
+      themeVariables: {
+        background: "#172438",
+        primaryColor: "#0D1626",
+        primaryTextColor: "#E6E1D7",
+        primaryBorderColor: "#7FFF00",
+        lineColor: "#7C879B",
+        textColor: "#E6E1D7",
+        edgeLabelBackground: "#172438",
+        tertiaryColor: "#172438",
+        fontSize: "12px"
+      }
+    });
+    mermaidReady = true;
   }
   function renderChecks(T, checks, target) {
     const note = document.getElementById("checks-note");
@@ -3267,7 +3336,7 @@ self.onmessage = async (event) => {
     return `
     <article class="rec lead">
       <div>
-        <div class="rec-code rec-code-plain">${esc(lead.c)}</div>
+        <div class="rec-code rec-code-plain" title="The benchmark's name for it">${esc(lead.c)}</div>
         <div class="rec-rank">start here</div>
       </div>
       <div>
@@ -3358,7 +3427,7 @@ self.onmessage = async (event) => {
         <th>seconds</th></tr></thead><tbody>${sorted.map((r) => {
         var _a, _b;
         return `<tr>
-        <td><span class="rec-code">${esc(r.code)}</span> ${esc(r.name)}</td>
+        <td>${esc(r.name)} <span class="rec-code">${esc(r.code)}</span></td>
         <td>${r.status === "ok" ? r.score.toFixed(4) : esc(r.status)}</td>
         <td>${r.status === "ok" && r.spread != null ? `\xB1 ${r.spread.toFixed(4)}` : esc((_a = r.detail) != null ? _a : "")}</td>
         <td>${(_b = r.seconds) != null ? _b : ""}</td></tr>`;
@@ -3470,8 +3539,7 @@ self.onmessage = async (event) => {
     const rest = ruledOut.length - shown.length;
     el.innerHTML = `<p class="sect-note" style="margin-top:22px">Ruled out by how it will run
       (${ruledOut.length} ${noun}):</p>
-    <ul class="ruled">${shown.map((d) => `<li><span class="rec-code" data-${noun.startsWith("drift") ? "drift" : "pipeline"}="${esc(d.c)}">${esc(d.c)}</span>
-        ${esc(d.n)}: ${esc(d.why)}</li>`).join("")}${rest ? `<li>and ${rest} more</li>` : ""}</ul>`;
+    <ul class="ruled">${shown.map((d) => `<li>${esc(d.n)} ${codeTag(noun.startsWith("drift") ? "drift" : "pipeline", d.c)}: ${esc(d.why)}</li>`).join("")}${rest ? `<li>and ${rest} more</li>` : ""}</ul>`;
   }
   function renderNeighbours(T, neighbours, task) {
     var _a;
@@ -3493,7 +3561,7 @@ self.onmessage = async (event) => {
       <tbody>${neighbours.map((d) => `<tr>
         <td>${esc(d.dataset)}<span class="ev-sub">${esc(d.task)}</span></td>
         <td>${d.rows} \xD7 ${d.features}</td>
-        <td><span class="rec-code" data-model="${esc(d.best.model)}">${esc(d.best.model)}</span> ${esc(d.best.name)}</td>
+        <td>${esc(d.best.name)} ${codeTag("model", d.best.model)}</td>
         <td>${d.best.score.toFixed(3)}</td>
         <td>${d.distance.toFixed(2)}</td>
       </tr>`).join("")}</tbody>
@@ -3518,7 +3586,7 @@ self.onmessage = async (event) => {
       return `<div class="d-field"><div class="d-label">${esc(l)}</div><div class="d-text${warn ? " warn" : ""}">${html}</div></div>`;
     }
     const text = (l, t, warn) => field(l, esc(t), warn);
-    const chips = (attr, codes) => codes.map((x) => `<span class="chip" ${attr}="${esc(x)}">${esc(x)}</span>`).join(" ");
+    const chips = (kind, codes) => codes.map((x) => nameChip(T, kind, x)).join(" ");
     const links = (entry) => {
       const rows = [entry.ref && ["Read more", entry.ref], entry.docs && ["Documentation", entry.docs]].filter(Boolean);
       if (!rows.length) return "";
@@ -3526,7 +3594,7 @@ self.onmessage = async (event) => {
         ([label, link]) => `<div class="d-text"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer">${esc(link.label)} &#8599;</a></div>`
       ).join("") + `</div>`;
     };
-    const head = (code, name, meta) => `<div class="d-code">${esc(code)}</div><div class="d-name">${esc(name)}</div>
+    const head = (code, name, meta) => `<div class="d-name">${esc(name)}</div><div class="d-code">${esc(code)}</div>
     ${meta ? `<div class="rec-meta" style="margin-bottom:12px">${esc(meta)}</div>` : ""}`;
     function openMath(code) {
       const m = T.MATH[code];
@@ -3557,7 +3625,7 @@ self.onmessage = async (event) => {
     ${m.dfit ? text("Why these coordinates", m.dfit) : ""}
     ${text("Where it breaks", m.fail, true)}
     ${text("What to use instead", m.alt)}
-    ${field("Built on", chips("data-math", m.math))}
+    ${field("Built on", chips("math", m.math))}
     ${links(m)}`);
     }
     function openDrift(code) {
@@ -3569,7 +3637,7 @@ self.onmessage = async (event) => {
     ${text("How it works", d.mech)}
     ${text("What counts as drift", d.thr)}
     ${text("Where it misleads", d.fail, true)}
-    ${field("Built on", chips("data-math", d.math))}
+    ${field("Built on", chips("math", d.math))}
     ${links(d)}`);
     }
     function openPipeline(code) {
@@ -3580,7 +3648,7 @@ self.onmessage = async (event) => {
     <p class="rec-metaphor">${esc(p.met)}</p>
     ${text("How it works", p.mech)}
     ${text("Where it breaks", p.fail, true)}
-    ${field("Stages", chips("data-stage", p.stages))}
+    ${field("Stages", chips("stage", p.stages))}
     ${links(p)}`);
     }
     function openStage(code) {
@@ -3735,17 +3803,15 @@ self.onmessage = async (event) => {
   function buildReadout(T) {
     document.getElementById("readout").innerHTML = T.AXES.map((a) => `
     <div class="slot" id="slot-${a.n}">
-      <div class="slot-code" id="code-${a.n}">-, -</div>
-      <div>
-        <div class="slot-val" id="val-${a.n}"></div>
-        <div class="slot-axis">${a.n}. ${esc(a.label)}</div>
-      </div>
+      <div class="slot-val" id="val-${a.n}">-, -</div>
+      <div class="slot-axis"><span class="slot-code" id="code-${a.n}"></span>${a.n}. ${esc(a.label)}</div>
     </div>`).join("");
   }
   function setSlot(n, code, declared) {
     const s = document.getElementById("slot-" + n);
     document.getElementById("code-" + n).textContent = code;
-    document.getElementById("val-" + n).textContent = state.T.CODES[code] ? state.T.CODES[code].name : "";
+    document.getElementById("val-" + n).textContent = state.T.CODES[code] ? state.T.CODES[code].name : code;
+    s.title = state.T.CODES[code] ? `${code}: ${state.T.CODES[code].note}` : code;
     s.classList.add("filled");
     if (declared) s.classList.add("declared");
   }
@@ -3938,13 +4004,20 @@ self.onmessage = async (event) => {
     });
   }
   function showFlags(sig) {
-    var _a;
+    var _a, _b;
+    const { T } = state;
     const slot = document.getElementById("val-5");
-    const extra = sig.flags.map((f) => {
-      var _a2, _b;
-      return `${f} ${(_b = (_a2 = state.T.CODES[f]) == null ? void 0 : _a2.name) != null ? _b : ""}`.trim();
-    }).join(", ");
-    slot.textContent = ((_a = state.T.CODES[sig.codes[4]]) == null ? void 0 : _a.name) + (extra ? ` \xB7 ${extra}` : "");
+    slot.textContent = (_b = (_a = T.CODES[sig.codes[4]]) == null ? void 0 : _a.name) != null ? _b : sig.codes[4];
+    if (sig.flags.length) {
+      const extra = document.createElement("span");
+      extra.className = "slot-extra";
+      extra.textContent = sig.flags.map((f) => {
+        var _a2, _b2;
+        return (_b2 = (_a2 = T.CODES[f]) == null ? void 0 : _a2.name) != null ? _b2 : f;
+      }).join(", ");
+      slot.appendChild(extra);
+      document.getElementById("code-5").textContent = [sig.codes[4], ...sig.flags].join(", ");
+    }
   }
   function initNav() {
     document.querySelectorAll(".navlink").forEach((b) => b.addEventListener("click", () => {

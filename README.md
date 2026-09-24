@@ -222,7 +222,7 @@ The full written notes are in [`docs/taxonomy/`](docs/taxonomy): [Data](docs/tax
 
 - **Six-axis data signature**: every dataset gets graded like a specimen
 - **Metaphor-first explanations**: every model has a plain-language metaphor
-- **Clickable everything**: any code opens a drawer with formulas and mechanisms
+- **Plain names first**: the readout, the cards and the chips say "Labeled", "Random Forest", "Train"; the taxonomy's code sits small beside each name and on hover, and any name or code opens a drawer with formulas and mechanisms
 - **3D coordinate plot**: your data plotted against reference datasets
 - **Mermaid flowcharts**: every pipeline renders its diagram inline
 - **Full library**: search the entire taxonomy
@@ -261,6 +261,7 @@ npm test             # Node 20+
 - `tests/build.test.js`: the built page is self-contained, carries exactly the taxonomy in `site/`, and is up to date.
 - `tests/export.test.js`: what the generated script carries: the page's reading of the file, the column roles, every runnable model's estimator, and the models it cannot run, named.
 - `tests/checks.test.js`: "Before you trust a score": what each check catches and leaves alone, and every published rate recomputed from `bench/results/checks.csv`.
+- `tests/names.test.js`: every code a card, chip or drawer shows has a plain name to lead with, and flowcharts and ruled-out reasons read in words.
 - `tests/costs.test.js`: "What does a wrong answer cost?": which choices a target gets, the score each one puts in the script, and what the page says about it.
 - `tests/verify.test.js`: "Run it here": the messages between the page and its Python worker, with a stand-in worker.
 - `tests/drift.test.js`: drift checkers ordered by what they measured, and every published rate recomputed from `bench/results/drift.csv`.
@@ -290,6 +291,7 @@ site/                  the source
     evidence.js        "The evidence" view, and the measured line on each card
     checks.js          "Before you trust a score": leaks, IDs, repeated rows, dates (no DOM)
     costs.js           "What does a wrong answer cost?": what the script scores by (no DOM)
+    names.js           plain names for the taxonomy's codes, with the code kept for hover (no DOM)
     export.js          the take-home Python script
     report.js          "Save this reading": the findings as Markdown
     verify.js          "Run it here": that script in a Pyodide worker

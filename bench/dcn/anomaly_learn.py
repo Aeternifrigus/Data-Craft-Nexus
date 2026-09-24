@@ -43,9 +43,9 @@ CANDIDATES = list(DETECTORS)
 METRICS = ["auc", "ap"]
 KIND_STRENGTH = 5.0     # fixed before the run
 KINDS = {
-    "low": f"narrow: at most {LOW_COLUMNS} columns",
-    "mid": f"middling: {LOW_COLUMNS + 1} to {HIGH_COLUMNS} columns",
-    "high": f"wide: more than {HIGH_COLUMNS} columns",
+    "low": f"narrow (at most {LOW_COLUMNS} columns)",
+    "mid": f"middling ({LOW_COLUMNS + 1} to {HIGH_COLUMNS} columns)",
+    "high": f"wide (more than {HIGH_COLUMNS} columns)",
 }
 
 

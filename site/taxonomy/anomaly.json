@@ -36,9 +36,9 @@
  },
  "fixed_before": "the kinds, their cut-offs, KIND_STRENGTH and the rule were committed before the run",
  "kinds": {
-  "low": "narrow: at most 10 columns",
-  "mid": "middling: 11 to 50 columns",
-  "high": "wide: more than 50 columns"
+  "low": "narrow (at most 10 columns)",
+  "mid": "middling (11 to 50 columns)",
+  "high": "wide (more than 50 columns)"
  },
  "thresholds": {
   "low_columns": 10,

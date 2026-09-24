@@ -215,7 +215,7 @@ The take-home script's forecasters now have a benchmark of their own (`bench/dcn
 
 | width of table | tables | Isolation Forest | One-Class SVM | LOF | k-NN distance | robust covariance | DBSCAN |
 |---|---|---|---|---|---|---|---|
-| narrow (up to 10 columns) | 19 | 21% | 10% | 0% | 21% | 37% | 10% |
+| narrow (up to 10 columns) | 19 | 21% | 11% | 0% | 21% | 37% | 11% |
 | middling (11 to 50) | 19 | 16% | 16% | 21% | 21% | 26% | 0% |
 | wide (over 50) | 9 | 44% | 0% | 11% | 0% | 44% | 0% |
 

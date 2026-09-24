@@ -59,5 +59,5 @@ export function anomalyNote(T, order) {
     ? ` On the ${entry.datasets} benchmark tables that were ${label}, ${DETECTOR_NAMES[kindTop] ?? kindTop} would come first by width, but the width order did not earn its place overall.`
     : '';
   return ` Ordered by what each detector was worth on ${A.datasets} benchmark tables with known anomalies from ${A.units} independent sources, fitted without labels and scored against them afterwards by ROC AUC.${
-    label ? ` Yours is ${label}; k` : ' K'}eeping a separate order for each width of table did not beat one order for every table by more than luck (${tally}), so the order is the same for every table.${would}`;
+    label ? ` Yours is ${label}, but k` : ' K'}eeping a separate order for each width of table did not beat one order for every table by more than luck (${tally}), so the order is the same for every table.${would}`;
 }

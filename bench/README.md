@@ -962,7 +962,7 @@ each detector was the best of the six, and its median ROC AUC:
 
 | width | tables | sources | Isolation Forest | One-Class SVM | LOF | k-NN distance | robust covariance | DBSCAN |
 |---|---|---|---|---|---|---|---|---|
-| narrow (≤ 10 columns) | 19 | 16 | 21% (0.86) | 10% (0.87) | 0% (0.70) | 21% (0.83) | 37% (0.86) | 10% (0.55) |
+| narrow (≤ 10 columns) | 19 | 16 | 21% (0.86) | 11% (0.87) | 0% (0.70) | 21% (0.83) | 37% (0.86) | 11% (0.55) |
 | middling (11 to 50) | 19 | 15 | 16% (0.74) | 16% (0.72) | 21% (0.61) | 21% (0.74) | 26% (0.80) | 0% (0.50) |
 | wide (> 50) | 9 | 9 | 44% (0.69) | 0% (0.66) | 11% (0.61) | 0% (0.68) | 44% (0.73) | 0% (0.50) |
 

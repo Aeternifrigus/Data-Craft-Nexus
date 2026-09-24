@@ -97,7 +97,7 @@ The intervals come from resampling those units. The order in use is also compare
 
 Two richer orders are built and judged the same way, and either can replace the per-model prior: one adds interactions between the dataset's measured features and each model's family, and one weights each model toward what it did on the benchmark datasets nearest to yours. Which one ships is decided by a rule fixed before the results were seen (`choose()` in `bench/dcn/learn.py`): a richer order replaces the prior only if it is no worse on either task and better by more than luck on at least one. Neither qualified on the full run (interactions: 9 better and 10 worse of 35 regression units; neighbours: 8 and 6), so the order in use is still the prior. The evidence tab reports each decision with its numbers.
 
-A model the benchmark never ran is shown below the ones it did, with no score attached. A future value is ordered by a forecasting benchmark of its own (below), and a task no benchmark covered (grouping, anomalies, survival) still falls back to coordinates. The page says which of the two it used.
+A model the benchmark never ran is shown below the ones it did, with no score attached. A future value and unusual records are ordered by benchmarks of their own (below), and a task no benchmark covered (grouping, survival) still falls back to coordinates. The page says which of the two it used.
 
 ### Datasets like yours
 
@@ -206,7 +206,39 @@ The take-home script's forecasters now have a benchmark of their own (`bench/dcn
 
 - **The kind of series changes the winner.** Smoothing wins nine seasonal-and-trending series in ten; on intermittent demand the two methods built for it win four in five, and smoothing one in eight.
 - **Doing nothing is a real contender.** It beat every forecaster on almost half the seasonal series without a trend and a third of the trending ones, which is why the script scores it beside them.
-- **Whether the page should read the kind was decided by a rule fixed before the run.** An order kept by kind cut the median regret on intermittent series from 0.121 to 0.034 R², and by R² it was worse on no collection. But the two orders chose differently in only 4 of the 11 collections, and with 4 the smallest p-value the test can give is 0.125: it could not have passed. So the cards keep one order for every series (exponential smoothing, ARIMA, TSB, Croston), and on a series of a kind where the evidence points elsewhere the page says so, with the numbers. More collections of intermittent demand would settle it.
+- **Whether the page should read the kind was decided by a rule fixed before the run.** An order kept by kind cut the median regret on intermittent series from 0.121 to 0.034 R², and by R² it was worse on no collection. But the two orders chose differently in only 4 of the 11 collections, and with 4 the smallest p-value the test can give is 0.125: it could not have passed. So the cards keep one order for every series (exponential smoothing, ARIMA, TSB, Croston), and on a series of a kind where the evidence points elsewhere the page says so, with the numbers.
+- **A second run was declared to settle it, and came close.** Both orders were frozen and tried on 137 intermittent series from nine sources the first run never saw (New York flights, US syphilis cases, US baby names, Citi Bike trips, police deaths, disease counts, MovieLens ratings, CDNOW purchases, Atlantic storms). Putting TSB first was better on 7 of 9 collections by R² and 8 of 9 by absolute error, and cut median regret from 0.107 to 0.069 R² and from 0.173 to 0.039 in units of doing nothing's error. But one loss was large (the storms, whose intermittent counts follow the hurricane season, which TSB cannot model), and p was 0.15 after correcting for two scores. The rule was fixed before the run and is not loosened after it, so the order stays, and an intermittent upload is told what both runs found.
+
+### What anomaly detection was worth
+
+"Unusual records" now has a benchmark too (`bench/dcn/anomaly.py`): every detector the page can recommend, fitted without labels on ADBench's 47 classical tables with known anomalies (39 independent sources) and scored against the labels afterwards. Three detectors joined the taxonomy for it, as the standard representatives of the other families of method: the Local Outlier Factor, the distance to the fifth nearest neighbour, and robust covariance (Minimum Covariance Determinant).
+
+| width of table | tables | Isolation Forest | One-Class SVM | LOF | k-NN distance | robust covariance | DBSCAN |
+|---|---|---|---|---|---|---|---|
+| narrow (up to 10 columns) | 19 | 21% | 10% | 0% | 21% | 37% | 10% |
+| middling (11 to 50) | 19 | 16% | 16% | 21% | 21% | 26% | 0% |
+| wide (over 50) | 9 | 44% | 0% | 11% | 0% | 44% | 0% |
+
+- **The mathematics predicted which detectors would fade on wide tables, and they did.** Distances concentrate as columns are added, so detectors that rank rows by the distances to their neighbours have less to work with: on wide tables LOF was best once in nine and k-NN distance never, while Isolation Forest and robust covariance shared the rest.
+- **Reading the width did not pass the rule.** By ROC AUC an order kept per width was better on 17 sources and worse on 4 (p = 0.016), but by average precision, which rewards the top of the list, it was worse on 12 and better on 8. The rule asks for no worse under both, so the cards keep one order: robust covariance, Isolation Forest, k-NN distance, One-Class SVM, LOF, DBSCAN. Robust covariance is ruled out when a table has no more than twice as many rows as columns, the condition its fit needs.
+
+### Why, mathematically
+
+Where the mathematics can say why a model is chosen, the evidence tab says it, beside the measurement it explains, and each argument is a formula in the reference that opens from any card. Among them:
+
+- **Why models are measured, not derived** (no free lunch): averaged over every possible problem, no learner beats another, so only the problems that actually occur can decide.
+- **Why doing nothing wins so often** (random walk): if tomorrow is today plus unpredictable noise, today is the best forecast under squared error, and no model can do better on average.
+- **Why exponential smoothing leads** (Muth, 1960): it is the optimal forecast for a level that wanders with noise on top.
+- **Why Croston's method is corrected** (Syntetos and Boylan): dividing by an estimated interval inflates the forecast, by a factor that tends to 1 / (1 − α/2).
+- **Why the score you choose matters** (optimal point forecasts): squared error rewards the conditional mean and absolute error the median, which is zero on demand that is empty more than half the time.
+- **Why one-column drift tests miss broken correlations**, and why a classifier between the windows does not: if every column's distribution is unchanged, a one-column test fires only at its false-alarm rate, while the best classifier gains exactly the total variation between the windows.
+- **Why PSI misbehaves on small windows**: with no drift its expected value is about (bins − 1)(1/n + 1/m), 0.05 on the drift benchmark's windows and 0.6 on two windows of 30 rows.
+- **Why wide tables hurt neighbour-based detectors** (concentration of distances), and what each detector's score means.
+- **Why a handful of units cannot pass** (Wilcoxon's floor): with n pairs the smallest possible p is 2/2^n, which is why the first forecasting run could not have passed and the second was built bigger.
+
+### The evidence tab
+
+The evidence tab opens with a contents list and is split into numbered parts, one per kind of advice: tables (the order, the significance tests, the luck of the split, TabPFN, messy data), forecasting (winners by kind, the first run, the confirmation run), anomalies, drift checkers, the checks before a score, and the reference tables. Each part ends with its mathematics.
 
 ### What the checks catch
 
@@ -221,8 +253,9 @@ The first section of the results, **Before you trust a score**, was measured the
 - **The prior itself still counts a family's datasets one by one when it is fitted**, so on regression it leans toward what wins on Friedman's functions. Weighting a family once in the fit is the obvious change, and it should be declared before the next run rather than tried after this one.
 - **Heavy gaps and noisy targets still cost the first pick on regression.** An order that reads data quality was tested and did not help, so nothing here fixes that yet; it rests on 8 independent units either way.
 - **Drift was injected at one strength per kind**, on classification datasets, with 500- and 250-row windows, so the rates hold for that setting. Detectors tuned to their stream would beat river's defaults.
-- **Classification, regression and forecasting are benchmarked.** Survival, grouping, anomalies, compression and generation still fall back to counting coordinates.
-- **The forecasting kinds need more intermittent demand.** Reading the kind of series changed the first forecaster in only 4 of 11 collections, too few for the test to pass or fail it. Six collections where the orders disagree is the least it needs; tuned boosting on recent changes, the script's reference, is not in that run yet either.
+- **Classification, regression, forecasting and anomaly detection are benchmarked.** Survival, grouping, compression and generation still fall back to counting coordinates.
+- **The forecasting kinds are not settled.** A per-kind order was better on most collections in two runs and passed the rule in neither. Intermittent series with a strong season look like a kind of their own, and a run declared for that is the next step. Tuned boosting on recent changes, the script's reference, is not in the forecasting runs yet.
+- **Anomaly detectors ran at their defaults only**, the largest tables were sampled to 5,000 rows, and many of ADBench's anomalies are a rare class relabelled, not anomalies that occurred as such.
 - Image, audio, graph and spatial data cannot be detected from a CSV, so those models are reachable in the reference but never recommended from an upload.
 - Separability (A55/A56) and weak or self-supervised labelling (A13 to A15) are not measured yet.
 
@@ -236,8 +269,8 @@ Data Craft Nexus is built on a complete, interconnected taxonomy:
 |-----------|-------|-------------|
 | Data axes | 6 | Supervision, structure, modality, scale, distribution, quality |
 | Tasks | 8 | A number, a category, a future value, time until an event, groupings, anomalies, a simpler view, new examples |
-| Math formulas | 80+ | Across 15 domains |
-| Models | 60+ | Across 14 architecture families |
+| Math formulas | 144 | Across 16 domains, with the derivations behind the benchmark results |
+| Models | 72 | Across 14 architecture families |
 | Drift checkers | 28 | Distributional, streaming, multivariate, adversarial, DL-native |
 | Pipelines | 14 | ETL, feature store, training, deployment, monitoring, RAG |
 | Stages | 31 | Reusable pipeline building blocks |

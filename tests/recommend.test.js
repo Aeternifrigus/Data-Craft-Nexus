@@ -17,7 +17,9 @@ const names = (r) => r.items.map(m => m.n);
 test('survival models are no longer offered as forecasters', () => {
   const forecast = rankModels(T, LABELLED_NUMERIC_SEQ, 'forecast');
   assert.ok(!names(forecast).includes('Kaplan-Meier Estimator'));
-  assert.deepEqual(names(forecast).slice(0, 3), ['ARIMA', 'Exponential Smoothing (Holt-Winters)', 'Prophet']);
+  // Ordered by the forecasting benchmark: the four it ran, then Prophet, which it could not.
+  assert.deepEqual(names(rankModels(T, LABELLED_NUMERIC_SEQ, 'forecast', 5)).slice(4), ['Prophet']);
+  assert.ok(names(forecast).includes('Exponential Smoothing (Holt-Winters)'));
   const survival = rankModels(T, LABELLED_NUMERIC_IID, 'survival');
   assert.deepEqual(names(survival), ['Cox Proportional Hazards', 'Kaplan-Meier Estimator']);
 });
@@ -135,7 +137,7 @@ test('a benchmarked task is ordered by evidence, and ties disappear', () => {
 });
 
 test('a task the benchmark never covered falls back to coordinates, and says so', () => {
-  const r = rankModels(T, sig(['A11', 'A22', 'A31', 'A41', 'A54', 'A61']), 'forecast');
+  const r = rankModels(T, sig(['A11', 'A21', 'A31', 'A41', 'A53', 'A61']), 'survival');
   assert.equal(r.rankedBy, 'coordinates');
   assert.ok(r.items.every(m => m.evidenceScore == null));
   assert.ok(r.tied >= 1);

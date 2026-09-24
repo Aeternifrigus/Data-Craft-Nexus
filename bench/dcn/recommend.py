@@ -35,9 +35,11 @@ def load_taxonomy(root: Path = ROOT) -> dict:
     axes, math, models, drift, pipelines, instrument = (read(n) for n in
                                                         ("axes", "math", "models", "drift", "pipelines", "instrument"))
     evidence_path = root / "site" / "taxonomy" / "evidence.json"
+    forecast_path = root / "site" / "taxonomy" / "forecast.json"
     return {
         # What the benchmarks measured, as the site reads it (taxonomy.js).
         "EVIDENCE": json.loads(evidence_path.read_text()) if evidence_path.exists() else None,
+        "FORECAST": json.loads(forecast_path.read_text()) if forecast_path.exists() else None,
         "AXES": axes["axes"], "CODES": axes["codes"],
         "MATH_DOMAINS": math["domains"], "MATH": math["formulas"],
         "MODEL_DOMAINS": models["domains"], "MODELS": models["models"],
@@ -71,6 +73,14 @@ def conflict(model: dict, sig: dict):
     wants = _code_of(model, STRUCTURE)
     if wants and wants != "A21" and wants != structure:
         return f"needs {wants} data (yours is {structure})"
+
+    # Croston's method and TSB forecast demand, which is never negative.
+    series = sig.get("series")
+    if model["c"] in ("TSM4", "TSM5") and series and not series["features"]["nonNegative"]:
+        return "forecasts demand, which is never negative, and yours has negative values"
+    # A forecaster reads only the target's own past, so the other columns cannot rule it out.
+    if series and model.get("dom") == "Time series":
+        return None
 
     wants_modality = _code_of(model, MODALITY)
     if wants_modality and wants_modality != modality and wants_modality != "A38":
@@ -119,7 +129,8 @@ def rank_models(taxonomy: dict, sig: dict, task: str, limit: int = 4, ranking: d
     """`meta` is the dataset's meta-features (meta.py), which the neighbour order needs."""
     codes = match_codes(sig)
     ranking = ranking if ranking is not None else _ranking()
-    learned = has_learned_ranking(ranking, task)
+    forecast = forecast_order(taxonomy, sig.get("series")) if task == "forecast" else None
+    learned = forecast is None and has_learned_ranking(ranking, task)
     features = ranking_features(sig) if learned else {}
     neighbours = ranking_neighbours(ranking, task, meta) if learned else None
 
@@ -134,7 +145,9 @@ def rank_models(taxonomy: dict, sig: dict, task: str, limit: int = 4, ranking: d
         hits = [d for d in model["data"] if d in codes]
         usable.append({**model, "hits": hits, "score": len(hits), "of": len(model["data"]),
                        "caution": caution(model, sig),
-                       "evidence_score": learned_score(ranking, model, task, features, neighbours) if learned else None})
+                       "evidence_score": forecast["prior"].get(model["c"]) if forecast
+                       else learned_score(ranking, model, task, features, neighbours) if learned else None})
+    learned = learned or forecast is not None
 
     def sort_key(m):
         # Models the benchmark ran come first, ordered by what they were worth;
@@ -162,6 +175,18 @@ def rank_models(taxonomy: dict, sig: dict, task: str, limit: int = 4, ranking: d
         top_score=top["score"] if top else 0,
         ruled_out=ruled_out,
     )
+
+
+def forecast_order(taxonomy: dict, series: dict | None) -> dict | None:
+    """The prior forecasters are ordered by: per kind when that passed its rule. Mirrors forecastOrder()."""
+    forecast = taxonomy.get("FORECAST")
+    if not forecast:
+        return None
+    metric = series["metric"] if series and series.get("metric") in forecast["prior"] else "r2"
+    kind = series.get("kind") if series else None
+    by_kind = forecast["chosen"] == "kind" and kind and forecast["kind_prior"].get(metric, {}).get(kind)
+    return {"prior": by_kind or forecast["prior"][metric], "by": "kind" if by_kind else "fixed", "kind": kind,
+            "metric": metric}
 
 
 # How the thing will run decides which drift checkers and pipelines can be

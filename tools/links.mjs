@@ -16,6 +16,13 @@
 // the dozens of links into docs.scipy.org or scikit-learn.org do not arrive
 // as a burst that the host's edge may reset.
 //
+// A DOI link is checked where the DOI is kept, not at the publisher. doi.org
+// forwards a DOI to the publisher's page, and some publishers (Taylor &
+// Francis, MIT Press) answer every client that is not a browser with a 403
+// from a bot wall, which says nothing about the paper: CI once failed on three
+// live papers that way. doi.org's handle API answers 404 for a DOI that was
+// never registered and, for one that was, says where it points.
+//
 // Pure apart from `fetch` and `sleep`, which are passed in so the tests can
 // run without a network.
 
@@ -40,13 +47,27 @@ export function describe(err) {
     .filter(Boolean).join(': ');
 }
 
+// Where a link is checked: a DOI at doi.org's handle API, anything else as is.
+const DOI = /^https:\/\/doi\.org\/(10\.\d{4,9}\/[^\s?#]+)$/;
+export function probe(url) {
+  const doi = DOI.exec(url)?.[1];
+  return doi ? { url: `https://doi.org/api/handles/${doi}`, doi: true } : { url, doi: false };
+}
+
 async function attempt(url, { fetch, timeout, userAgent }) {
+  const target = probe(url);
   try {
-    const res = await fetch(url, {
+    const res = await fetch(target.url, {
       redirect: 'follow',
       headers: { 'user-agent': userAgent },
       signal: AbortSignal.timeout(timeout),
     });
+    if (target.doi && res.ok) {
+      // Registered, and pointing at a page: responseCode 1 with a URL value.
+      const body = await res.json().catch(() => null);
+      const points = body?.responseCode === 1 && (body.values ?? []).some(v => v.type === 'URL');
+      return points ? { status: res.status, ok: true } : { status: 404, ok: false };
+    }
     // Nothing is read from the body; release the connection.
     try { await res.body?.cancel?.(); } catch { /* already closed */ }
     return { status: res.status, ok: res.ok };

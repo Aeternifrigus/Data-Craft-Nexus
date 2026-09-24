@@ -55,7 +55,7 @@ npm test             # Node 20+
 - `tests/html.test.js`: escaping of everything that goes into the page.
 - `tests/taxonomy.test.js`: every code a model, drift checker or pipeline points at must exist.
 - `tests/links.test.js`: every reference link is https, points at an allowed documentation or paper site, and every concept that should have one has one.
-- `tests/check_links.test.js`: the link checker against a fake network. A connection that resets and then answers passes, a 404 fails on the first answer, and no host gets more than two requests at once. `npm run check:links` runs the real check, which needs the internet and runs in CI.
+- `tests/check_links.test.js`: the link checker against a fake network. A connection that resets and then answers passes, a 404 fails on the first answer, no host gets more than two requests at once, and a DOI is checked where it is registered (doi.org), not at a publisher that turns away anything but a browser. `npm run check:links` runs the real check, which needs the internet and runs in CI.
 - `tests/favicon.test.js`: the favicon inlined into the page matches `site/favicon.svg` and stays self-contained.
 - `tests/build.test.js`: the built page is self-contained, carries exactly the taxonomy in `site/`, and is up to date.
 - `tests/recommend.snapshot.test.js`: runs every fixture in `tests/fixtures/` through every target, task and order answer, and compares what gets recommended with `tests/snapshots/recommendations.json`. When a change to the profiler or the ranking is intended, run `npm run test:update` and review the snapshot diff in the commit.

@@ -4,7 +4,7 @@
 // checker against a fake network, so they need no internet.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checkLinks, describe } from '../tools/links.mjs';
+import { checkLinks, describe, probe } from '../tools/links.mjs';
 
 const instant = { sleep: async () => {} };
 
@@ -84,4 +84,42 @@ test('the reason for a network failure is spelled out', () => {
   assert.equal(describe(err), 'fetch failed: ENOTFOUND: getaddrinfo ENOTFOUND example.invalid');
   const timeout = Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' });
   assert.equal(describe(timeout), 'The operation was aborted due to timeout: TimeoutError');
+});
+
+// doi.org's handle API: 200 with where a registered DOI points, 404 for one
+// that was never registered. The publisher's page, behind a bot wall, says 403.
+function doiNetwork(registered) {
+  const calls = [];
+  const fetch = async (url) => {
+    calls.push(url);
+    const handle = url.match(/^https:\/\/doi\.org\/api\/handles\/(.+)$/)?.[1];
+    if (!handle) return { status: 403, ok: false, body: null };
+    if (!(handle in registered)) return { status: 404, ok: false, body: null };
+    const values = registered[handle] ? [{ type: 'URL', data: { format: 'string', value: registered[handle] } }] : [];
+    return { status: 200, ok: true, body: null, json: async () => ({ responseCode: 1, handle, values }) };
+  };
+  return { fetch, calls };
+}
+
+test('a DOI is checked where it is registered, not at the publisher\'s bot wall', async () => {
+  const url = 'https://doi.org/10.1162/neco.1996.8.7.1341';
+  const net = doiNetwork({ '10.1162/neco.1996.8.7.1341': 'https://direct.mit.edu/neco/article/8/7/1341-1390/6016' });
+  assert.deepEqual(await checkLinks([url], { ...instant, fetch: net.fetch }), []);
+  assert.deepEqual(net.calls, ['https://doi.org/api/handles/10.1162/neco.1996.8.7.1341']);
+});
+
+test('a DOI that was never registered, or points nowhere, is a broken link', async () => {
+  const missing = 'https://doi.org/10.1080/01621459.1960.99999999';
+  const nowhere = 'https://doi.org/10.1198/000000000000000000';
+  const net = doiNetwork({ '10.1198/000000000000000000': null });
+  const failures = await checkLinks([missing, nowhere], { ...instant, fetch: net.fetch });
+  assert.deepEqual(failures.map(f => [f.url, f.status]).sort(), [[missing, 404], [nowhere, 404]].sort());
+});
+
+test('only a DOI link goes to the handle API', () => {
+  assert.deepEqual(probe('https://doi.org/10.1007/3-540-49257-7_15'),
+    { url: 'https://doi.org/api/handles/10.1007/3-540-49257-7_15', doi: true });
+  assert.deepEqual(probe('https://docs.scipy.org/doc/scipy/index.html'),
+    { url: 'https://docs.scipy.org/doc/scipy/index.html', doi: false });
+  assert.equal(probe('https://doi.org/').doi, false);
 });

@@ -356,8 +356,8 @@
     "A31"
    ],
    "math": [
-    "IT1",
-    "PS4"
+    "AD1",
+    "AD6"
    ],
    "mech": "Builds random trees and measures how many splits it takes to isolate each point. Anomalies sit in sparse regions, so they get isolated in few splits; normal points require many. Path length becomes the anomaly score.",
    "fail": "Assumes anomalies are both rare and easily separable. Struggles with local anomalies that are unusual only relative to their neighborhood, and with high-dimensional data where random splits become uninformative. The contamination parameter (expected anomaly fraction) heavily influences results and is usually guessed.",
@@ -641,7 +641,8 @@
    ],
    "math": [
     "LA22",
-    "CA14"
+    "CA14",
+    "AD4"
    ],
    "mech": "Learns a boundary enclosing the bulk of the training data in kernel space, treating anything outside as anomalous. Trained only on normal examples.",
    "fail": "The ν parameter (expected outlier fraction) strongly determines results and is usually a guess. Very sensitive to feature scaling and kernel choice. Scales badly to large datasets.",
@@ -650,6 +651,90 @@
    "ref": {
     "label": "Outlier detection in scikit-learn",
     "url": "https://scikit-learn.org/stable/modules/outlier_detection.html"
+   }
+  },
+  {
+   "c": "IB3",
+   "n": "Local Outlier Factor",
+   "p": "USL",
+   "dom": "Instance",
+   "task": [
+    "anomaly"
+   ],
+   "met": "A house in a quiet street is only odd if its neighbours live somewhere busy.",
+   "data": [
+    "A12",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "AD2",
+    "LA9",
+    "AD6"
+   ],
+   "mech": "Compares the density around each row with the density around its k nearest neighbours (AD2). A row in a sparser region than the rows next to it scores well above 1; a row inside any cluster, dense or sparse, scores near 1. Because the comparison is local, it finds anomalies next to clusters of very different density that a single global threshold would miss.",
+   "fail": "Built on distances to neighbours, which lose contrast as columns are added (AD6). Needs a choice of k, and a group of anomalies with k or more members looks like a cluster.",
+   "alt": "TR4 (Isolation Forest) on wide tables; IB4 (k-NN distance) when density is roughly uniform.",
+   "dfit": "Unlabelled numeric tables with clusters of different density.",
+   "ref": {
+    "label": "scikit-learn Local Outlier Factor",
+    "url": "https://scikit-learn.org/stable/modules/outlier_detection.html#local-outlier-factor"
+   }
+  },
+  {
+   "c": "IB4",
+   "n": "k-NN distance",
+   "p": "USL",
+   "dom": "Instance",
+   "task": [
+    "anomaly"
+   ],
+   "met": "How far you have to walk to find company.",
+   "data": [
+    "A12",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "AD3",
+    "LA9",
+    "AD6"
+   ],
+   "mech": "Scores each row by the distance to its k-th nearest other row (AD3). Ranking by that distance is ranking by the k-nearest-neighbour density estimate, lowest density first. Simple, with no training beyond indexing the rows, and on many benchmarks as strong as anything more elaborate.",
+   "fail": "A global density threshold: a sparse but normal cluster ranks as unusual. Distances concentrate on wide tables (AD6), and every query costs a neighbour search.",
+   "alt": "IB3 (LOF) when clusters differ in density; TR4 (Isolation Forest) on wide tables.",
+   "dfit": "Unlabelled numeric tables of modest width.",
+   "ref": {
+    "label": "scikit-learn nearest neighbours",
+    "url": "https://scikit-learn.org/stable/modules/neighbors.html"
+   }
+  },
+  {
+   "c": "PR6",
+   "n": "Robust covariance (Minimum Covariance Determinant)",
+   "p": "USL",
+   "dom": "Probabilistic",
+   "task": [
+    "anomaly"
+   ],
+   "met": "Fit the tightest ellipse around the calm half of the crowd, then measure everyone against it.",
+   "data": [
+    "A12",
+    "A21",
+    "A31"
+   ],
+   "math": [
+    "AD5",
+    "LA21",
+    "LA10"
+   ],
+   "mech": "Estimates the centre and covariance from the most tightly packed subset of rows, so the anomalies cannot pull the estimate toward themselves (AD5), and scores each row by its Mahalanobis distance from that centre (LA21). Under a Gaussian model for normal rows the scores follow a chi-squared distribution, which gives the score a meaning in probability.",
+   "fail": "Assumes the normal rows form one elliptical cloud. Needs comfortably more rows than columns, and columns with few distinct values make the covariance singular.",
+   "alt": "TR4 (Isolation Forest) when the normal rows form several clusters or the table is wide.",
+   "dfit": "Unlabelled numeric tables with many more rows than columns and one main cloud.",
+   "ref": {
+    "label": "scikit-learn robust covariance",
+    "url": "https://scikit-learn.org/stable/modules/covariance.html#robust-covariance-estimation"
    }
   },
   {
@@ -892,7 +977,8 @@
     "A31"
    ],
    "math": [
-    "LA9"
+    "LA9",
+    "AD6"
    ],
    "mech": "Groups points that have at least a minimum number of neighbors within a radius ε, expanding clusters through density-connected chains. Points in sparse regions are labeled noise rather than forced into a cluster.",
    "fail": "Cannot handle clusters of widely varying density, since a single ε cannot suit both. ε is genuinely hard to choose and results are highly sensitive to it. Degrades in high dimensions along with all distance-based methods.",

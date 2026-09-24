@@ -73,14 +73,26 @@ export function forecastNote(T, order) {
   const changed = Object.values(decision).map(d => d.wins + d.losses);
   const wouldHave = order.by === 'fixed' && kindTop && kindTop !== fixedTop && entry
     ? ` On the ${entry.series} benchmark series that were ${kindLabel(order.kind)}, ${FORECASTER_NAMES[kindTop] ?? kindTop} was the best forecaster on ${
-      Math.round((entry.best_share?.[kindTop] ?? 0) * 100)}% and would come first if the order were kept by kind; by ${metricName} the kind order was better on ${
-      decision[order.metric]?.wins ?? 0} collections and worse on ${decision[order.metric]?.losses ?? 0}, but it changed the pick in only ${
-      Math.max(...changed)} of the ${F.units}, too few for the rule to call the gain more than luck. The script runs all four on your file, which settles it for your data.`
+      Math.round((entry.best_share?.[kindTop] ?? 0) * 100)}% and would come first if the order were kept by kind. ${confirmed(F, order.metric, metricName, decision, changed)} The script runs all four on your file, which settles it for your data.`
     : '';
   const nothing = entry && entry.nothing_beat_every_model != null
     ? ` On those ${entry.series} series of your kind, doing nothing (the last value, the value a season earlier, or the average) beat every forecaster on ${Math.round(entry.nothing_beat_every_model * 100)}% of them, which is why the script scores it too.`
     : '';
   return how + wouldHave + nothing;
+}
+
+// How the kind order fared, in the first run and, when there is one, the
+// confirmation run on new collections.
+function confirmed(F, metric, metricName, decision, changed) {
+  const first = `In the first run, by ${metricName}, it was better on ${decision[metric]?.wins ?? 0} collections and worse on ${
+    decision[metric]?.losses ?? 0}, but it changed the pick in only ${Math.max(...changed)} of the ${F.units}, too few for the rule to call the gain more than luck.`;
+  const c = F.confirmation;
+  const d = c?.decision?.metrics?.[metric];
+  if (!d) return first;
+  return `${first} A second run, declared first, froze both orders and tried them on ${c.series} intermittent series from ${c.units} collections the first had never seen: by ${
+    metricName} the kind order was better on ${d.wins} and worse on ${d.losses}, with median regret ${d.median_regret.kind.toFixed(3)} against ${
+    d.median_regret.fixed.toFixed(3)}, but p = ${d.p_holm.toFixed(2)} after correcting for two scores, above the 0.05 the rule set${
+    c.decision.replaced ? '' : ', so the order stays'}.`;
 }
 
 const FORECASTER_NAMES = { TSM1: 'ARIMA', TSM2: 'exponential smoothing', TSM4: "Croston's method (SBA)", TSM5: 'TSB' };

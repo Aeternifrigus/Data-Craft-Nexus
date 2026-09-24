@@ -1,386 +1,92 @@
-# Data Craft Nexus
+<p align="center">
+  <a href="https://aeternifrigus.github.io/Data-Craft-Nexus/">
+    <img src="docs/media/dcn-banner.png" alt="Data Craft Nexus: drop a CSV, say what you want, get the models the evidence backs" width="100%">
+  </a>
+</p>
 
-**Most tabular ML advice fits in one line: tune gradient boosting.** The 195-dataset benchmark behind this site agrees. Data Craft Nexus is for the three things that line leaves out, answered from your own CSV, in your browser, with nothing uploaded:
+<p align="center">
+  <a href="https://aeternifrigus.github.io/Data-Craft-Nexus/"><b>Try it live</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://aeternifrigus.github.io/Data-Craft-Nexus/dcn-tour.mp4"><b>Watch the tour</b></a>
+  &nbsp;·&nbsp;
+  <a href="docs/README.md"><b>Read the docs</b></a>
+</p>
 
-1. **Is my file the kind of table that advice is for?** It measures column types, size, missing and junk values and drift, asks what a file cannot say (the target, whether row order matters), and rules out what cannot work, with the reason: a text model has nothing to read in a table of numbers, a supervised model has nothing to learn from without labels. Ordered rows get a warning to split by time. And before any score, it checks for what makes every score lie: a column that gives the answer away, an ID column a model can memorise, copied rows on both sides of a split, and dates split at random.
-2. **Does the advice hold on my data?** Tuned boosting comes first, then a shortlist, each model with its benchmark record. A generated Python script runs them against each other on your whole file with the benchmark's cross-validation, or runs right in the page.
-3. **How will I know when the model stops working?** Drift detectors are filtered by how your data arrives and whether the true answers come back, then ranked by what they caught in a drift benchmark of their own.
+<p align="center">
+  <a href="https://github.com/Aeternifrigus/Data-Craft-Nexus/actions/workflows/ci.yml"><img alt="tests" src="https://img.shields.io/github/actions/workflow/status/Aeternifrigus/Data-Craft-Nexus/ci.yml?branch=main&label=tests&style=flat-square&labelColor=0D1626&color=5CBF00"></a>
+  <a href="https://aeternifrigus.github.io/Data-Craft-Nexus/"><img alt="live page" src="https://img.shields.io/github/actions/workflow/status/Aeternifrigus/Data-Craft-Nexus/static.yml?branch=main&label=live%20page&style=flat-square&labelColor=0D1626&color=5CBF00"></a>
+  <img alt="100% client-side" src="https://img.shields.io/badge/100%25-client--side-E0A458?style=flat-square&labelColor=0D1626">
+  <a href="#license"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-6FB3B8?style=flat-square&labelColor=0D1626"></a>
+</p>
 
-**[Try it live](https://aeternifrigus.github.io/Data-Craft-Nexus/)** · [Watch the 75-second tour](https://aeternifrigus.github.io/Data-Craft-Nexus/dcn-tour.mp4) · [How the benchmark was run](bench/README.md)
+Most tabular ML advice fits in one line: **tune gradient boosting.** A 195-dataset benchmark agrees, so that is what Data Craft Nexus shows first. The rest of the page covers what that one line leaves out:
 
-[![Drop a CSV, see what kind of problem it is, get tuned boosting and a shortlist, run them on the whole file, and pick drift detectors. Click for the full tour.](docs/media/dcn-demo.gif)](https://aeternifrigus.github.io/Data-Craft-Nexus/dcn-tour.mp4)
+- **Is my file the kind of table the advice is for?** It checks for what makes every score lie and rules out what cannot work, with the reason.
+- **Does the advice hold on my data?** You get a shortlist with each model's benchmark record, and a script that runs it on your whole file.
+- **How will I know when it stops working?** Drift checkers are picked by how your data arrives and ranked by what they caught in a benchmark.
 
-## Why not just tune boosting?
+<p align="center">
+  <a href="https://aeternifrigus.github.io/Data-Craft-Nexus/dcn-tour.mp4">
+    <img src="docs/media/dcn-demo.gif" alt="Load a table, answer three questions, see the checks, the benchmark map, the ranked models with their formulas, a forecast and the evidence tab. Click for the full tour." width="100%">
+  </a>
+  <br>
+  <sub>18 seconds of it. Click for the full 95-second tour.</sub>
+</p>
 
-It tells you to, first, because it measured the alternative. The site was first built to pick models by matching a dataset's six-axis signature. On 195 PMLB datasets and 5,541 model runs, with every ranking judged leave-one-dataset-out and every family of related datasets counted once, that lost. Balanced accuracy lost against the best model, median over 78 independent classification datasets:
+## How it works
 
-| how the first model is chosen | points lost |
+| | step | what happens |
+|:-:|---|---|
+| **1** | **Drop a CSV** | It measures modality, scale, quality and drift. The file never leaves your browser. |
+| **2** | **Say what you want** | It asks only what a file cannot say: the target, the kind of answer, whether row order matters, what a wrong answer costs. |
+| **3** | **Trust the score first** | It flags what would make any score lie: a column that gives the answer away, an ID a model can memorise, copied rows, dates split at random. |
+| **4** | **Get the shortlist** | Models and drift checkers ranked by what they were worth on real data, each with its record and its formula. What cannot work is listed with the reason. |
+| **5** | **Take it home** | A Python script runs the shortlist on your whole file with the benchmark's cross-validation, next to a baseline that does nothing. Or run it right in the page. |
+
+## Measured, not guessed
+
+Every order on the page comes from a benchmark, and a rule written down before each run decided what the page does with the result.
+
+| advice for | measured on | how the order is set |
+|---|---|---|
+| a number or a category | 195 PMLB datasets, 5,541 model runs | tuned boosting first, then an order learned leave-one-dataset-out |
+| a future value | 377 real series from 21 collections, in two runs | the script's own forecasters, each value predicted from the ones before it |
+| unusual records | 47 ADBench tables with known anomalies | detectors fitted without labels, scored against the labels |
+| drift | 23 checkers on 630 test cases | what each one caught, minus its false alarms |
+
+The site began by ranking models by how well they match a dataset's signature. The benchmark showed that this lost, so the page changed:
+
+| how the first model is chosen | accuracy lost to the best model |
 |---|---|
-| matching models to the data's signature (how the site first ranked them) | 4.79 |
+| matching models to the data's signature (the first design) | 4.79 points |
 | a ranking learned from the benchmark | 1.60 |
-| always using gradient boosting | 1.45 |
-| gradient boosting, tuned over 10 settings | **1.12** |
+| always gradient boosting | 1.45 |
+| **gradient boosting, tuned over 10 settings** | **1.12** |
 
-So tuned boosting leads, and the signature does what it is good at: telling you which problem you have and what cannot work on it. The other two questions have no one-line answer:
+<sub>Balanced accuracy, median over 78 independent classification datasets, leave-one-dataset-out, related datasets counted once.</sub>
 
-- **What usually wins may not win on your file, and one split can mislead.** On 70% of the classification datasets re-run under three cross-validation seeds, the winner changed with the seed. The script runs the shortlist on your data and prints each score with its spread across folds, so you can see whether a gap is real.
-- **Drift detectors see different things.** Across 23 detectors and 630 test cases, adversarial validation caught 76% of broken correlations, where tests that check one column at a time caught at most 13%. Only detectors that watch the model's errors noticed labels changing meaning, and they paid with 26% to 41% false alarms.
+When a result is not more than luck, the page keeps the simpler order and says so, with the numbers. Where the mathematics can say why a model wins, the formula sits beside the measurement. And a test recomputes every published number from the committed results, so the page cannot drift from its data. The full record is in **[the evidence](docs/evidence.md)**.
 
-AutoML answers the second question with more search, once installed and given compute. It assumes rows are independent unless told otherwise, does not say what it ruled out or why, and leaves the third question to you.
+## Run it
 
-Every number above is in the page's evidence tab and in [`bench/results/`](bench/results), with the places where the site loses.
-
----
-
-## How the live page is deployed
-
-The live page carries the commit it was built from in a meta tag (`dcn-build`), out of sight. The "Deploy static content to Pages" workflow builds the page, publishes the tour video beside it, deploys it, and then fetches the live page until it carries the new commit, failing if it does not within five minutes, so a deploy that did not take shows up as a failed run under Actions. A browser can also hold on to an older copy for a few minutes; a hard refresh fetches the new one.
-
----
-
-## How It Works
-
-1. **Drop a CSV**: modality, scale, quality and drift are measured automatically
-2. **Declare your intent**: what to predict, what kind of answer, whether order matters, and what a wrong answer costs
-3. **Read the specimen**: get the full six-axis signature
-4. **Before you trust a score**: one column that predicts the target almost perfectly on its own, ID-like columns, more repeated rows than chance, and dates with rows declared independent. None of these is fixed by choosing a better model
-5. **Prescriptions**: models, drift checkers, and pipelines that fit, and what your data rules out
-6. **Take it with you**: the shortlist as a Python script for your whole file, run here in the browser, or the whole reading saved as a Markdown file
-
-### What is measured, and what is asked
-
-Three things cannot be read off a file: what you want to predict, what kind of answer you need, and whether row order carries meaning. Those are asked. Everything else is measured:
-
-| Axis | How it is decided |
-|---|---|
-| 1 supervision | from whether you named a target column |
-| 2 structure | asked: does row order matter |
-| 3 modality | measured over the feature columns, with the target left out |
-| 4 scale | measured: sparsity, and columns relative to rows |
-| 5 distribution | measured: class balance for a categorical target, and drift between the first and second half of the file (PSI, against the 0.25 cutoff in DR-M2) |
-| 6 quality | measured: missingness (A62) and noise (A64), meaning text in numeric columns or labels differing only by case or padding, judged on each column as well as on the whole table |
-
-Three further questions decide which drift checkers and pipelines can be used at all, because those depend on how the thing will run rather than on what the data looks like:
-
-- **How does new data arrive?** A detector that compares two windows has nothing to compare in a stream; a streaming detector has no running error rate in a batch job.
-- **Do the true answers arrive later?** Everything that watches the error rate needs labels to come back. Without them you can only watch the data itself move.
-- **Which part are you building?** Filters the pipelines to the part of the work you are in, or shows all of them.
-
-Whatever those answers exclude is listed with its reason, the same way models are. What is left is ordered by what the drift benchmark measured (below): the share of injected drift each checker caught, minus how often it fired when nothing had changed.
-
-A63 (missing not at random) is never reported. Whether a gap depends on the value that is missing cannot be decided from the file alone.
-
-### How the recommendation is made
-
-First, what cannot work is ruled out, with the reason shown on the page: a sequence model has no order to use on independent rows, a text model has nothing to read in a numeric table, a supervised model has no labels to learn from. A model that assumes independent rows still appears on ordered data, with a caution to split by time rather than at random, and a model built for numbers still appears on a table of categories, with a caution to one-hot encode them: it used to be ruled out, and on 9 of the benchmark's categorical tables one of those models would have been the best choice. Letting them back changed none of the four models shown on the 26 categorical tables, because the learned order ranks boosting above them there; what changed is that the page stops calling usable models unusable, and that counting coordinates, the order both are compared with, got better (the numbers below are with the rule fixed).
-
-What is left is **ordered by what those models were worth on the benchmark**, not by how many coordinates they match. The coordinate count is still shown on every card, because it says what your data has in common with the model, but it no longer decides the order: it used to, and it put plain Linear Regression first on 17 of 20 regression datasets at a cost of up to 0.7 R².
-
-The weights are a prior per model, fitted in `bench/dcn/learn.py` on 195 real datasets and judged leave-one-dataset-out, so a dataset never contributes to the weights that rank it:
-
-| median regret, leave-one-dataset-out (95% interval) | classification (94 datasets, 78 independent) | regression (101 datasets, 35 independent) |
-|---|---|---|
-| counting matched coordinates (before) | 0.048 (0.034 to 0.068) | 0.086 (0.038 to 0.257) |
-| learned from the benchmark (now) | 0.016 (0.012 to 0.021) | 0.012 (0.002 to 0.027) |
-| always use boosting | 0.014 (0.011 to 0.022) | 0.021 (0.009 to 0.055) |
-| always use boosting, tuned (reference) | 0.011 (0.008 to 0.018) | 0.006 (0.002 to 0.017) |
-
-Datasets generated from one function are not independent. Of the 101 regression datasets, 54 come from Friedman's benchmark functions and 14 from Strogatz's equations: sisters that share a winner. Such a family is held out whole when its members are ranked, and counted once in every number above, so 101 regression datasets are 35 independent units. Counting them one by one made the learned order look better on regression than it is (0.007 instead of 0.012). The same holds for datasets cut from one table: PMLB has the Garvan thyroid records under six names with six targets, three horse colic targets, four feature sets of the same handwritten digits, two exact duplicates, and one generator behind each of led7 and led24, waveform_21 and waveform_40, and the three MONK's problems. Counted once, 94 classification datasets are 78 independent units.
-
-The intervals come from resampling those units. The order in use is also compared, unit by unit, with the two things it claims to beat, and with tuned boosting, a reference it makes no claim to beat but a reader will ask about (Wilcoxon signed-rank, Holm-corrected for the three comparisons):
-
-- **Against counting coordinates it is better by more than luck:** on 56 of 78 classification units, worse on 21 (p = 3 × 10⁻⁶), and on 24 of 35 regression units (p = 5 × 10⁻⁴).
-- **Against always using default boosting, it is level:** better on 39 classification units and worse on 35 (p = 0.61), better on 21 of 35 regression units and worse on 14 (p = 0.091). With two comparisons the regression edge was p = 0.046; adding a third comparison to the family, as honesty requires, puts it back inside luck.
-- **Against tuned boosting, it loses on classification by more than luck:** better on 24 units, worse on 49 (p = 0.028). On regression they are level: better on 16 of 35 units, worse on 19 (p = 0.55).
-
-**What that means for the advice.** The site recommends model families, at their default settings. Choosing among the top families is worth about as much as reaching for boosting; spending ten configurations tuning boosting is worth more. Tuned boosting beat its own defaults on 62 of 94 classification datasets and 88 of 101 regression datasets, and has the best average rank of anything that ran in both tasks. So the page now shows tuned boosting first, above the order's picks, on every labelled table predicting a category or a number: it passes the same rule that decides which learned order ships (no worse on either task, better by more than luck on one), applied to it after its result was known, which the evidence tab says. Whichever family you pick after that, tune it before trusting its score. The tuning budget is small on purpose (scikit-learn's defaults and nine random configurations, chosen by cross-validation inside each training fold) and the details are in [`bench/README.md`](bench/README.md#references).
-
-Two richer orders are built and judged the same way, and either can replace the per-model prior: one adds interactions between the dataset's measured features and each model's family, and one weights each model toward what it did on the benchmark datasets nearest to yours. Which one ships is decided by a rule fixed before the results were seen (`choose()` in `bench/dcn/learn.py`): a richer order replaces the prior only if it is no worse on either task and better by more than luck on at least one. Neither qualified on the full run (interactions: 9 better and 10 worse of 35 regression units; neighbours: 8 and 6), so the order in use is still the prior. The evidence tab reports each decision with its numbers.
-
-A model the benchmark never ran is shown below the ones it did, with no score attached. A future value and unusual records are ordered by benchmarks of their own (below), and a task no benchmark covered (grouping, survival) still falls back to coordinates. The page says which of the two it used.
-
-### Datasets like yours
-
-The plot used to place a dataset by axes 1 to 3, and the first two are the same for every labelled table with independent rows, so three different uploads could land on the same point among ten invented reference datasets. It now shows the 195 datasets the recommendations were tested on, positioned by measured properties (size, shape, how much of the table is numeric), with your data placed among them and its closest neighbours highlighted.
-
-Underneath, those neighbours are listed with what actually won on each, and every recommendation carries a second line: how often that model was the best choice on the datasets closest to yours, and how far below the winner it typically landed. Closeness is measured on the same eight properties for an upload and for a benchmark dataset, scaled by how much each varies across the benchmark.
-
-When an upload is outside what the benchmark tested, the page says so above the map, before any number: when it has fewer rows than the smallest benchmark dataset (200), and when its nearest benchmark dataset is further away than 95% of benchmark datasets are from their own nearest neighbour of a different kind (a synthetic dataset's sisters do not count). The bundled 20-row sample triggers both, which is the point: twenty rows is too few for any measured score to mean much. The thresholds are written to `evidence.json` by the benchmark and recomputed from the page's own data by the tests.
-
-### Take it home
-
-Under the recommendations, **Download the script** gives you `dcn_shortlist.py`: the shortlist the page showed, run on your whole file (the page reads at most 5,000 rows) with exactly the benchmark's preprocessing, estimators and cross-validation, and tuned boosting beside it, because on the benchmark a small tuning budget was worth more than the choice among the top models. It reads your file the way the page did (delimiter, encoding, decimal commas, the column names the page showed), splits by time when you said row order matters, and needs only pandas and scikit-learn, plus XGBoost or LightGBM if the shortlist has them.
-
-```
-python dcn_shortlist.py shipments.csv
-
-4 models, 5-fold cross-validation, balanced accuracy:
-
-  0.3803 ± 0.0682  EN4             LightGBM  (7.6s)
-  0.3740 ± 0.0529  BASE-HGB-TUNED  Histogram Gradient Boosting, tuned (reference)  (63.9s)
-  0.3359 ± 0.0355  LM2             Logistic Regression  (0.1s)
-  0.3196 ± 0.0361  TR3             Extra Trees  (2.2s)
-```
-
-**Doing nothing is scored too.** Beside the models, the script scores a guess that learns nothing: always the most common answer for a category, always the average (or the median, when every unit of a miss costs the same) for a number, and the last known value when rows are in time order. The last line says whether any model beat it. On a small file that matters: on the 20-row sample, LightGBM and tuned boosting cannot make a single split with that few rows, so they predict the average, and the page used to call that a win.
-
-The script is offered when you answer "A number", "A category" or "A future value". **A future number is forecast for real:** each value is predicted from the values before it and never from a later row, one step ahead, in time-ordered folds, by the forecasting models on the cards that can run here (ARIMA, its order chosen by AIC on the training rows; exponential smoothing, with a trend and a season where AIC prefers them; Croston's method with Syntetos and Boylan's correction, and TSB, for intermittent demand), by tuned boosting on the last few changes, and by doing nothing (carrying the last value forward, the value a season earlier, and the average so far). The season comes from the date column: a daily series repeats weekly, a monthly one yearly. Prophet is named and not run: it needs Stan, a compiled backend the page cannot load. The other columns are not used, and when a date column shows the rows run newest first, they are turned around. The cards are in the order the forecasting benchmark measured, and the page says when your kind of series points elsewhere; the run on your file settles it for your data. A future category is predicted from the other columns, split by time, and the page says that too. For any other kind of answer, the section says why there is no script and what to answer instead, rather than leaving a gap.
-
-`bench/tests/test_export.py` checks that no forecast moves when every value from a later row onward is changed, that doing nothing is what it says, and that on a series with a trend and a weekly swing the forecasting models beat carrying the last value forward.
-
-**What a wrong answer costs** decides what the script scores by. Left alone, it is the benchmark's own score: balanced accuracy for a category, R² for a number. For a category you can instead say every row counts the same (accuracy), that you will work through the riskiest rows first (ROC AUC), or that you will use the chances themselves (log loss). For a number, that every unit of error costs the same (mean absolute error), or that a miss matters relative to the true value (mean absolute percentage error, with a warning when the target has zeros). On a yes or no target you can price a miss, as in "a missed yes costs 10 false alarms". Each model is then scored by its cost per row, flagging a row when its chance is above 1 / (1 + 10), where a miss and a false alarm cost the same if the chances are right. After the scores, the script prints the threshold that cost least on your file, beside that one and the usual 0.5, and says which of them was picked after looking. Tuned boosting is tuned for the same score. The order on the page stays the benchmark's, and the page says so under the buttons: on your file, for your costs, the script's order is the one that counts.
-
-The script is held to the benchmark by `bench/tests/test_export.py`: it is generated with the site's own JavaScript, every estimator in it is compared with the benchmark's registry, and on the test fixtures it produces exactly the benchmark's scores. Each other score is recomputed by hand, fold by fold, and the reported threshold is checked against every threshold on a grid.
-
-**Run it here** runs the same script without installing anything. The page downloads Python from cdn.jsdelivr.net ([Pyodide](https://pyodide.org) 314.0.7 with pandas and scikit-learn, about 40 MB, plus XGBoost or LightGBM when the shortlist has them, and statsmodels for a forecast), starts it in a Web Worker, and hands it the page's own copy of your file: nothing is uploaded anywhere. Each model's score appears as it finishes, and the page then says where its own first pick landed on your data. What runs is the downloaded script, through its own `load()` and `evaluate()` (`site/js/verify.js`).
-
-It was checked end to end in headless Chromium, with Pyodide 314.0.7's release files served locally in place of the CDN, on two test files: every score matched the same script run with CPython, to the fourth decimal, except XGBoost's on one file (0.4924 against 0.4965), because Pyodide ships XGBoost 2.1.4 and the benchmark ran 3.2.0; with 2.1.4 installed, CPython gives 0.4924 too. That run is also how a real defect was found: Pyodide 314 refuses to load in a classic worker, so the page starts a module worker. `bench/tests/test_export.py` runs the page's Python runner with CPython on every test run, and `tests/verify.test.js` checks the messages with a stand-in worker.
-
-### What it was worth on real data
-
-The instrument publishes its own scoreboard, in **The evidence** tab: 195
-datasets from [PMLB](https://github.com/EpistasisLab/pmlb), every runnable
-model fitted on every one of them, five-fold cross-validated, 5,541 model runs
-(40 of the datasets under three cross-validation seeds, to measure how much a
-split alone moves things, and tuned boosting on every dataset as a reference). Each recommendation also carries a line saying how
-that model did.
-
-| median regret, as recorded | classification | regression |
-|---|---|---|
-| the first model shown | 0.012 | 0.011 |
-| best of the four shown | 0.005 | 0.002 |
-| always use boosting | 0.015 | 0.021 |
-| a model picked at random from the eligible ones | 0.051 | 0.162 |
-
-Regret is how far below the best model that ran a choice landed, in balanced
-accuracy and in R². These are the recommendations as the run recorded them,
-ordered by the prior fitted on the earlier 40-dataset run, which had already
-seen 40 of these datasets; the leave-one-dataset-out table above is the fairer
-test. The four models shown contain the best available choice 31% of the time
-on classification and 43% on regression.
-
-The full run also measured how much one split decides. Between cross-validation
-seeds a model's score moves by a median of 0.004 on classification and 0.005 on
-regression. The best model was the same under all three seeds on only 30% of
-classification datasets and 50% of regression ones, and the first pick and
-boosting swapped places, depending only on the split, on 10 of 20 classification
-datasets and 4 of 20 regression ones. A single dataset's winner is
-weak evidence, which is why every comparison here is made across datasets.
-
-The numbers on the page are generated from `bench/results/`, and a test
-recomputes them from that data on every run, so the page cannot quietly
-disagree with the run behind it.
-
-### When the data is messy
-
-Benchmark datasets are clean and uploads are not, so 40 of the datasets were damaged on purpose and every model run again: 10% or 30% of cells blanked, junk text (`?`, `n/a`, `#VALUE!`) in 5% of numeric cells, or 10% of training labels swapped. The profiler flagged every file with blanked cells (A62). It first flagged only 89% of those with junk (A64): the ones it missed had junk in the few numeric columns of a mostly categorical table, where an average over all columns stays under the threshold. Dirt is now judged per column as well, and all of them are flagged, while none of the 196 clean benchmark datasets is. On classification the order's first pick held up under every kind of damage. On regression it did not under 30% missing cells or noisy targets (its regret rose from 0.003 to 0.049 and 0.033), where the linear models and the linear SVM lost least and tree ensembles most; that rests on 8 independent units. An order that reads data quality, fitted on the other datasets' damaged runs, was tested leave-one-dataset-out and did not beat the fixed order under any kind of damage, so a messy file gets the same order. On the 8 classification units that arrived with missing values of their own, the order did as well as on the complete ones, as far as 8 units can tell. A file flagged A62 or A64 now gets a line under the models saying what the same kind of damage did on the benchmark. Details in [`bench/README.md`](bench/README.md#messy-data).
-
-### What the drift checkers were worth
-
-The drift checkers get a benchmark of their own (`bench/dcn/drift.py`): 18 real datasets, each cut five ways into a 500-row reference window and a 250-row current window, and seven scenarios per cut: nothing changes, one feature shifts by 0.3 standard deviations, its spread widens by half, its link to the other features is broken while every feature looks the same on its own, the rows are drawn with a bias, the class mix changes, or the labels change meaning while the features stay put. Every checker ran as its card says, at its card's threshold.
-
-- **The best all-rounders test each feature's whole distribution:** Anderson-Darling, chi-square on binned values and Cramér-von Mises caught 46% to 57% of the injected drift, with 1% to 7% false alarms.
-- **Some drift is invisible feature by feature.** Adversarial validation caught 76% of broken correlations; the single-feature tests caught at most 13%. Only the checkers that watch the model's errors saw labels change meaning (error drift 94%, EDDM 98%), and they paid for it with false alarms on 26% and 41% of quiet windows.
-- **Convention is cautious, and some cards overpromise.** PSI above 0.25 never fired on a quiet window but caught half the shifts; Jensen-Shannon at 0.1 almost never fired; Mahalanobis distance, whose card calls its chi-square p-value principled, fired on 24% of quiet windows. At river's defaults, Page-Hinkley and KSWIN caught almost nothing in 250 rows.
-
-It also found five defects, now fixed: six drift cards linked to the wrong function, error drift claimed to work without labels, mixed tables (most real files) were never offered a distribution test, SciPy's Cramér-von Mises test calls two samples of one mostly-zero column different at p < 10⁻⁹, and river's FHDDM, fed errors as its documentation says, fires when the model gets better. The full table is in the evidence tab and in [`bench/README.md`](bench/README.md#drift-checkers).
-
-### What a model pretrained for small tables was worth
-
-TabPFN is a transformer pretrained on synthetic tables to predict a small table in one pass. TabPFN-2's weights sit behind a login this environment could not reach; TabPFN-1's are public (Apache 2.0), so it ran, within its limits: classification only, up to 1,000 rows, 100 features and 10 classes. That is 42 datasets in 38 independent units. What it had to show was written down before it ran (`bench/README.md`, "Which TabPFN ran").
-
-Against tuned boosting it was better on 21 units and worse on 16 (p = 0.26). The rule asks for more than luck, so tuned boosting stays first on small tables too, and the size of a table still does not change the first recommendation. It did beat the order's own first pick more often than not (25 units better, 12 worse, p = 0.13 after correcting for four comparisons). None of this measures TabPFN-2 or later, which their authors report stronger.
-
-### What forecasting was worth
-
-The take-home script's forecasters now have a benchmark of their own (`bench/dcn/forecast.py`): the functions the page writes, run on 240 real series from 12 public collections (M4 at six frequencies, car parts, Australian prescriptions, retail and livestock, and M5's Walmart sales), 11 independent units, each value predicted from the values before it. Every series was sorted into a kind the way the page sorts an upload (`site/js/series.js`): intermittent or lumpy demand by Syntetos, Boylan and Croston's cut-offs, otherwise by seasonal and trend strength.
-
-| kind of series | series | ARIMA | smoothing | Croston (SBA) | TSB | nothing beat all four |
-|---|---|---|---|---|---|---|
-| seasonal and trending | 68 | 7% | 91% | 0% | 2% | 19% |
-| seasonal | 17 | 35% | 65% | 0% | 0% | 47% |
-| trending | 100 | 41% | 47% | 0% | 12% | 33% |
-| neither | 13 | 15% | 46% | 8% | 31% | 8% |
-| intermittent | 34 | 9% | 12% | 38% | 41% | 21% |
-| lumpy | 8 | 25% | 0% | 50% | 25% | 38% |
-
-- **The kind of series changes the winner.** Smoothing wins nine seasonal-and-trending series in ten; on intermittent demand the two methods built for it win four in five, and smoothing one in eight.
-- **Doing nothing is a real contender.** It beat every forecaster on almost half the seasonal series without a trend and a third of the trending ones, which is why the script scores it beside them.
-- **Whether the page should read the kind was decided by a rule fixed before the run.** An order kept by kind cut the median regret on intermittent series from 0.121 to 0.034 R², and by R² it was worse on no collection. But the two orders chose differently in only 4 of the 11 collections, and with 4 the smallest p-value the test can give is 0.125: it could not have passed. So the cards keep one order for every series (exponential smoothing, ARIMA, TSB, Croston), and on a series of a kind where the evidence points elsewhere the page says so, with the numbers.
-- **A second run was declared to settle it, and came close.** Both orders were frozen and tried on 137 intermittent series from nine sources the first run never saw (New York flights, US syphilis cases, US baby names, Citi Bike trips, police deaths, disease counts, MovieLens ratings, CDNOW purchases, Atlantic storms). Putting TSB first was better on 7 of 9 collections by R² and 8 of 9 by absolute error, and cut median regret from 0.107 to 0.069 R² and from 0.173 to 0.039 in units of doing nothing's error. But one loss was large (the storms, whose intermittent counts follow the hurricane season, which TSB cannot model), and p was 0.15 after correcting for two scores. The rule was fixed before the run and is not loosened after it, so the order stays, and an intermittent upload is told what both runs found.
-
-### What anomaly detection was worth
-
-"Unusual records" now has a benchmark too (`bench/dcn/anomaly.py`): every detector the page can recommend, fitted without labels on ADBench's 47 classical tables with known anomalies (39 independent sources) and scored against the labels afterwards. Three detectors joined the taxonomy for it, as the standard representatives of the other families of method: the Local Outlier Factor, the distance to the fifth nearest neighbour, and robust covariance (Minimum Covariance Determinant).
-
-| width of table | tables | Isolation Forest | One-Class SVM | LOF | k-NN distance | robust covariance | DBSCAN |
-|---|---|---|---|---|---|---|---|
-| narrow (up to 10 columns) | 19 | 21% | 11% | 0% | 21% | 37% | 11% |
-| middling (11 to 50) | 19 | 16% | 16% | 21% | 21% | 26% | 0% |
-| wide (over 50) | 9 | 44% | 0% | 11% | 0% | 44% | 0% |
-
-- **The mathematics predicted which detectors would fade on wide tables, and they did.** Distances concentrate as columns are added, so detectors that rank rows by the distances to their neighbours have less to work with: on wide tables LOF was best once in nine and k-NN distance never, while Isolation Forest and robust covariance shared the rest.
-- **Reading the width did not pass the rule.** By ROC AUC an order kept per width was better on 17 sources and worse on 4 (p = 0.016), but by average precision, which rewards the top of the list, it was worse on 12 and better on 8. The rule asks for no worse under both, so the cards keep one order: robust covariance, Isolation Forest, k-NN distance, One-Class SVM, LOF, DBSCAN. Robust covariance is ruled out when a table has no more than twice as many rows as columns, the condition its fit needs.
-
-### Why, mathematically
-
-Where the mathematics can say why a model is chosen, the evidence tab says it, beside the measurement it explains, and each argument is a formula in the reference that opens from any card. Among them:
-
-- **Why models are measured, not derived** (no free lunch): averaged over every possible problem, no learner beats another, so only the problems that actually occur can decide.
-- **Why doing nothing wins so often** (random walk): if tomorrow is today plus unpredictable noise, today is the best forecast under squared error, and no model can do better on average.
-- **Why exponential smoothing leads** (Muth, 1960): it is the optimal forecast for a level that wanders with noise on top.
-- **Why Croston's method is corrected** (Syntetos and Boylan): dividing by an estimated interval inflates the forecast, by a factor that tends to 1 / (1 − α/2).
-- **Why the score you choose matters** (optimal point forecasts): squared error rewards the conditional mean and absolute error the median, which is zero on demand that is empty more than half the time.
-- **Why one-column drift tests miss broken correlations**, and why a classifier between the windows does not: if every column's distribution is unchanged, a one-column test fires only at its false-alarm rate, while the best classifier gains exactly the total variation between the windows.
-- **Why PSI misbehaves on small windows**: with no drift its expected value is about (bins − 1)(1/n + 1/m), 0.05 on the drift benchmark's windows and 0.6 on two windows of 30 rows.
-- **Why wide tables hurt neighbour-based detectors** (concentration of distances), and what each detector's score means.
-- **Why a handful of units cannot pass** (Wilcoxon's floor): with n pairs the smallest possible p is 2/2^n, which is why the first forecasting run could not have passed and the second was built bigger.
-
-### The evidence tab
-
-The evidence tab opens with a contents list and is split into numbered parts, one per kind of advice: tables (the order, the significance tests, the luck of the split, TabPFN, messy data), forecasting (winners by kind, the first run, the confirmation run), anomalies, drift checkers, the checks before a score, and the reference tables. Each part ends with its mathematics.
-
-### What the checks catch
-
-The first section of the results, **Before you trust a score**, was measured the same way: on the 195 benchmark datasets as a user would upload them, and on 40 of them with a problem planted. It caught the target renamed or rescaled in 40 of 40, shuffled row numbers and random row codes in 40 of 40, and 2% of rows copied in 32 of 40. On clean data its flags are mostly real: body fat computed from density, a phone number in a churn table, and 22 datasets with more copied rows than chance, the thyroid and wine quality tables among them. It cannot catch a leak with a few percent of mistakes in it (0 of 40 at 5%), and it looks at one column at a time. Details in [`bench/README.md`](bench/README.md#before-you-trust-a-score).
-
-### Not done yet
-
-- **Only boosting was tuned.** The page puts tuned boosting first because it beat the order's first pick, but the families below it are still ranked by what they were worth at their defaults. Tuning each of them the same way, and ranking them on that, would need a run the size of the tuned one for every family.
-- **Run it here has been run in Chromium only**, with Pyodide's files served locally rather than from the CDN. Firefox and Safari support module workers and should work; they have not been tried. If it fails in yours, the downloaded script runs the same thing.
-- **Only TabPFN-1 has been run.** TabPFN-2 and later need a Prior Labs login this benchmark's environment could not reach. `bench/tools/run_tabpfn.sh` adds them in one command, judged by the same rule TabPFN-1 was.
-- **The order in use is a per-model prior, not yet a per-dataset one.** Both ways of making it depend on your data (interactions, and weighting toward the nearest benchmark datasets) are built, tested against the JavaScript, and judged leave-one-dataset-out, and neither beat the prior by more than luck on 195 datasets once families count once. With only 35 independent regression units, a per-dataset order needs more collected data to prove itself, not more of the same generators.
-- **The prior itself still counts a family's datasets one by one when it is fitted**, so on regression it leans toward what wins on Friedman's functions. Weighting a family once in the fit is the obvious change, and it should be declared before the next run rather than tried after this one.
-- **Heavy gaps and noisy targets still cost the first pick on regression.** An order that reads data quality was tested and did not help, so nothing here fixes that yet; it rests on 8 independent units either way.
-- **Drift was injected at one strength per kind**, on classification datasets, with 500- and 250-row windows, so the rates hold for that setting. Detectors tuned to their stream would beat river's defaults.
-- **Classification, regression, forecasting and anomaly detection are benchmarked.** Survival, grouping, compression and generation still fall back to counting coordinates.
-- **The forecasting kinds are not settled.** A per-kind order was better on most collections in two runs and passed the rule in neither. Intermittent series with a strong season look like a kind of their own, and a run declared for that is the next step. Tuned boosting on recent changes, the script's reference, is not in the forecasting runs yet.
-- **Anomaly detectors ran at their defaults only**, the largest tables were sampled to 5,000 rows, and many of ADBench's anomalies are a rare class relabelled, not anomalies that occurred as such.
-- Image, audio, graph and spatial data cannot be detected from a CSV, so those models are reachable in the reference but never recommended from an upload.
-- Separability (A55/A56) and weak or self-supervised labelling (A13 to A15) are not measured yet.
-
----
-
-## The Taxonomy
-
-Data Craft Nexus is built on a complete, interconnected taxonomy:
-
-| Component | Count | Description |
-|-----------|-------|-------------|
-| Data axes | 6 | Supervision, structure, modality, scale, distribution, quality |
-| Tasks | 8 | A number, a category, a future value, time until an event, groupings, anomalies, a simpler view, new examples |
-| Math formulas | 144 | Across 16 domains, with the derivations behind the benchmark results |
-| Models | 72 | Across 14 architecture families |
-| Drift checkers | 28 | Distributional, streaming, multivariate, adversarial, DL-native |
-| Pipelines | 14 | ETL, feature store, training, deployment, monitoring, RAG |
-| Stages | 31 | Reusable pipeline building blocks |
-
-The full written notes are in [`docs/taxonomy/`](docs/taxonomy): [Data](docs/taxonomy/Data.md), [Math](docs/taxonomy/Math.md), [ML Models](<docs/taxonomy/ML Models.md>), [Model Stacking](<docs/taxonomy/Model Stacking.md>), [Model Drift](<docs/taxonomy/Model Drift.md>) and [ML Pipeline](<docs/taxonomy/ML Pipeline.md>).
-
----
-
-## Features
-
-- **Six-axis data signature**: every dataset gets graded like a specimen
-- **Metaphor-first explanations**: every model has a plain-language metaphor
-- **Plain names first**: the readout, the cards and the chips say "Labeled", "Random Forest", "Train"; the taxonomy's code sits small beside each name and on hover, and any name or code opens a drawer with formulas and mechanisms
-- **3D coordinate plot**: your data plotted against reference datasets
-- **Mermaid flowcharts**: every pipeline renders its diagram inline
-- **Full library**: search the entire taxonomy
-- **Reads real exports**: comma, semicolon, tab or pipe separated; quoted fields; UTF-8 or Windows-1250; decimal commas like `1.234,56`
-- **Save this reading**: the signature, what fits, what was ruled out and why, and every measured line, as a Markdown file to keep or send on. The file's rows are not in it
-- **100% client-side**: nothing is uploaded. Everything runs in your browser.
-
----
-
-## Run Locally
-
-The quickest way: download [`dist/index.html`](dist/index.html) and open it. It's one self-contained file and works straight from disk.
-
-To work on the code:
+Open the [live page](https://aeternifrigus.github.io/Data-Craft-Nexus/), or download [`dist/index.html`](dist/index.html): one self-contained file that works straight from disk.
 
 ```bash
 git clone https://github.com/Aeternifrigus/Data-Craft-Nexus.git
 cd Data-Craft-Nexus
-npm install          # only installs esbuild, for the build step
-npm run serve        # serves site/ at http://localhost:8000
+npm install && npm run serve    # http://localhost:8000
+npm test                        # Node 20+
 ```
 
-`site/` is the source, split into ES modules. Browsers won't load modules from disk, so `site/index.html` needs a server. After changing anything in `site/`, run `npm run build` to regenerate `dist/index.html` and commit both. CI fails if they're out of sync, and GitHub Pages publishes `dist/`.
+## Docs
 
-## Tests
+| page | what is in it |
+|---|---|
+| [How it works](docs/how-it-works.md) | what is measured and asked, how models are ruled out and ranked, the take-home script |
+| [The evidence](docs/evidence.md) | every benchmark, every number, the mathematics, and what is not done yet |
+| [Development](docs/development.md) | tests, project layout, stack, deployment |
+| [The benchmark](bench/README.md) | how each run was set up, written down before it ran |
 
-```bash
-npm test             # Node 20+
-```
+## License
 
-- `tests/csv.test.js`: delimiter detection, quoting, encodings, decimal commas, header clean-up.
-- `tests/profile.test.js`: what each axis measures, including PSI drift and class balance.
-- `tests/recommend.test.js`: what gets ruled out and why, and that every model except the reinforcement learning ones is reachable from some dataset.
-- `tests/html.test.js`: escaping of everything that goes into the page.
-- `tests/taxonomy.test.js`: every code a model, drift checker or pipeline points at must exist.
-- `tests/build.test.js`: the built page is self-contained, carries exactly the taxonomy in `site/`, and is up to date.
-- `tests/export.test.js`: what the generated script carries: the page's reading of the file, the column roles, every runnable model's estimator, and the models it cannot run, named.
-- `tests/checks.test.js`: "Before you trust a score": what each check catches and leaves alone, and every published rate recomputed from `bench/results/checks.csv`.
-- `tests/names.test.js`: every code a card, chip or drawer shows has a plain name to lead with, and flowcharts and ruled-out reasons read in words.
-- `tests/costs.test.js`: "What does a wrong answer cost?": which choices a target gets, the score each one puts in the script, and what the page says about it.
-- `tests/verify.test.js`: "Run it here": the messages between the page and its Python worker, with a stand-in worker.
-- `tests/drift.test.js`: drift checkers ordered by what they measured, and every published rate recomputed from `bench/results/drift.csv`.
-- `tests/messy.test.js`: which damaged run a messy upload is told about, and that every one is published.
-- `tests/report.test.js`: what a saved reading says, that no row of the file gets into it, and that odd names cannot break it.
-- `tests/check_links.test.js`: the link checker against a fake network. A connection that resets and then answers passes, a 404 fails on the first answer, and no host gets more than two requests at once. `npm run check:links` runs the real check, which needs the internet and runs in CI.
-- `tests/recommend.snapshot.test.js`: runs every fixture in `tests/fixtures/` through every target, task and order answer, and compares what gets recommended with `tests/snapshots/recommendations.json`. When a change to the profiler or the ranking is intended, run `npm run test:update` and review the snapshot diff in the commit.
-
-## Project Layout
-
-```
-dist/index.html        the built single-file page (what GitHub Pages serves)
-site/                  the source
-  index.html
-  css/style.css
-  sample.csv           the "load a sample" shipment table
-  taxonomy/*.json      axes, math, models, drift checkers, pipelines: the single source of truth
-  js/
-    taxonomy.js        loads the taxonomy (embedded in dist/, fetched in site/)
-    csv.js             CSV reading: delimiters, quoting, encodings, decimal commas
-    stats.js           PSI and other small statistics
-    html.js            escaping
-    profile.js         measures the axes (no DOM)
-    recommend.js       rules out and ranks models, drift checkers, pipelines (no DOM)
-    ranking.js         the learned order, fitted by the benchmark
-    nearest.js         meta-features, and the benchmark datasets nearest to yours
-    evidence.js        "The evidence" view, and the measured line on each card
-    checks.js          "Before you trust a score": leaks, IDs, repeated rows, dates (no DOM)
-    costs.js           "What does a wrong answer cost?": what the script scores by (no DOM)
-    names.js           plain names for the taxonomy's codes, with the code kept for hover (no DOM)
-    export.js          the take-home Python script
-    report.js          "Save this reading": the findings as Markdown
-    verify.js          "Run it here": that script in a Pyodide worker
-    results.js         renders the recommendations and the 3D plot
-    drawer.js          the definition drawer
-    library.js         "The reference" view
-    app.js             entry point
-scripts/build.mjs      bundles site/ into dist/index.html
-docs/taxonomy/         the original taxonomy notes
-tests/
-```
-
-`profile.js` and `recommend.js` don't touch the page, so the same logic runs in the browser, in the tests and, later, in the benchmark.
-
-## Stack
-
-- **HTML/CSS/JS**: plain ES modules, bundled into one file with esbuild
-- **Plotly**: 3D coordinate visualization
-- **Mermaid**: pipeline flowcharts
-- **Google Fonts**: Instrument Serif, JetBrains Mono, Press Start 2P, Mrs Saint Delafield
-
----
-
-## Credits
-
-By [Aeternifrigus](https://aeternifrigus.netlify.app/)
-
----
-
-License
-MIT: use it, remix it, cite it.
+MIT: use it, remix it, cite it. Made by [Aeternifrigus](https://aeternifrigus.netlify.app/).

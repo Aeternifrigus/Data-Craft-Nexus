@@ -192,6 +192,62 @@ function messySection(T) {
     ${naturalText ? `<p class="sect-note" style="margin-top:14px">${naturalText}</p>` : ''}`;
 }
 
+// What each of the page's checks did on the benchmark, for the line under a flag.
+export function checkSentence(T, kind) {
+  const c = T.EVIDENCE?.checks;
+  if (!c) return '';
+  const of = c.planted_on;
+  if (kind === 'leak') {
+    return `On the ${c.datasets} benchmark datasets it fired on ${c.fired.leak.length}, each time on a column that really `
+      + `does nearly determine the target. It caught the target renamed or rescaled in ${c.caught.leak} of ${of}, in `
+      + `${c.caught.leak_1} of ${of} with 1% of its rows changed, and in ${c.caught.leak_5} with 5%: a leak with a few `
+      + 'mistakes in it looks like a strong honest column, and this check cannot tell them apart.';
+  }
+  if (kind === 'id') {
+    return `It fired on ${c.fired.id.length} of the ${c.datasets} benchmark datasets, and caught ${c.caught.id_run} of `
+      + `${of} shuffled row numbers and ${c.caught.id_code} of ${of} random codes planted in them.`;
+  }
+  if (kind === 'duplicates') {
+    return `${c.fired.duplicates.length} of the ${c.datasets} benchmark datasets have more repeated rows than chance, `
+      + `and it caught 2% of rows copied in ${c.caught.copies_2} of ${of}. It does not flag a table without a `
+      + 'measurement column, where repeats are natural.';
+  }
+  return '';
+}
+
+function checksSection(T) {
+  const c = T.EVIDENCE?.checks;
+  if (!c) return '';
+  const rows = [
+    ['a column that predicts the target on its own', 'leak', [['the target renamed or rescaled', 'leak'],
+      ['the same, 1% of rows changed', 'leak_1'], ['the same, 5% of rows changed', 'leak_5']]],
+    ['a column that looks like an ID', 'id', [['the row numbers, shuffled', 'id_run'], ['a random code per row', 'id_code']]],
+    ['more repeated rows than chance', 'duplicates', [['2% of the rows copied', 'copies_2']]],
+  ];
+  const body = rows.map(([what, kind, planted]) => planted.map(([label, key], i) => `<tr>
+      ${i === 0 ? `<td rowspan="${planted.length}">${esc(what)}</td>
+        <td rowspan="${planted.length}">${c.fired[kind].length} of ${c.datasets}</td>` : ''}
+      <td>${esc(label)}</td><td>${c.caught[key]} of ${c.planted_on}</td></tr>`).join('')).join('');
+  const thresholds = Object.entries(c.leak_thresholds ?? {}).map(([thr, t]) =>
+    `at ${thr}, it would fire on ${t.clean} clean datasets and catch ${t.leak_1} of ${c.planted_on} leaks with 1% changed and ${t.leak_5} with 5%`).join('; ');
+  const list = (kind) => c.fired[kind].map(esc).join(', ');
+  return `<h3 class="ev-h">Before you trust a score</h3>
+    <p class="sect-note">${esc(c.how)} A flag on a clean dataset is either a false alarm or something really there,
+      so they are named below.</p>
+    <table class="ev-table">
+      <thead><tr><th>check</th><th>fired on clean datasets</th><th>planted</th><th>caught</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+    <p class="sect-note" style="margin-top:14px">Where the leak check fired: ${list('leak')}. In each, one column
+      nearly determines the target: every car brand belongs to exactly one class, and body fat is computed from density
+      by a formula. Where the ID check fired: ${list('id')}, among them a phone number and a row counter.
+      Where repeated rows exceed chance: ${list('duplicates')}, among them the six thyroid tables (six names for one
+      table) and both wine quality tables. The benchmark itself cross-validated these at random, so their scores there
+      are a little generous too.</p>
+    ${thresholds ? `<p class="sect-note">The leak threshold, 0.99, was set before this ran. Other thresholds, for
+      comparison and not used: ${esc(thresholds)}.</p>` : ''}`;
+}
+
 function headlineTable(headline) {
   const tasks = Object.keys(headline);
   const rows = [
@@ -626,6 +682,8 @@ export function buildEvidence(T) {
     ${driftSection(T)}
 
     ${messySection(T)}
+
+    ${checksSection(T)}
 
     <h3 class="ev-h">Every model that ran</h3>
     <p class="sect-note">“Was best” counts datasets where this model scored highest of all that ran.

@@ -4,7 +4,7 @@
 import { esc } from './html.js';
 import { matchCodes } from './profile.js';
 import { driftUnmeasured, leadRecommendation, paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
-import { driftSentence, evidenceFor, evidenceSentence, leadSentence, messyNote } from './evidence.js';
+import { checkSentence, driftSentence, evidenceFor, evidenceSentence, leadSentence, messyNote } from './evidence.js';
 import { rankingProvenance } from './ranking.js';
 import { coverageNotes, metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
 import { MODEL_CODE, columnRoles, downloadScript, pythonScript, scriptable, takeHomeTask } from './export.js';
@@ -48,7 +48,7 @@ export function renderResults(T, sig, task, profile, source = null) {
   // What can make any score look better than it is, before any score.
   const checks = profile ? runChecks(profile, { target: sig.target, task, order: sig.codes[1] }) : null;
   const leftOut = checks ? checks.flags.filter(f => f.kind === 'id').map(f => f.column) : [];
-  renderChecks(checks, sig.target);
+  renderChecks(T, checks, sig.target);
 
   // Where this dataset sits among the benchmark datasets, measured the same
   // way. The order can depend on it, so it is measured first.
@@ -180,7 +180,8 @@ export function renderResults(T, sig, task, profile, source = null) {
     T, sig, task, fileName: source?.fileName ?? 'data.csv', date: new Date().toISOString().slice(0, 10),
     build: document.querySelector('meta[name="dcn-build"]')?.content?.split(' ')[0] ?? null,
     lead, leadText: lead ? leadSentence(T, lead) : '', models, drifts, pipelines,
-    checks: checks ? { flags: checks.flags, clear: checksSummary(checks, sig.target) } : null,
+    checks: checks ? { flags: checks.flags.map(f => ({ ...f, measured: checkSentence(T, f.kind) })),
+      clear: checksSummary(checks, sig.target) } : null,
     notes: { models: document.getElementById('model-note').textContent,
       drifts: document.getElementById('drift-note').textContent },
     sentences: Object.fromEntries([
@@ -211,7 +212,7 @@ export function renderResults(T, sig, task, profile, source = null) {
 }
 
 // "Before you trust a score": the checks, or what they looked at when nothing was found.
-function renderChecks(checks, target) {
+function renderChecks(T, checks, target) {
   const note = document.getElementById('checks-note');
   const el = document.getElementById('checks');
   if (!note || !el) return;
@@ -229,6 +230,7 @@ function renderChecks(checks, target) {
       <p class="check-h">${esc(f.title)}</p>
       <p class="check-p">${esc(f.text)}</p>
       <p class="check-fix">What to do: ${esc(f.fix)}</p>
+      ${checkSentence(T, f.kind) ? `<p class="check-measured">Measured. ${esc(checkSentence(T, f.kind))}</p>` : ''}
     </div>`).join('');
 }
 

@@ -203,6 +203,14 @@ def drift_evidence(path: Path) -> dict | None:
     return drift_block(pd.read_csv(path))
 
 
+def checks_evidence(path: Path) -> dict | None:
+    """What the page's checks caught and where they fired (checks.py), when it has been run."""
+    if not path.exists():
+        return None
+    from .checks import evidence as checks_block
+    return checks_block(pd.read_csv(path))
+
+
 def messy_evidence(results_path: Path) -> dict | None:
     """What damaging the data did (messy.py), when the damaged runs are there."""
     folder = results_path.parent
@@ -308,6 +316,8 @@ def build(results_path: Path, run_label: str, ranked_by: str = "counting matched
         "drift": drift_evidence(results_path.parent / "drift.csv"),
         # The same datasets damaged on purpose, and the ones that came with gaps (messy.py).
         "messy": messy_evidence(results_path),
+        # The page's "Before you trust a score" checks, on clean and planted data (checks.py).
+        "checks": checks_evidence(results_path.parent / "checks.csv"),
     }
 
 

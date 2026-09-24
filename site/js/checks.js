@@ -14,7 +14,10 @@
 //               tested on
 //
 // Pure functions: no DOM access. The thresholds were set before they were
-// measured on the benchmark (bench/dcn/checks.py), and are not tuned to it.
+// measured on the benchmark (bench/dcn/checks.py) and were not tuned to it.
+// Two rules changed after that first measurement, the need for a measurement
+// column in the repeat check and a rank correlation beside the leak check;
+// bench/README.md ("Before you trust a score") says why and what it cost.
 
 import { isMissing } from './profile.js';
 
@@ -26,10 +29,16 @@ export const LEAK_MIN_ROWS = 30;
 // A column is ID-like when this share of its values are distinct.
 export const ID_DISTINCT = 0.98;
 export const ID_MIN_ROWS = 20;
-// Repeated rows are flagged when they are at least this share of the file
-// and several times what chance would give if the columns were independent.
+// Repeated rows are flagged when they are at least this share of the file,
+// several times what chance would give if the columns were independent, and
+// the table has a measurement: a numeric column with at least this many
+// distinct values. A table of categories alone repeats rows naturally
+// (identical voting records, the same answers to the same questions), and a
+// first version that flagged those fired on 33 of the 195 clean benchmark
+// datasets, mostly for that reason.
 export const DUPLICATE_SHARE = 0.01;
 export const DUPLICATE_OVER_CHANCE = 3;
+export const DUPLICATE_MEASURED = 50;
 // Numeric columns are cut into at most this many bins for the leak check.
 const BINS = 32;
 
@@ -86,6 +95,35 @@ function keyer(col, train) {
     while (lo < hi) { const mid = (lo + hi) >> 1; if (edges[mid] <= x) lo = mid + 1; else hi = mid; }
     return 'b' + lo;
   };
+}
+
+// Average ranks, ties sharing the mean of the ranks they span.
+function ranks(xs) {
+  const order = xs.map((x, i) => [x, i]).sort((a, b) => a[0] - b[0]);
+  const r = new Array(xs.length);
+  for (let k = 0; k < order.length;) {
+    let j = k;
+    while (j + 1 < order.length && order[j + 1][0] === order[k][0]) j += 1;
+    for (let m = k; m <= j; m++) r[order[m][1]] = (k + j) / 2;
+    k = j + 1;
+  }
+  return r;
+}
+
+// Rank correlation between a numeric column and a numeric target, over the
+// rows where both are numbers: a column that is the target on another scale
+// (price in another currency, a log of it) scores 1 however skewed it is.
+export function rankCorrelation(col, target, rows) {
+  const pairs = rows.filter(i => !isMissing(col.values[i]) && Number.isFinite(Number(col.values[i])))
+    .map(i => [Number(col.values[i]), target.values[i]]);
+  if (pairs.length < LEAK_MIN_ROWS) return null;
+  const rx = ranks(pairs.map(p => p[0])), ry = ranks(pairs.map(p => p[1]));
+  const m = (rx.length - 1) / 2;
+  let sxy = 0, sxx = 0, syy = 0;
+  for (let k = 0; k < rx.length; k++) {
+    sxy += (rx[k] - m) * (ry[k] - m); sxx += (rx[k] - m) ** 2; syy += (ry[k] - m) ** 2;
+  }
+  return sxx && syy ? Math.abs(sxy / Math.sqrt(sxx * syy)) : null;
 }
 
 // How well one column predicts the target on rows it was not fitted on.
@@ -188,11 +226,12 @@ export function runChecks(profile, decl) {
     flags.push({ kind: 'id', column: c.name,
       title: `${c.name} looks like an ID`,
       text: `It has a different value in ${c.uniq === firsts.length ? 'every row' : 'almost every row'}, like an order number. A model can memorise it and score well on rows it has seen, and it says nothing about new ones.`,
-      fix: 'Leave it out of the features. The script this page writes already does.' });
+      fix: 'Leave it out of the features; the script this page writes already does. If it counts time instead (a year, a day number), keep it and answer that row order matters, so the split follows it.' });
   }
 
   // One column that predicts the target by itself.
   let leakRows = 0;
+  let best = null;
   const t = target ? targetValues(profile, target, decl.task) : null;
   if (t) {
     const rows = [];
@@ -201,16 +240,22 @@ export function runChecks(profile, decl) {
     if (rows.length >= LEAK_MIN_ROWS) {
       ran.push('leak');
       const idNames = new Set(ids.map(c => c.name));
-      const scored = profile.columns
+      const all = profile.columns
         .filter(c => c.name !== target && !idNames.has(c.name) && !c.dateLike && !c.textLike)
-        .map(c => ({ col: c, score: singleColumnScore(c, t, rows) }))
-        .filter(s => s.score !== null && s.score >= LEAK_SCORE)
+        .map(c => {
+          const fitted = singleColumnScore(c, t, rows);
+          const rank = t.kind === 'number' && c.numeric ? rankCorrelation(c, t, rows) : null;
+          return rank !== null && rank > (fitted ?? -Infinity)
+            ? { col: c, score: rank, measure: 'a rank correlation of' }
+            : { col: c, score: fitted, measure: t.kind === 'number' ? 'R²' : 'balanced accuracy' };
+        })
+        .filter(s => s.score !== null)
         .sort((a, b) => b.score - a.score);
-      const measure = t.kind === 'number' ? 'R²' : 'balanced accuracy';
-      for (const s of scored.slice(0, 3)) {
+      best = all[0] ? { column: all[0].col.name, score: all[0].score } : null;
+      for (const s of all.filter(x => x.score >= LEAK_SCORE).slice(0, 3)) {
         flags.push({ kind: 'leak', column: s.col.name, score: s.score,
           title: `${s.col.name} predicts ${target} almost perfectly on its own`,
-          text: `Used alone, on rows it was not fitted on, it reaches ${measure} ${s.score.toFixed(3)}. Real predictors are rarely this good by themselves. This usually means it was recorded after the outcome, or computed from it, and it will not be there when you predict.`,
+          text: `Used alone, on rows it was not fitted on, it reaches ${s.measure} ${s.score.toFixed(3)}. Real predictors are rarely this good by themselves. This usually means it was recorded after the outcome, or computed from it, and it will not be there when you predict.`,
           fix: `Check when ${s.col.name} becomes known. If it is only known after ${target} is, leave it out.` });
       }
     }
@@ -218,8 +263,9 @@ export function runChecks(profile, decl) {
 
   // Rows repeated more than chance.
   const rep = repeatedRows(profile, target);
-  ran.push('duplicates');
-  if (rep.copies >= 2 && rep.share >= DUPLICATE_SHARE && rep.copies > DUPLICATE_OVER_CHANCE * rep.expected) {
+  const measured = profile.columns.some(c => c.name !== target && c.numeric && c.uniq >= DUPLICATE_MEASURED);
+  if (measured) ran.push('duplicates');
+  if (measured && rep.copies >= 2 && rep.share >= DUPLICATE_SHARE && rep.copies > DUPLICATE_OVER_CHANCE * rep.expected) {
     const conflict = target && rep.conflicting
       ? ` ${rep.conflicting.toLocaleString('en-US')} rows share their inputs with a row whose ${target} is different, which caps how well any model can do.`
       : '';
@@ -240,7 +286,7 @@ export function runChecks(profile, decl) {
       fix: 'Answer "Yes, it is a sequence" to row order, and the script splits by time instead.' });
   }
 
-  return { flags, ran, rows: n, leakRows };
+  return { flags, ran, rows: n, leakRows, best, repeats: rep };
 }
 
 // What the checks looked at, in words, for when nothing was found.
@@ -249,7 +295,8 @@ export function checksSummary(result, target) {
   if (result.ran.includes('leak')) parts.push(`no column predicts ${target} on its own`);
   else if (target) parts.push(`too few rows with ${target} (${result.leakRows}) to test whether one column predicts it on its own`);
   parts.push('no column looks like a row ID');
-  parts.push('no more repeated rows than chance');
+  parts.push(result.ran.includes('duplicates') ? 'no more repeated rows than chance'
+    : 'repeated rows not judged, since without a numeric measurement column identical rows can be natural');
   if (result.ran.includes('time')) parts.push('no dates split at random');
   return parts;
 }

@@ -248,6 +248,67 @@ against 0.016 on the 70 complete ones (Mann-Whitney, p = 0.50), and default
 boosting's 0.014 against 0.015: no evidence of a difference either way, at a
 size that could only have shown a large one.
 
+## Before you trust a score
+
+The page's first section runs four checks on an upload (`site/js/checks.js`):
+one column that predicts the target almost perfectly on its own, a column
+that looks like a row ID, more repeated rows than chance, and a date column
+with the rows declared independent. `dcn/checks.py` measures the first three
+with the page's own JavaScript, on the CSV a user would upload:
+
+```bash
+python -m dcn.checks --out results/checks.csv   # about a minute
+```
+
+| check | fired on the 195 clean datasets | planted in 40 datasets | caught |
+|---|---|---|---|
+| one column predicts the target | 5 | the target renamed or rescaled | 40 |
+| | | the same, 1% of rows changed | 19 |
+| | | the same, 5% of rows changed | 0 |
+| looks like an ID | 3 | the row numbers, shuffled | 40 |
+| | | a random code per row | 40 |
+| more repeated rows than chance | 22 | 2% of the rows copied | 32 |
+
+The 40 are the datasets the messy-data benchmark damaged, 20 per task. The
+date check is a rule, not an estimate, so there is nothing to measure.
+
+**On clean data, the flags are mostly real.** The leak check fired on
+560_bodyfat (body fat is computed from density by a formula), cars (every
+brand belongs to exactly one class), collins, irish and strogatz_vdp2: in each,
+one column nearly determines the target, used alone on rows it was not fitted
+on. The ID check fired on a phone number in churn, a row counter and a text
+label in collins, and a year that counts up row by row in 695_chatfield_4. The
+last is a time index rather than an ID: the flag's advice to drop it is wrong
+there, and a time split is right. Repeated rows exceed chance in 22 datasets,
+among them the six thyroid tables (six names for one table) and both wine
+quality tables, which the benchmark itself cross-validated at random.
+
+**What the leak check cannot do.** It looks at one column at a time, and its
+threshold, 0.99, was set before this ran. It catches a column that is the target
+under another name. With 5% of the rows changed, a leak looks like a strong
+honest column, and it caught none. A lower threshold would catch more and fire
+more on clean data; the numbers for 0.95 and 0.97 are in `evidence.json`
+(`checks.leak_thresholds`) and on the evidence tab, reported and not used:
+
+| threshold | clean datasets flagged | caught, 1% changed | caught, 5% changed |
+|---|---|---|---|
+| 0.95 | 14 | 38 | 16 |
+| 0.97 | 9 | 38 | 1 |
+| 0.99 (in use) | 5 | 19 | 0 |
+
+**Two rules changed after the first run, and here is how.** The repeat check
+first compared copies only with what chance would give if the columns were
+independent. It fired on 33 clean datasets, most of them tables made only of
+categories, where identical rows are natural (the same voting record, the same
+answers) and are not copies at all. It now also needs a measurement column, a
+numeric one with at least 50 distinct values. That brought the clean flags to
+22 and planted catches from 37 to 32 of 40. The eight it misses have no
+numeric column with 50 distinct values: tables of categories or of on/off
+switches, and letter, whose 16 numeric columns take 16 values each. And
+the leak check first missed the target rescaled in 4 regression datasets with
+skewed targets, where cutting the column into 32 bins loses the tails; a rank
+correlation is now checked beside it, and it caught all 40.
+
 ## Running it
 
 ```bash
@@ -636,6 +697,7 @@ choice. `tests/drift.test.js` recomputes every published rate from
 | `drift.csv` | dataset, cut, scenario and drift checker | whether it fired, its statistic, and the seconds it took |
 | `messy.csv` | dataset, model and kind of damage | the same columns as `full.csv`, on damaged copies of 40 datasets |
 | `messy-picks.csv` | dataset and kind of damage | the order's first pick and the signature the profiler measured, clean and damaged |
+| `checks.csv` | dataset and planted problem | what the page's checks flagged, whether the planted problem was caught, and the best single column's leak score |
 
 ## Next
 

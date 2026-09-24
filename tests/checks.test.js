@@ -162,3 +162,33 @@ test('the fixtures stay quiet except where they should not', () => {
   assert.deepEqual(kinds(runChecks(profileOf(readFixture('quoted.csv')), { target: 'score', task: 'number', order: 'A21' })),
     ['id:name'], 'item0, item1, ... is a row label');
 });
+
+test('the published numbers under each flag are recomputed from the benchmark run', async () => {
+  const fs = await import('node:fs');
+  const { checkSentence } = await import('../site/js/evidence.js');
+  const T = loadTaxonomyFromDisk();
+  const c = T.EVIDENCE.checks;
+  const [head, ...lines] = fs.readFileSync(new URL('../bench/results/checks.csv', import.meta.url), 'utf8').trim().split('\n');
+  const cols = head.split(',');
+  const rows = lines.map(l => Object.fromEntries(l.split(',').map((v, i) => [cols[i], v])));
+  const clean = rows.filter(r => r.condition === 'clean');
+  assert.equal(c.datasets, new Set(clean.map(r => r.dataset)).size);
+  for (const kind of ['leak', 'id', 'duplicates']) {
+    const fired = clean.filter(r => r.flags.split(';').some(f => f.startsWith(kind + ':'))).map(r => r.dataset).sort();
+    assert.deepEqual(c.fired[kind], fired, kind);
+  }
+  for (const [condition, n] of Object.entries(c.caught)) {
+    assert.equal(n, rows.filter(r => r.condition === condition && r.caught === '1').length, condition);
+  }
+  assert.match(checkSentence(T, 'leak'), new RegExp(`fired on ${c.fired.leak.length}, .* in ${c.caught.leak} of ${c.planted_on}`));
+  assert.match(checkSentence(T, 'id'), new RegExp(`caught ${c.caught.id_run} of ${c.planted_on} shuffled row numbers`));
+  assert.match(checkSentence(T, 'duplicates'), new RegExp(`^${c.fired.duplicates.length} of the ${c.datasets}`));
+  assert.equal(checkSentence(T, 'time'), '', 'the date check is a rule, with nothing measured to cite');
+});
+
+test('a table without a measurement column is not judged for repeats, and says so', () => {
+  const small = ['a,b,y', ...Array.from({ length: 120 }, (_, i) => `${i % 4},${i % 3},${i % 2}`)].join('\n');
+  const result = runChecks(profileOf(small), { target: 'y', task: 'category', order: 'A21' });
+  assert.ok(!result.ran.includes('duplicates'));
+  assert.match(checksSummary(result, 'y').join(', '), /repeated rows not judged/);
+});

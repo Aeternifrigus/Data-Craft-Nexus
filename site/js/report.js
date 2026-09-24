@@ -31,7 +31,10 @@ export function readingMarkdown({ T, sig, task, fileName, date, build = null, le
   if (checks) {
     out.push('## Before you trust a score', '');
     if (checks.flags.length) {
-      for (const f of checks.flags) out.push(`- **${line(f.title)}.** ${line(f.text)} What to do: ${line(f.fix)}`);
+      for (const f of checks.flags) {
+        out.push(`- **${line(f.title)}.** ${line(f.text)} What to do: ${line(f.fix)}`
+          + (f.measured ? ` Measured: ${line(f.measured)}` : ''));
+      }
     } else {
       out.push(`Nothing found: ${checks.clear.map(line).join(', ')}.`);
     }

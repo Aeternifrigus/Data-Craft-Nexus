@@ -136,10 +136,10 @@ def unit_regret(per_series: pd.DataFrame, metric: str) -> pd.DataFrame:
     return rows.pivot_table(index="unit", columns="strategy", values="regret", aggfunc="mean")
 
 
-def choose(per_series: pd.DataFrame) -> dict:
+def choose(per_series: pd.DataFrame, metrics: list[str] | None = None) -> dict:
     """The rule fixed before the run: kind replaces fixed only if no worse on both scores and better on one."""
     tests, no_worse = {}, True
-    for metric in METRICS:
+    for metric in metrics or METRICS:
         units = unit_regret(per_series, metric).dropna()
         if units["kind"].median() > units["fixed"].median() + 1e-9:
             no_worse = False

@@ -865,6 +865,59 @@ python -m dcn.forecast --run 2 --out results/forecast-2.csv
 python -m dcn.forecast_learn --results results/forecast.csv --confirm results/forecast-2.csv
 ```
 
+## Anomalies
+
+"Unusual records" put its cards in coordinate order, because nothing had
+measured them. `dcn/anomaly.py` fits every detector the page can recommend,
+without labels, on tables whose anomalies are known, and scores each against
+the labels afterwards. `dcn/anomaly_learn.py` asks whether the width of a table
+should change which detector comes first.
+
+```bash
+python -m dcn.anomaly --out results/anomaly.csv
+python -m dcn.anomaly_learn --results results/anomaly.csv
+```
+
+### What the data has to show, written before it ran
+
+- **The detectors**: every one the page can recommend for "Unusual records"
+  that runs on a table, Isolation Forest (TR4), One-Class SVM (SV3) and DBSCAN's
+  noise points (CL2), and three that join the taxonomy with this run because
+  they are the standard representatives of the other families of method: the
+  Local Outlier Factor (IB3), the distance to the fifth nearest neighbour (IB4),
+  and robust covariance, the Mahalanobis distance from a Minimum Covariance
+  Determinant fit (PR6). scikit-learn's defaults, on standardised columns
+  except the forest, which splits one column at a time and does not care about
+  scale. Each is fitted without labels and scored afterwards by ROC AUC and by
+  average precision, as ADBench scores them.
+- **The tables**: ADBench's 47 classical tables (Han et al., NeurIPS 2022),
+  fetched from its repository. A table over 5,000 rows is replaced by a seeded
+  sample of 5,000, stratified by the label, keeping at least 20 anomalies (or
+  all there are). Tables cut from one source count once: thyroid (2),
+  cardiotocography (2), the Wisconsin breast-cancer tables (4), Statlog Landsat
+  (3) and KDD Cup 1999 (2). That leaves 39 independent units.
+- **What the page measures**: how many columns the table has. Narrow is at most
+  10, middling 11 to 50, wide more than 50. The reason is mathematical: as
+  columns are added, the distances from a point to its nearest and its farthest
+  neighbour become relatively alike (Beyer et al., 1999), so detectors that rank
+  points by the distances to their neighbours (LOF, k-NN) have less to work with
+  on wide tables, and a covariance fit needs more rows than columns.
+- **The prediction**: the width decides which detector comes first.
+- **The rule** is `choose()` from `dcn/forecast_learn.py`, unchanged: an order
+  kept per width replaces one order for every table only if its median regret
+  over units is no worse by either score and it is better by more than luck by
+  at least one (paired Wilcoxon over units, Holm over the two scores, more wins
+  than losses), both orders fitted leave-one-unit-out. The width order is shrunk
+  toward the fixed one by five tables' worth. The cut-offs and the shrinkage are
+  fixed here and not tuned on the result.
+- **What follows either way**: the cards for "Unusual records" are ordered by
+  what was measured. If the width order passes, the order depends on the width
+  of the upload; if not, every table gets the same order, and the page says so.
+- **What it cannot say**: many of ADBench's anomalies are a rare class of a
+  classification table relabelled as anomalous, not anomalies that occurred as
+  such. Every detector runs at its defaults, the largest tables are sampled, and
+  there is one seed.
+
 ## What is in results/
 
 | file | one row per | what it holds |

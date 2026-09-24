@@ -7,6 +7,9 @@ scikit-learn>=1.4
 scipy>=1.11
 # The streaming drift detectors (dcn/drift.py).
 river==0.26.1   # its detectors run at their defaults, which are part of what is measured
+# ARIMA and exponential smoothing: the take-home script's forecasts, which the
+# tests run (site/js/export.js).
+statsmodels>=0.14
 
 # Optional, added to the field of models when present.
 lightgbm>=4.0

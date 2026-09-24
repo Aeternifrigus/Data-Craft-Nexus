@@ -196,7 +196,8 @@ def main(argv=None) -> int:
 
             for _, row in candidates.iterrows():
                 name = row.dataset
-                codes = [c for c in runnable_codes(task)] + [BASELINE.code] + list(REFERENCE_BY_CODE)
+                codes = [c for c in runnable_codes(task)] + [BASELINE.code] + \
+                    [c for c, spec in REFERENCE_BY_CODE.items() if task in spec.tasks]
                 if only:
                     codes = [c for c in codes if c in only]
                 seeds = list(range(args.seeds))

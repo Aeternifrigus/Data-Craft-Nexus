@@ -169,6 +169,38 @@ tested, on how many units, and lost or tied. With 24 regression units, a tie on
 regression is the likely outcome there, and it would not be evidence that the
 two are equal, only that this benchmark cannot tell them apart.
 
+### Which TabPFN ran, declared before it ran
+
+TabPFN-2's weights could not be reached from where the benchmark runs. The
+first TabPFN's could ([Hollmann et al., ICLR
+2023](https://arxiv.org/abs/2207.01848)): its checkpoint is public on the
+project's `tabpfn_v1` branch, under Apache 2.0, and `DCN_TABPFN_VERSION=v1`
+runs it (`dcn/models.py` pins the checkpoint by its SHA-256 before loading it).
+It is the model that started the family, and it is narrower than its
+successors:
+
+- **Classification only.** TabPFN-1 has no regressor, so the rule above is
+  applied to classification alone. Holm's correction over one task changes
+  nothing. Regression stays untested, and the page says so.
+- **Up to 1,000 training rows, 100 features and 10 classes.** Datasets over
+  1,000 rows are skipped as before. A table with more than 100 columns after
+  one-hot encoding, or more than 10 classes, is recorded as an error with that
+  reason, so TabPFN-1 is judged only where it ran.
+- **32 ensemble members**, as its authors recommend. The package defaults to 3.
+- **Seed 0 only**, like tuned boosting.
+
+The prediction and the rule are unchanged: on the small classification tables
+it ran on, TabPFN-1 goes before tuned boosting only if its median regret is no
+worse and it is better by more than luck (paired Wilcoxon over independent
+units, more wins than losses).
+
+If it passes, the page shows it first on classification tables within its
+limits, and names the version: a result for TabPFN-1 is evidence that a
+pretrained small-table model beats tuned boosting on small tables, and a lower
+bound for the later versions, which their authors report stronger. It is not a
+measurement of them. If it fails, tuned boosting stays first, and the evidence
+tab says which TabPFN lost, on how many units.
+
 ## Messy data
 
 PMLB's datasets are clean, and the files people upload are not: the quality

@@ -1,0 +1,285 @@
+{
+ "version": 1,
+ "chosen": "fixed",
+ "decision": {
+  "candidate": "kind",
+  "against": "fixed",
+  "replaced": false,
+  "no_worse": true,
+  "better_on": [],
+  "metrics": {
+   "r2": {
+    "units": 11,
+    "wins": 4,
+    "losses": 0,
+    "ties": 7,
+    "p_holm": 0.25,
+    "median_regret": {
+     "kind": 0.177,
+     "fixed": 0.177
+    }
+   },
+   "mae": {
+    "units": 11,
+    "wins": 3,
+    "losses": 1,
+    "ties": 7,
+    "p_holm": 0.25,
+    "median_regret": {
+     "kind": 0.0608,
+     "fixed": 0.0608
+    }
+   }
+  }
+ },
+ "fixed_before": "the kinds, their thresholds, KIND_STRENGTH and the rule were committed before the run",
+ "thresholds": {
+  "intermittent_adi": 1.32,
+  "lumpy_cv2": 0.49,
+  "strength": 0.5,
+  "kind_strength": 20.0
+ },
+ "kinds": {
+  "lumpy": "intermittent, with sizes that vary a lot",
+  "intermittent": "intermittent, with steady sizes",
+  "seasonal-trend": "seasonal and trending",
+  "seasonal": "seasonal, without much trend",
+  "trend": "trending, without much season",
+  "level": "neither seasonal nor trending"
+ },
+ "prior": {
+  "r2": {
+   "TSM1": 0.7184,
+   "TSM2": 0.8077,
+   "TSM4": 0.3765,
+   "TSM5": 0.5992
+  },
+  "mae": {
+   "TSM1": 0.7176,
+   "TSM2": 0.8231,
+   "TSM4": 0.3859,
+   "TSM5": 0.5758
+  }
+ },
+ "kind_prior": {
+  "r2": {
+   "intermittent": {
+    "TSM1": 0.5848,
+    "TSM2": 0.6384,
+    "TSM4": 0.5893,
+    "TSM5": 0.7011
+   },
+   "level": {
+    "TSM1": 0.7081,
+    "TSM2": 0.7774,
+    "TSM4": 0.3797,
+    "TSM5": 0.6359
+   },
+   "lumpy": {
+    "TSM1": 0.659,
+    "TSM2": 0.7362,
+    "TSM4": 0.4951,
+    "TSM5": 0.6363
+   },
+   "seasonal": {
+    "TSM1": 0.76,
+    "TSM2": 0.842,
+    "TSM4": 0.3657,
+    "TSM5": 0.5334
+   },
+   "seasonal-trend": {
+    "TSM1": 0.7315,
+    "TSM2": 0.9336,
+    "TSM4": 0.31,
+    "TSM5": 0.5254
+   },
+   "trend": {
+    "TSM1": 0.7802,
+    "TSM2": 0.8075,
+    "TSM4": 0.3003,
+    "TSM5": 0.6124
+   }
+  },
+  "mae": {
+   "intermittent": {
+    "TSM1": 0.5806,
+    "TSM2": 0.6778,
+    "TSM4": 0.5473,
+    "TSM5": 0.7117
+   },
+   "level": {
+    "TSM1": 0.7076,
+    "TSM2": 0.7716,
+    "TSM4": 0.4687,
+    "TSM5": 0.5535
+   },
+   "lumpy": {
+    "TSM1": 0.6584,
+    "TSM2": 0.7585,
+    "TSM4": 0.484,
+    "TSM5": 0.6286
+   },
+   "seasonal": {
+    "TSM1": 0.7392,
+    "TSM2": 0.8841,
+    "TSM4": 0.3843,
+    "TSM5": 0.4937
+   },
+   "seasonal-trend": {
+    "TSM1": 0.7284,
+    "TSM2": 0.9342,
+    "TSM4": 0.3263,
+    "TSM5": 0.5115
+   },
+   "trend": {
+    "TSM1": 0.7883,
+    "TSM2": 0.8205,
+    "TSM4": 0.3081,
+    "TSM5": 0.5835
+   }
+  }
+ },
+ "per_kind": {
+  "lumpy": {
+   "series": 8,
+   "units": 2,
+   "best_share": {
+    "TSM1": 0.25,
+    "TSM2": 0.0,
+    "TSM4": 0.5,
+    "TSM5": 0.25
+   },
+   "nothing_beat_every_model": 0.375,
+   "median_regret_r2": {
+    "fixed": 0.3017,
+    "kind": 0.3017
+   },
+   "median_regret_mae": {
+    "fixed": 0.0925,
+    "kind": 0.0925
+   }
+  },
+  "intermittent": {
+   "series": 34,
+   "units": 4,
+   "best_share": {
+    "TSM1": 0.088,
+    "TSM2": 0.118,
+    "TSM4": 0.382,
+    "TSM5": 0.412
+   },
+   "nothing_beat_every_model": 0.206,
+   "median_regret_r2": {
+    "fixed": 0.1211,
+    "kind": 0.0341
+   },
+   "median_regret_mae": {
+    "fixed": 0.1035,
+    "kind": 0.0863
+   }
+  },
+  "seasonal-trend": {
+   "series": 68,
+   "units": 8,
+   "best_share": {
+    "TSM1": 0.074,
+    "TSM2": 0.912,
+    "TSM4": 0.0,
+    "TSM5": 0.015
+   },
+   "nothing_beat_every_model": 0.191,
+   "median_regret_r2": {
+    "fixed": 0.0,
+    "kind": 0.0
+   },
+   "median_regret_mae": {
+    "fixed": 0.0,
+    "kind": 0.0
+   }
+  },
+  "seasonal": {
+   "series": 17,
+   "units": 6,
+   "best_share": {
+    "TSM1": 0.353,
+    "TSM2": 0.647,
+    "TSM4": 0.0,
+    "TSM5": 0.0
+   },
+   "nothing_beat_every_model": 0.471,
+   "median_regret_r2": {
+    "fixed": 0.0,
+    "kind": 0.0
+   },
+   "median_regret_mae": {
+    "fixed": 0.0,
+    "kind": 0.0
+   }
+  },
+  "trend": {
+   "series": 100,
+   "units": 9,
+   "best_share": {
+    "TSM1": 0.41,
+    "TSM2": 0.47,
+    "TSM4": 0.0,
+    "TSM5": 0.12
+   },
+   "nothing_beat_every_model": 0.33,
+   "median_regret_r2": {
+    "fixed": 0.0001,
+    "kind": 0.0001
+   },
+   "median_regret_mae": {
+    "fixed": 0.0,
+    "kind": 0.0
+   }
+  },
+  "level": {
+   "series": 13,
+   "units": 4,
+   "best_share": {
+    "TSM1": 0.154,
+    "TSM2": 0.462,
+    "TSM4": 0.077,
+    "TSM5": 0.308
+   },
+   "nothing_beat_every_model": 0.077,
+   "median_regret_r2": {
+    "fixed": 0.0032,
+    "kind": 0.0032
+   },
+   "median_regret_mae": {
+    "fixed": 0.0,
+    "kind": 0.0
+   }
+  }
+ },
+ "median_unit_regret": {
+  "r2": {
+   "fixed": 0.177,
+   "kind": 0.177
+  },
+  "mae": {
+   "fixed": 0.0608,
+   "kind": 0.0608
+  }
+ },
+ "series": 240,
+ "units": 11,
+ "collections": [
+  "aus_livestock",
+  "aus_retail",
+  "carparts",
+  "m4_daily",
+  "m4_hourly",
+  "m4_monthly",
+  "m4_quarterly",
+  "m4_weekly",
+  "m4_yearly",
+  "m5_items",
+  "m5_store_departments",
+  "pbs"
+ ],
+ "runs": 1648
+}

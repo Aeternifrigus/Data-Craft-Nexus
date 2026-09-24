@@ -789,6 +789,42 @@ python -m dcn.forecast_learn --results results/forecast.csv
   rows, as R's `forecast::ets` does, so a weekly series' yearly cycle is used
   only by doing nothing.
 
+### What the run found
+
+240 series, 1,656 forecasts scored; exponential smoothing could not be fitted
+on 8. How often each forecaster was the best of the four, by R², and how often
+doing nothing beat all four:
+
+| kind | series | collections | ARIMA | smoothing | Croston (SBA) | TSB | nothing beat all four |
+|---|---|---|---|---|---|---|---|
+| seasonal and trending | 68 | 8 | 7% | 91% | 0% | 2% | 19% |
+| seasonal | 17 | 6 | 35% | 65% | 0% | 0% | 47% |
+| trending | 100 | 9 | 41% | 47% | 0% | 12% | 33% |
+| neither | 13 | 4 | 15% | 46% | 8% | 31% | 8% |
+| intermittent | 34 | 4 | 9% | 12% | 38% | 41% | 21% |
+| lumpy | 8 | 2 | 25% | 0% | 50% | 25% | 38% |
+
+The rule's verdict: the kind order does not replace the fixed one. By R² it was
+better on 4 collections, worse on none and level on 7; by mean absolute error
+better on 3 and worse on 1 (M5). Holm-corrected p = 0.25 under both. The median
+over collections is the same for both orders (0.177 R², 0.061 in units of doing
+nothing's error), because the two orders pick the same forecaster, exponential
+smoothing, on every kind except intermittent demand, and intermittent series
+came from only four collections (car parts, M5, PBS, livestock). With four
+untied pairs the smallest two-sided p-value Wilcoxon can give is 0.125, so the
+test could not have passed. Inside the intermittent kind the gain was large:
+median regret 0.121 R² with the fixed order, 0.034 with the kind order; on car
+parts, the collection that is all intermittent, 0.88 against 0.31.
+
+What the page does with it: the forecasting cards are ordered by the fixed
+prior (exponential smoothing, ARIMA, TSB, Croston) instead of by coordinates,
+each card says how often it was the best on the upload's kind of series, and
+when the kind order would have put a different forecaster first, the note
+above the cards says which, how often it won, and why the order did not
+change. The rule is not loosened after the fact: a follow-up run with enough
+collections of intermittent demand for the orders to disagree in at least six,
+declared before it runs, is what would change the order.
+
 ## What is in results/
 
 | file | one row per | what it holds |
@@ -806,11 +842,16 @@ python -m dcn.forecast_learn --results results/forecast.csv
 | `messy.csv` | dataset, model and kind of damage | the same columns as `full.csv`, on damaged copies of 40 datasets |
 | `messy-picks.csv` | dataset and kind of damage | the order's first pick and the signature the profiler measured, clean and damaged |
 | `checks.csv` | dataset and planted problem | what the page's checks flagged, whether the planted problem was caught, and the best single column's leak score |
+| `forecast.csv` | series and forecasting method | the series' collection, period, season, kind and the measurements behind it, and the method's R², mean absolute error and seconds |
+| `forecast-lodo.csv` | score, order and series | which forecaster each order picked, leave one collection out, and its regret |
 
 ## Next
 
 - run TabPFN-2 or later (`tools/run_tabpfn.sh`, with a Prior Labs login),
   judged by the same rule TabPFN-1 was
+- a second forecasting run with enough collections of intermittent demand
+  for the kind order and the fixed one to disagree in at least six, declared
+  before it runs, and tuned boosting on recent changes in it
 - tune every family the way boosting was tuned, and rank them on that: the
   page puts tuned boosting first, but ranks the rest at their defaults
 - weight a synthetic family once when fitting the prior, declared before the

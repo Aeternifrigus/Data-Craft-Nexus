@@ -12,6 +12,7 @@ import { PYODIDE_VERSION, verdict, verifyInBrowser } from './verify.js';
 import { downloadReading, readingFileName, readingMarkdown } from './report.js';
 import { checksSummary, runChecks } from './checks.js';
 import { costSentence, resolveCost } from './costs.js';
+import { codeTag, nameChip, plainFlowchart, plainReason } from './names.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
@@ -37,11 +38,6 @@ function refLinks(entry) {
     `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} &#8599;</a>`).join(' · ')}</div>`;
 }
 
-function chip(code, kind, codes) {
-  const attr = kind === 'stage' ? 'data-stage' : kind === 'pipeline' ? 'data-pipeline' : kind === 'math' ? 'data-math' : 'data-code';
-  const cls = codes ? ` ${codes.includes(code) ? 'hit' : 'miss'}` : '';
-  return `<span class="chip${cls}" ${attr}="${esc(code)}">${esc(code)}</span>`;
-}
 
 // `answer` is what a wrong answer costs, as answered on the page (costs.js), or null.
 export function renderResults(T, sig, task, profile, source = null, answer = null) {
@@ -74,7 +70,7 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
   if (models.items.length) {
     note.textContent = `${models.candidates} of the ${paradigmLabel(paradigmOf(sig))} models can produce ${taskLabel} for data shaped like yours.${orderedBy}${tieNote(models)}${leadNote}${messyNote(T, sig, task, meta?.missing_share)}`;
   } else if (models.ruledOut.length) {
-    note.textContent = `No model fits. Every model that could produce ${taskLabel} is ruled out by your data: ${models.ruledOut.slice(0, 3).map(m => `${m.n} ${m.why}`).join('; ')}.`;
+    note.textContent = `No model fits. Every model that could produce ${taskLabel} is ruled out by your data: ${models.ruledOut.slice(0, 3).map(m => `${m.n} ${plainReason(T, m.why)}`).join('; ')}.`;
   } else {
     note.textContent = `No model in the taxonomy produces ${taskLabel}.`;
   }
@@ -82,7 +78,7 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
   document.getElementById('models').innerHTML = (lead && models.items.length ? leadCard(T, lead) : '') + models.items.map(m => `
     <article class="rec">
       <div>
-        <div class="rec-code" data-model="${esc(m.c)}">${esc(m.c)}</div>
+        ${codeTag('model', m.c)}
         <div class="rec-rank">${m.evidenceScore == null
           ? `${m.score} of ${m.of} coordinates`
           : `evidence ${m.evidenceScore.toFixed(2)}<span class="rec-rank-sub">${m.score} of ${m.of} coordinates</span>`}</div>
@@ -92,7 +88,7 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
         <div class="rec-meta">${esc(T.MODEL_DOMAINS[m.dom]?.name || m.dom)} · ${paradigmLabel(m.p)}</div>
         <p class="rec-metaphor">${esc(m.met)}</p>
         <div class="matchline">
-          ${m.data.map(d => `<span class="chip ${codes.includes(d) ? 'hit' : 'miss'}" data-code="${esc(d)}">${esc(d)} ${T.CODES[d] ? esc(T.CODES[d].name.toLowerCase()) : ''}</span>`).join('')}
+          ${m.data.map(d => nameChip(T, 'code', d, { cls: codes.includes(d) ? ' hit' : ' miss', lower: true })).join('')}
         </div>
         <p class="rec-body">${esc(m.mech)}</p>
         ${m.caution ? `<p class="rec-body caution">Caution. ${esc(m.caution)}</p>` : ''}
@@ -103,7 +99,7 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
              ${n.wins} ${n.wins === 1 ? 'time' : 'times'}, typically ${n.medianGap.toFixed(3)} below the winner.</p>` : ''; })()}
         <p class="rec-body warn">${esc(m.fail)}</p>
         <div class="mathline">math:
-          ${m.math.map(x => chip(x, 'math')).join('')}
+          ${m.math.map(x => nameChip(T, 'math', x)).join('')}
         </div>
         ${refLinks(m)}
       </div>
@@ -116,7 +112,7 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
     const rest = models.ruledOut.length - shown.length;
     ruled.innerHTML = `<p class="sect-note" style="margin-bottom:12px">Ruled out for this data:</p>` +
       `<ul class="ruled">${shown.map(m =>
-        `<li><span class="rec-code" data-model="${esc(m.c)}">${esc(m.c)}</span> ${esc(m.n)}: ${esc(m.why)}</li>`).join('')}` +
+        `<li>${esc(m.n)} ${codeTag('model', m.c)}: ${esc(plainReason(T, m.why))}</li>`).join('')}` +
       (rest ? `<li>and ${rest} more</li>` : '') + `</ul>`;
   } else {
     ruled.innerHTML = '';
@@ -135,7 +131,7 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
 
   document.getElementById('drifts').innerHTML = drifts.items.map(d => `
     <article class="rec">
-      <div><div class="rec-code" data-drift="${esc(d.c)}">${esc(d.c)}</div></div>
+      <div>${codeTag('drift', d.c)}</div>
       <div>
         <div class="rec-name">${esc(d.n)}</div>
         <div class="rec-meta">${esc(T.DRIFT_DOMAINS[d.domain]?.name || d.domain)}</div>
@@ -146,7 +142,7 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
         ${d.measure ? `<p class="rec-body evidence">Measured. ${esc(driftSentence(d.measure, driftDatasets))}</p>`
           : driftUnmeasured(T, d.c) ? `<p class="rec-body evidence">Not measured: ${esc(driftUnmeasured(T, d.c))}.</p>` : ''}
         <div class="mathline">math:
-          ${d.math.map(x => chip(x, 'math')).join('')}
+          ${d.math.map(x => nameChip(T, 'math', x)).join('')}
         </div>
         ${refLinks(d)}
       </div>
@@ -161,7 +157,7 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
   const pipelineCodes = new Set(T.PIPELINES.map(p => p.c));
   document.getElementById('pipelines').innerHTML = pipelines.items.map(p => `
     <article class="rec">
-      <div><div class="rec-code" data-pipeline="${esc(p.c)}">${esc(p.c)}</div></div>
+      <div>${codeTag('pipeline', p.c)}</div>
       <div>
         <div class="rec-name">${esc(p.n)}</div>
         <div class="rec-meta">${esc(T.PIPELINE_DOMAINS[p.p]?.name || p.p)}</div>
@@ -169,7 +165,7 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
         <p class="rec-body">${esc(p.mech)}</p>
         <p class="rec-body warn">${esc(p.fail)}</p>
         <div class="mathline">stages:
-          ${p.stages.map(s => chip(s, pipelineCodes.has(s) ? 'pipeline' : 'stage')).join('')}
+          ${p.stages.map(s => nameChip(T, pipelineCodes.has(s) ? 'pipeline' : 'stage', s)).join('')}
         </div>
         ${refLinks(p)}
         <div class="pipeline-diagram" id="diagram-${esc(p.c)}"></div>
@@ -197,10 +193,11 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
     ].filter(([, text]) => text)),
   }), readingFileName(source?.fileName));
 
+  initMermaid();
   pipelines.items.forEach(p => {
     const el = document.getElementById('diagram-' + p.c);
     if (el && p.flowchart) {
-      mermaid.render('mermaid-' + p.c, p.flowchart).then(({ svg }) => {
+      mermaid.render('mermaid-' + p.c, plainFlowchart(p.flowchart)).then(({ svg }) => {
         el.innerHTML = svg;
       }).catch(() => {
         el.innerHTML = '<p style="color:var(--clay);font-size:12px">Flowchart unavailable.</p>';
@@ -214,6 +211,22 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
   renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
   renderNeighbours(T, neighbours, task);
   plotSpace(T, sig, meta, neighbours);
+}
+
+// The flowcharts in the page's colours. Mermaid's default theme writes dark
+// text, which is unreadable on this page's dark ground.
+let mermaidReady = false;
+function initMermaid() {
+  if (mermaidReady || typeof mermaid === 'undefined') return;
+  mermaid.initialize({
+    startOnLoad: false, theme: 'base', fontFamily: '"JetBrains Mono", monospace',
+    themeVariables: {
+      background: '#172438', primaryColor: '#0D1626', primaryTextColor: '#E6E1D7', primaryBorderColor: '#7FFF00',
+      lineColor: '#7C879B', textColor: '#E6E1D7', edgeLabelBackground: '#172438', tertiaryColor: '#172438',
+      fontSize: '12px',
+    },
+  });
+  mermaidReady = true;
 }
 
 // "Before you trust a score": the checks, or what they looked at when nothing was found.
@@ -253,7 +266,7 @@ function leadCard(T, lead) {
   return `
     <article class="rec lead">
       <div>
-        <div class="rec-code rec-code-plain">${esc(lead.c)}</div>
+        <div class="rec-code rec-code-plain" title="The benchmark's name for it">${esc(lead.c)}</div>
         <div class="rec-rank">start here</div>
       </div>
       <div>
@@ -328,7 +341,7 @@ async function runHere(button, script, csv, run, firstCode, cost = null) {
     out.innerHTML = `<p class="verify-status">${esc(status)}</p>
       ${rows.length ? `<table class="ev-table verify-table"><thead><tr><th>model</th><th>${esc(metric)}</th><th>spread</th>
         <th>seconds</th></tr></thead><tbody>${sorted.map(r => `<tr>
-        <td><span class="rec-code">${esc(r.code)}</span> ${esc(r.name)}</td>
+        <td>${esc(r.name)} <span class="rec-code">${esc(r.code)}</span></td>
         <td>${r.status === 'ok' ? r.score.toFixed(4) : esc(r.status)}</td>
         <td>${r.status === 'ok' && r.spread != null ? `± ${r.spread.toFixed(4)}` : esc(r.detail ?? '')}</td>
         <td>${r.seconds ?? ''}</td></tr>`).join('')}</tbody></table>` : ''}`;
@@ -441,8 +454,7 @@ function renderRuledOut(id, ruledOut, noun) {
   el.innerHTML = `<p class="sect-note" style="margin-top:22px">Ruled out by how it will run
       (${ruledOut.length} ${noun}):</p>
     <ul class="ruled">${shown.map(d =>
-      `<li><span class="rec-code" data-${noun.startsWith('drift') ? 'drift' : 'pipeline'}="${esc(d.c)}">${esc(d.c)}</span>
-        ${esc(d.n)}: ${esc(d.why)}</li>`).join('')}${rest ? `<li>and ${rest} more</li>` : ''}</ul>`;
+      `<li>${esc(d.n)} ${codeTag(noun.startsWith('drift') ? 'drift' : 'pipeline', d.c)}: ${esc(d.why)}</li>`).join('')}${rest ? `<li>and ${rest} more</li>` : ''}</ul>`;
 }
 
 // The neighbours in words, under the plot: what won on datasets like this one.
@@ -469,7 +481,7 @@ function renderNeighbours(T, neighbours, task) {
       <tbody>${neighbours.map(d => `<tr>
         <td>${esc(d.dataset)}<span class="ev-sub">${esc(d.task)}</span></td>
         <td>${d.rows} × ${d.features}</td>
-        <td><span class="rec-code" data-model="${esc(d.best.model)}">${esc(d.best.model)}</span> ${esc(d.best.name)}</td>
+        <td>${esc(d.best.name)} ${codeTag('model', d.best.model)}</td>
         <td>${d.best.score.toFixed(3)}</td>
         <td>${d.distance.toFixed(2)}</td>
       </tr>`).join('')}</tbody>

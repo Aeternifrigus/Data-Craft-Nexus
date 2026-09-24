@@ -4,6 +4,7 @@
 // favour.
 
 import { esc } from './html.js';
+import { codeTag } from './names.js';
 
 // Shares arrive rounded to three decimals; round from those, so 0.565 shows
 // as 57% and not, through 56.49999999999999, as 56%.
@@ -74,7 +75,7 @@ function driftTable(drift, names) {
     <thead><tr><th>checker</th><th>false alarms</th>${scenarios.map(s =>
       `<th title="${esc(DRIFT_SCENARIOS[s])}">${esc(DRIFT_SHORT[s])}</th>`).join('')}<th>net<span class="ev-sub">95% interval</span></th></tr></thead>
     <tbody>${Object.entries(drift.checkers).map(([code, m]) => `<tr>
-      <td><span class="rec-code" data-drift="${esc(code)}">${esc(code)}</span> ${esc(names[code] ?? code)}
+      <td>${esc(names[code] ?? code)} ${codeTag('drift', code)}
         <span class="ev-sub">sees ${esc(DRIFT_SEES[m.sees] ?? m.sees)}</span></td>
       <td>${pct(m.false_alarm)}</td>
       ${scenarios.map(s => `<td>${pct(m.caught[s])}</td>`).join('')}
@@ -99,7 +100,7 @@ function driftSection(T) {
     ${driftTable(drift, names)}
     <p class="sect-note" style="margin-top:14px">Not measured:</p>
     <ul class="ruled">${Object.entries(drift.not_measured).map(([code, why]) =>
-      `<li><span class="rec-code" data-drift="${esc(code)}">${esc(code)}</span> ${esc(names[code] ?? code)}: ${esc(why)}</li>`).join('')}</ul>`;
+      `<li>${esc(names[code] ?? code)} ${codeTag('drift', code)}: ${esc(why)}</li>`).join('')}</ul>`;
 }
 
 // The damage the benchmark did on purpose (bench/dcn/corrupt.py).
@@ -535,9 +536,8 @@ export function rankChart(block, names) {
       const tip = `${code} ${name}: average rank ${rank.toFixed(2)}, ` +
         (inBand ? 'within the critical difference of the best' : 'separated from the best');
       return `<div class="cd-row" role="row" title="${esc(tip)}">
-        <div class="cd-label" role="cell">${code.startsWith('BASE-')
-          ? `<span class="rec-code">${esc(code)}</span>`
-          : `<span class="rec-code" data-model="${esc(code)}">${esc(code)}</span>`} ${esc(name)}</div>
+        <div class="cd-label" role="cell">${esc(name)} ${code.startsWith('BASE-')
+          ? `<span class="rec-code">${esc(code)}</span>` : codeTag('model', code)}</div>
         <div class="cd-track" aria-hidden="true">
           <span class="cd-band" style="left:${bandLeft.toFixed(2)}%;width:${bandWidth.toFixed(2)}%"></span>
           <span class="cd-dot ${inBand ? 'in' : 'out'}" style="left:${pos(rank).toFixed(2)}%"></span>
@@ -595,7 +595,7 @@ function modelTable(models) {
     <thead><tr><th>model</th><th>task</th><th>was best</th><th>shown first</th>
       <th>median regret</th><th>median seconds</th></tr></thead>
     <tbody>${rows.map(r => `<tr>
-      <td><span class="rec-code" data-model="${esc(r.code)}">${esc(r.code)}</span> ${esc(r.name)}</td>
+      <td>${esc(r.name)} ${codeTag('model', r.code)}</td>
       <td>${esc(r.task)}</td>
       <td>${r.was_best} of ${r.datasets}</td>
       <td>${r.recommended_first}</td>
@@ -605,7 +605,8 @@ function modelTable(models) {
   </table>`;
 }
 
-function datasetTable(datasets) {
+// Dense, so it keeps the codes, with the names on hover.
+function datasetTable(datasets, T) {
   return `<table class="ev-table">
     <thead><tr><th>dataset</th><th>shape</th><th>signature</th>
       <th>best model</th><th>shown first</th><th>boosting</th></tr></thead>
@@ -613,9 +614,9 @@ function datasetTable(datasets) {
       <td>${esc(d.dataset)}<span class="ev-sub">${esc(d.task)}</span></td>
       <td>${d.rows} × ${d.features}</td>
       <td class="ev-sig">${d.signature.split(' ').map(c =>
-        `<span class="chip" data-code="${esc(c)}">${esc(c)}</span>`).join('')}</td>
-      <td><span class="rec-code" data-model="${esc(d.best.model)}">${esc(d.best.model)}</span> ${num(d.best.score)}</td>
-      <td><span class="rec-code" data-model="${esc(d.first.model)}">${esc(d.first.model)}</span> ${num(d.first.score)}
+        `<span class="chip" data-code="${esc(c)}" title="${esc(T?.CODES[c]?.name ?? c)}">${esc(c)}</span>`).join('')}</td>
+      <td><span class="rec-code" data-model="${esc(d.best.model)}" title="${esc(d.best.name)}">${esc(d.best.model)}</span> ${num(d.best.score)}</td>
+      <td><span class="rec-code" data-model="${esc(d.first.model)}" title="${esc(d.first.name)}">${esc(d.first.model)}</span> ${num(d.first.score)}
         <span class="ev-sub">best of four ${num(d.top4)}</span></td>
       <td>${num(d.boosting)}</td>
     </tr>`).join('')}</tbody>
@@ -693,11 +694,11 @@ export function buildEvidence(T) {
 
     <h3 class="ev-h">Every dataset</h3>
     <p class="sect-note">${ev.datasets.length} datasets, ${ev.model_runs} model runs. Click any code to open its definition.</p>
-    ${datasetTable(ev.datasets)}
+    ${datasetTable(ev.datasets, T)}
 
     <h3 class="ev-h">What could not be tested</h3>
     <p class="sect-note">A CSV cannot hold an image, a graph or a sequence, so these models are in the reference
       but never in the benchmark:</p>
     <ul class="ruled">${Object.entries(ev.not_runnable).map(([code, why]) =>
-      `<li><span class="rec-code" data-model="${esc(code)}">${esc(code)}</span> ${esc(why)}</li>`).join('')}</ul>`;
+      `<li>${esc(T.MODELS.find(m => m.c === code)?.n ?? code)} ${codeTag('model', code)}: ${esc(why)}</li>`).join('')}</ul>`;
 }

@@ -2,6 +2,7 @@
 
 import { esc } from './html.js';
 import { paradigmLabel } from './recommend.js';
+import { nameChip } from './names.js';
 
 export function initDrawer(T) {
   const drawer = document.getElementById('drawer');
@@ -19,7 +20,7 @@ export function initDrawer(T) {
     return `<div class="d-field"><div class="d-label">${esc(l)}</div><div class="d-text${warn ? ' warn' : ''}">${html}</div></div>`;
   }
   const text = (l, t, warn) => field(l, esc(t), warn);
-  const chips = (attr, codes) => codes.map(x => `<span class="chip" ${attr}="${esc(x)}">${esc(x)}</span>`).join(' ');
+  const chips = (kind, codes) => codes.map(x => nameChip(T, kind, x)).join(' ');
   // "Read more" links: the concept, and the implementation this project runs.
   const links = (entry) => {
     const rows = [entry.ref && ['Read more', entry.ref], entry.docs && ['Documentation', entry.docs]].filter(Boolean);
@@ -29,7 +30,7 @@ export function initDrawer(T) {
     ).join('') + `</div>`;
   };
 
-  const head = (code, name, meta) => `<div class="d-code">${esc(code)}</div><div class="d-name">${esc(name)}</div>
+  const head = (code, name, meta) => `<div class="d-name">${esc(name)}</div><div class="d-code">${esc(code)}</div>
     ${meta ? `<div class="rec-meta" style="margin-bottom:12px">${esc(meta)}</div>` : ''}`;
 
   function openMath(code) {
@@ -58,7 +59,7 @@ export function initDrawer(T) {
     ${m.dfit ? text('Why these coordinates', m.dfit) : ''}
     ${text('Where it breaks', m.fail, true)}
     ${text('What to use instead', m.alt)}
-    ${field('Built on', chips('data-math', m.math))}
+    ${field('Built on', chips('math', m.math))}
     ${links(m)}`);
   }
   function openDrift(code) {
@@ -69,7 +70,7 @@ export function initDrawer(T) {
     ${text('How it works', d.mech)}
     ${text('What counts as drift', d.thr)}
     ${text('Where it misleads', d.fail, true)}
-    ${field('Built on', chips('data-math', d.math))}
+    ${field('Built on', chips('math', d.math))}
     ${links(d)}`);
   }
   function openPipeline(code) {
@@ -79,7 +80,7 @@ export function initDrawer(T) {
     <p class="rec-metaphor">${esc(p.met)}</p>
     ${text('How it works', p.mech)}
     ${text('Where it breaks', p.fail, true)}
-    ${field('Stages', chips('data-stage', p.stages))}
+    ${field('Stages', chips('stage', p.stages))}
     ${links(p)}`);
   }
   function openStage(code) {

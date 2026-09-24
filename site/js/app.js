@@ -43,21 +43,21 @@ const OPERATING = {
   ],
 };
 
+// Each slot leads with the plain name ("Labeled"), and keeps the code ("A11")
+// small under it, beside the axis it belongs to.
 function buildReadout(T) {
   document.getElementById('readout').innerHTML = T.AXES.map(a => `
     <div class="slot" id="slot-${a.n}">
-      <div class="slot-code" id="code-${a.n}">-, -</div>
-      <div>
-        <div class="slot-val" id="val-${a.n}"></div>
-        <div class="slot-axis">${a.n}. ${esc(a.label)}</div>
-      </div>
+      <div class="slot-val" id="val-${a.n}">-, -</div>
+      <div class="slot-axis"><span class="slot-code" id="code-${a.n}"></span>${a.n}. ${esc(a.label)}</div>
     </div>`).join('');
 }
 
 function setSlot(n, code, declared) {
   const s = document.getElementById('slot-' + n);
   document.getElementById('code-' + n).textContent = code;
-  document.getElementById('val-' + n).textContent = state.T.CODES[code] ? state.T.CODES[code].name : '';
+  document.getElementById('val-' + n).textContent = state.T.CODES[code] ? state.T.CODES[code].name : code;
+  s.title = state.T.CODES[code] ? `${code}: ${state.T.CODES[code].note}` : code;
   s.classList.add('filled');
   if (declared) s.classList.add('declared');
 }
@@ -252,9 +252,16 @@ function initIntake() {
 // A measured code that didn't fit in a slot (class balance and drift both
 // live on axis 5) is shown under it rather than dropped.
 function showFlags(sig) {
+  const { T } = state;
   const slot = document.getElementById('val-5');
-  const extra = sig.flags.map(f => `${f} ${state.T.CODES[f]?.name ?? ''}`.trim()).join(', ');
-  slot.textContent = state.T.CODES[sig.codes[4]]?.name + (extra ? ` · ${extra}` : '');
+  slot.textContent = T.CODES[sig.codes[4]]?.name ?? sig.codes[4];
+  if (sig.flags.length) {
+    const extra = document.createElement('span');
+    extra.className = 'slot-extra';
+    extra.textContent = sig.flags.map(f => T.CODES[f]?.name ?? f).join(', ');
+    slot.appendChild(extra);
+    document.getElementById('code-5').textContent = [sig.codes[4], ...sig.flags].join(', ');
+  }
 }
 
 function initNav() {

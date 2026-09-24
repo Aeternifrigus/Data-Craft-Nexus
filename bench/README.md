@@ -865,6 +865,42 @@ python -m dcn.forecast --run 2 --out results/forecast-2.csv
 python -m dcn.forecast_learn --results results/forecast.csv --confirm results/forecast-2.csv
 ```
 
+### What the second run found
+
+137 intermittent series from nine new collections, 917 forecasts;
+exponential smoothing could not be fitted on 49 of them (mostly baby names,
+MovieLens and flights), where the fixed order falls back to its next choice.
+Regret of each frozen order, averaged over a collection's series:
+
+| collection | R², smoothing first | R², TSB first | absolute error, smoothing first | absolute error, TSB first |
+|---|---|---|---|---|
+| babynames | 0.380 | 0.171 | 0.207 | 0.145 |
+| cdnow | 0.100 | 0.069 | 0.226 | 0.017 |
+| movielens | 0.194 | 0.008 | 0.970 | 0.039 |
+| nyc_bikes | 0.367 | 0.036 | 0.109 | 0.027 |
+| nycflights | 0.096 | 0.101 | 0.294 | 0.261 |
+| police_deaths | 0.106 | 0.021 | 0.153 | 0.052 |
+| storms | 0.037 | 0.217 | 0.050 | 0.294 |
+| syphilis | 0.107 | 0.010 | 0.162 | 0.018 |
+| us_diseases | 0.508 | 0.369 | 0.173 | 0.000 |
+
+The rule's verdict: the kind order does not replace the fixed one. It was
+better on 7 collections by R² and on 8 by mean absolute error, and worse on 2
+and 1; median regret fell from 0.107 to 0.069 R², and from 0.173 to 0.039 in
+units of doing nothing's error. But Wilcoxon's p was 0.074 and 0.098 before
+correction and 0.15 after Holm's, above 0.05, because one of the losses is
+large: Atlantic storms, whose intermittent counts follow the hurricane season,
+which smoothing with a twelve-month season can follow and TSB, which has no
+season, cannot. The rule was set before the run and is not loosened after it:
+the page keeps one order for every series, and on an intermittent upload it
+says what both runs found.
+
+Two observations, recorded as observations and not used by the page: apart
+from the storms, the kind order's losses in both runs were small (M5 by
+0.0015 in absolute error in the first, New York flights by 0.005 R² in the
+second); and intermittent series with a strong season behave as a kind of
+their own, which a future run could declare before it runs.
+
 ## Anomalies
 
 "Unusual records" put its cards in coordinate order, because nothing had
@@ -937,6 +973,8 @@ python -m dcn.anomaly_learn --results results/anomaly.csv
 | `checks.csv` | dataset and planted problem | what the page's checks flagged, whether the planted problem was caught, and the best single column's leak score |
 | `forecast.csv` | series and forecasting method | the series' collection, period, season, kind and the measurements behind it, and the method's R², mean absolute error and seconds |
 | `forecast-lodo.csv` | score, order and series | which forecaster each order picked, leave one collection out, and its regret |
+| `forecast-2.csv` | series and forecasting method | the confirmation run, the same columns as `forecast.csv` |
+| `forecast-2-picks.csv` | score, order and series | which forecaster each frozen order picked on the confirmation run, and its regret |
 
 ## Next
 

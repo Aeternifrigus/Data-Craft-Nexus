@@ -318,6 +318,39 @@ def choose_lead(table: pd.DataFrame, chosen: str) -> dict | None:
     }
 
 
+def choose_small_lead(table: pd.DataFrame, max_rows: int | None = None) -> dict | None:
+    """Should TabPFN go before tuned boosting on the tables it can take?
+
+    Written down before TabPFN had run on the benchmark (bench/README.md, "What
+    TabPFN has to show"), so the result cannot shape the rule. It is choose()'s
+    rule again, with TabPFN as the candidate and tuned boosting, the current
+    lead, as what it must beat, on the datasets TabPFN ran on only: no worse
+    median regret on either task, and better by more than luck on at least one
+    (paired Wilcoxon over independent units, Holm-corrected over the tasks,
+    more wins than losses). `max_rows` is the largest dataset it ran on, the
+    size up to which the page would show it first.
+    """
+    if "tabpfn" not in table or "tuned" not in table or table["tabpfn"].isna().all():
+        return None
+    ran = table[table["tabpfn"].notna() & table["tuned"].notna()]
+    no_worse, tests, units_n = True, {}, {}
+    for task, group in ran.groupby("task"):
+        units = regret_units(group, ["tabpfn", "tuned"])
+        if np.nanmedian(units["tabpfn"]) > np.nanmedian(units["tuned"]) + 1e-9:
+            no_worse = False
+        tests[task] = paired(units["tabpfn"].to_numpy(), units["tuned"].to_numpy())
+        units_n[task] = int(len(units))
+    adjusted = holm({task: test["p"] for task, test in tests.items()})
+    better = [task for task, test in tests.items() if adjusted[task] < ALPHA and test["wins"] > test["losses"]]
+    return {
+        "candidate": "tabpfn", "code": TABPFN_CODE, "against": "tuned", "max_rows": max_rows,
+        "led": bool(no_worse and better), "no_worse": no_worse, "better_on": better,
+        "tasks": {task: {"wins": test["wins"], "losses": test["losses"], "ties": test["ties"],
+                         "units": units_n[task], "p_holm": float(f"{adjusted[task]:.4g}")}
+                  for task, test in tests.items()},
+    }
+
+
 def describe(decision: dict) -> str:
     verdict = "replaces" if decision["replaced"] else "does not replace"
     detail = ", ".join(f"{task}: better on {d['wins']}, worse on {d['losses']}, p = {d['p_holm']:.3g}"
@@ -374,7 +407,7 @@ def report_comparisons(table: pd.DataFrame, chosen: str) -> str:
 
 
 def export(frame: pd.DataFrame, taxonomy: dict, out: Path, chosen: str, meta: pd.DataFrame | None = None,
-           decisions: list[dict] | None = None, lead: dict | None = None) -> dict:
+           decisions: list[dict] | None = None, lead: dict | None = None, small_lead: dict | None = None) -> dict:
     """Fit on everything and write the weights the site will use."""
     family = {m["c"]: m["dom"] for m in taxonomy["MODELS"]}
     payload = {
@@ -383,6 +416,9 @@ def export(frame: pd.DataFrame, taxonomy: dict, out: Path, chosen: str, meta: pd
         # A reference shown before the order's first pick, when it passed the
         # same rule against the order (choose_lead()).
         "lead": lead,
+        # TabPFN against that lead on the small tables it ran on
+        # (choose_small_lead()); null until TabPFN has been run.
+        "small_lead": small_lead,
         "trained_on": {"datasets": int(frame.dataset.nunique()), "rows": int(len(frame))},
         "target": "percentile rank of a model among those that ran on the same dataset",
         "features": FEATURE_NAMES,
@@ -446,11 +482,16 @@ def main(argv=None) -> int:
     if lead:
         print(describe({**lead, "replaced": lead["led"]}).replace("replaces", "goes before")
               .replace("does not replace", "does not go before"))
+    ran = results[(results.model == TABPFN_CODE) & (results.status == "ok")]
+    small_lead = choose_small_lead(evaluation["table"], int(ran.rows.max()) if len(ran) else None)
+    if small_lead:
+        print(describe({**small_lead, "replaced": small_lead["led"]}).replace("replaces", "goes before")
+              .replace("does not replace", "does not go before") + f", on tables up to {small_lead['max_rows']} rows")
     print()
     print(report_comparisons(evaluation["table"], chosen))
 
     evaluation["table"].round(4).to_csv(args.report, index=False)
-    payload = export(frame, taxonomy, Path(args.out), chosen, meta, decisions, lead)
+    payload = export(frame, taxonomy, Path(args.out), chosen, meta, decisions, lead, small_lead)
     print(f"wrote {args.out} ({len(payload['tasks'])} tasks) and {args.report}")
     return 0
 

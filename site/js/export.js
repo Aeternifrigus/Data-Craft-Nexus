@@ -52,6 +52,15 @@ export const MODEL_CODE = {
     reg: 'xgboost.XGBRegressor(random_state=SEED, verbosity=0, n_jobs=-1)' },
   EN4: { name: 'LightGBM', needs: 'lightgbm', cls: 'lightgbm.LGBMClassifier(random_state=SEED, verbose=-1, n_jobs=-1)',
     reg: 'lightgbm.LGBMRegressor(random_state=SEED, verbose=-1, n_jobs=-1)' },
+  // Forecasting models: `fc` names the script's function that predicts each
+  // row from the rows before it. The benchmark never ran these.
+  TSM1: { name: 'ARIMA', needs: 'statsmodels', fc: 'arima' },
+  TSM2: { name: 'Exponential Smoothing (Holt-Winters)', needs: 'statsmodels', fc: 'smoothing' },
+};
+
+// Models the page can recommend that the script does not run, and why.
+export const NOT_RUNNABLE = {
+  TSM3: 'Prophet needs Stan, a compiled backend that the page cannot load and the script does not install',
 };
 
 const py = (value) => JSON.stringify(value);   // a JSON string or list is a valid Python literal
@@ -109,6 +118,156 @@ SCORING = cost_score
 METRIC = ${py(shown(cost))}`;
 }
 
+// A future value, forecast for real: the methods, which the SHORTLIST names,
+// so they come before it. bench/tests/test_export.py checks that no method
+// ever sees a row after the one it predicts.
+const FORECAST_METHODS = `
+
+# Forecasting. Every method gets the whole series and one fold (the rows it
+# may learn from, and the rows it is scored on), and predicts each scored row
+# using only the rows before it.
+def last_value(y, train, test):
+    return y[test - 1]
+
+
+def running_average(y, train, test):
+    return np.cumsum(y)[test - 1] / test
+
+
+def one_step(fitted, y, test):
+    """One step ahead through the scored rows, with the parameters fitted on the rows before them."""
+    extended = fitted.append(y[test[0]:test[-1] + 1])
+    return np.asarray(extended.predict(start=int(test[0]), end=int(test[-1])))
+
+
+def arima(y, train, test):
+    """ARIMA, its order chosen by AIC on the training rows, among the small ones."""
+    from statsmodels.tsa.statespace.sarimax import SARIMAX
+    best = None
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")   # statsmodels turns its convergence warnings on when imported
+        for d in (0, 1):
+            for p in (0, 1, 2):
+                for q in (0, 1):
+                    try:
+                        fitted = SARIMAX(y[train], order=(p, d, q), trend="c" if d == 0 else "n").fit(disp=False)
+                    except Exception:
+                        continue
+                    if np.isfinite(fitted.aic) and (best is None or fitted.aic < best.aic):
+                        best = fitted
+        if best is None:
+            raise RuntimeError("no ARIMA order could be fitted")
+        return one_step(best, y, test)
+
+
+def smoothing(y, train, test):
+    """Exponential smoothing of the level, with a trend if AIC prefers one, and SEASON if it is set."""
+    from statsmodels.tsa.statespace.exponential_smoothing import ExponentialSmoothing
+    best = None
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        for trend in (False, True):
+            try:
+                fitted = ExponentialSmoothing(y[train], trend=trend, seasonal=SEASON).fit(disp=False)
+            except Exception:
+                continue
+            if np.isfinite(fitted.aic) and (best is None or fitted.aic < best.aic):
+                best = fitted
+        if best is None:
+            raise RuntimeError("exponential smoothing could not be fitted")
+        return one_step(best, y, test)
+
+
+def recent_changes(y, lags):
+    """Row t's features: the last lags changes before it (row t-1 minus row t-2, and so on), missing
+    where the series has not started. Changes rather than values, so trees can follow a trend."""
+    change = np.r_[np.nan, np.diff(y)]
+    return np.column_stack([np.r_[np.full(k, np.nan), change[:-k]] for k in range(1, lags + 1)])
+
+
+def boosted_lags(y, train, test, lags):
+    """Tuned boosting that predicts the next change from the recent ones, trained on the rows before the
+    scored ones: its forecast is the last known value plus that change."""
+    X = recent_changes(y, lags)
+    change = np.r_[np.nan, np.diff(y)]
+    rows = train[train >= 2]
+    model = TunedHGB("regression").fit(X[rows], change[rows])
+    return y[test - 1] + model.predict(X[test])
+
+`;
+
+const FORECAST_EVALUATE = `def series(frame):
+    """The target as numbers, oldest row first, with the rows that have no target dropped."""
+    NOTES.clear()
+    if DATE_COLUMN and DATE_COLUMN in frame:
+        text = frame[DATE_COLUMN].map(as_text)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            try:
+                dates = pd.to_datetime(text, errors="coerce", format="mixed")
+            except (TypeError, ValueError):   # pandas before 2.0
+                dates = pd.to_datetime(text, errors="coerce")
+        steps = dates.dropna().diff().dropna()
+        steps = steps[steps != pd.Timedelta(0)]
+        if len(steps) and (steps < pd.Timedelta(0)).mean() > 0.9:
+            frame = frame.iloc[::-1]
+            NOTES.append(f"The rows ran newest first by {DATE_COLUMN}, so they were turned around.")
+        elif len(steps) and (steps > pd.Timedelta(0)).mean() < 0.9:
+            NOTES.append(f"The rows are not in {DATE_COLUMN} order, so they were taken in file order, "
+                         "which you said is the time order.")
+        known = dates.dropna()
+        if len(known) and known.duplicated().mean() > 0.2:
+            NOTES.append(f"Many rows share a {DATE_COLUMN}. If the file holds several series (one per product "
+                         "or place), these methods treat them as one; forecast each on its own.")
+    y = frame[TARGET].map(as_number).astype(float).to_numpy()
+    return y[~np.isnan(y)]
+
+
+METRIC_FN = {"r2": (r2_score, 1), "neg_mean_absolute_error": (mean_absolute_error, -1),
+             "neg_mean_absolute_percentage_error": (mean_absolute_percentage_error, -1)}
+
+
+def forecast_folds(n):
+    """Five time-ordered folds, keeping those with at least MIN_HISTORY earlier rows to learn from."""
+    if n < MIN_HISTORY + 2:
+        return []
+    return [(train, test) for train, test in TimeSeriesSplit(5).split(np.zeros(n)) if len(train) >= MIN_HISTORY]
+
+
+def evaluate(frame, progress=print):
+    """Doing nothing, each forecasting model, and tuned boosting on the last few values, each row predicted
+    from the rows before it, in the same folds."""
+    y = series(frame)
+    folds = forecast_folds(len(y))
+    lags = max(1, min(7, len(y) // 20))
+    measure, sign = METRIC_FN[SCORING]
+    runs = [("NAIVE-LAST", "Do nothing: the last known value", None, last_value),
+            ("NAIVE-AVERAGE", "Do nothing: the average of every earlier value", None, running_average)]
+    runs += [(code, name, needs, method) for code, (name, needs, method) in SHORTLIST.items()]
+    recent = f"the last {lags} changes" if lags > 1 else "the last change"
+    runs.append(("BASE-HGB-TUNED", f"Tuned boosting on {recent} (reference)", None,
+                 lambda y, train, test: boosted_lags(y, train, test, lags)))
+    results = []
+    for code, name, needs, method in runs:
+        row = {"code": code, "name": name}
+        if needs and not globals().get(needs):
+            row.update(status="skipped", detail=f"{needs} is not installed")
+        elif not folds:
+            row.update(status="skipped", detail=f"too few rows: it needs at least {MIN_HISTORY + 2} with a {TARGET}")
+        else:
+            started = time.time()
+            try:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    scores = [sign * measure(y[test], method(y, train, test)) for train, test in folds]
+                row.update(status="ok", score=float(np.mean(scores)), spread=float(np.std(scores)),
+                           seconds=round(time.time() - started, 1))
+            except Exception as exc:  # a method that cannot handle this series is a result too
+                row.update(status="error", detail=f"{type(exc).__name__}: {exc}"[:200])
+        results.append(row)
+        progress(row)
+    return results`;
+
 // The threshold that cost least on the user's file, when a miss is priced.
 const THRESHOLD_CODE = `
 
@@ -122,6 +281,8 @@ def threshold_report(results, frame):
     builds = {code: (scale, build) for code, (name, scale, needs, build) in SHORTLIST.items()}
     builds["BASE-HGB-TUNED"] = (False, lambda: TunedHGB(TASK))
     for row in sorted((r for r in results if r["status"] == "ok"), key=lambda r: -r["score"]):
+        if row["code"] not in builds:   # doing nothing has no threshold to tune
+            continue
         scale, build = builds[row["code"]]
         if not hasattr(pipeline(build(), scale), "predict_proba"):
             continue
@@ -156,7 +317,7 @@ def threshold_report(results, frame):
 // The shortlist codes the script can run, in the page's order, and the ones
 // it cannot, with why.
 export function scriptable(codes, task) {
-  const key = task === 'category' ? 'cls' : 'reg';
+  const key = task === 'category' ? 'cls' : task === 'forecast' ? 'fc' : 'reg';
   const run = codes.filter(c => MODEL_CODE[c]?.[key]);
   const skipped = codes.filter(c => !MODEL_CODE[c]?.[key]);
   return { run, skipped };
@@ -164,10 +325,12 @@ export function scriptable(codes, task) {
 
 // What the take-home script can check for a reading. It cross-validates
 // models that predict a target from the other columns, so it runs as it is
-// for a number or a category. A future value on rows in time order is checked
-// the nearest way it can be: the target predicted as a number (or a category)
-// from the other columns, split by time, and the page says so. Anything else
-// gets a reason instead of a silent gap.
+// for a number or a category. A future number on rows in time order is
+// forecast for real: each row predicted from the rows before it, by the
+// forecasting models the page showed and two ways of doing nothing
+// (`forecast: true`). A future category is checked the nearest way it can
+// be, predicted from the other columns and split by time, and the page says
+// so. Anything else gets a reason instead of a silent gap.
 export function takeHomeTask(task, sig, profile, taskLabel = task) {
   if (!sig.target) {
     return { task: null, why: 'The script checks models that predict a column, and none was picked above. Pick the column to predict, and it appears here.' };
@@ -178,7 +341,7 @@ export function takeHomeTask(task, sig, profile, taskLabel = task) {
       return { task: null, why: 'A future value needs rows in time order. Answer "Yes, it is a sequence" above, and the script can check it split by time.' };
     }
     const target = profile?.columns?.find(c => c.name === sig.target);
-    return { task: target && !target.numeric ? 'category' : 'number', framed: true };
+    return target && !target.numeric ? { task: 'category', framed: true } : { task: 'number', framed: true, forecast: true };
   }
   return {
     task: null,
@@ -200,22 +363,51 @@ export function columnRoles(profile, target, leftOut = []) {
 }
 
 export function pythonScript({ fileName, read, columns, target, task, ordered, numeric, categorical, shortlist,
-  leftOut = [], cost = null, pageUrl = 'https://aeternifrigus.github.io/Data-Craft-Nexus/', date = new Date().toISOString().slice(0, 10) }) {
+  leftOut = [], cost = null, forecast = null, pageUrl = 'https://aeternifrigus.github.io/Data-Craft-Nexus/',
+  date = new Date().toISOString().slice(0, 10) }) {
+  // `forecast` ({ dateColumn }) forecasts a number from its own past instead
+  // of predicting it from the other columns.
+  const fc = !!forecast && task === 'number';
   const bench = task === 'category' ? 'classification' : 'regression';
-  const { run, skipped } = scriptable(shortlist, task);
+  const { run, skipped } = scriptable(shortlist, fc ? 'forecast' : task);
   const key = task === 'category' ? 'cls' : 'reg';
-  const entries = run.map(c => `    ${py(c)}: (${py(MODEL_CODE[c].name)}, ${pyBool(!!MODEL_CODE[c].scale)}, ${
-    MODEL_CODE[c].needs ? py(MODEL_CODE[c].needs) : 'None'}, lambda: ${MODEL_CODE[c][key]}),`).join('\n');
+  const needs = (c) => (MODEL_CODE[c].needs ? py(MODEL_CODE[c].needs) : 'None');
+  const entries = fc
+    ? run.map(c => `    ${py(c)}: (${py(MODEL_CODE[c].name)}, ${needs(c)}, ${MODEL_CODE[c].fc}),`).join('\n')
+    : run.map(c => `    ${py(c)}: (${py(MODEL_CODE[c].name)}, ${pyBool(!!MODEL_CODE[c].scale)}, ${
+      needs(c)}, lambda: ${MODEL_CODE[c][key]}),`).join('\n');
   const skippedNote = skipped.length
-    ? `\n# Recommended but not runnable on a table here: ${skipped.join(', ')}.` : '';
+    ? `\n# Recommended but not runnable ${fc ? 'here' : 'on a table here'}: ${skipped.map(c =>
+      (NOT_RUNNABLE[c] ? `${c} (${oneLine(NOT_RUNNABLE[c])})` : c)).join(', ')}.` : '';
   // A cost set for the other kind of answer (the answer changed after it was set) is not used.
   const priced = cost && cost.kind === task ? cost : null;
   const miss = priced?.id === 'miss';
   const leftOutNote = leftOut.length
     ? `\n# Left out of the features: ${leftOut.join(', ')}. The page found a different value in almost every row,\n# like an ID, which a model can memorise and which says nothing about new rows.` : '';
 
-  return `#!/usr/bin/env python3
-"""Run the shortlist Data Craft Nexus recommended, on your own data.
+  const pricedNote = !priced || priced.bench ? ''
+    : fc ? `\nIt scores by ${priced.metric}, from what you said a wrong answer costs.\n`
+      : `\nIt scores by ${priced.metric}, from what you said a wrong answer costs. The
+benchmark scored by ${bench === 'classification' ? 'balanced accuracy' : 'R squared'}, so the order here can differ from the
+benchmark's; for your costs, this one counts.\n`;
+  const doc = fc ? `Test the forecasting models Data Craft Nexus showed, on your own data.
+
+Generated ${date} by ${pageUrl}
+for ${fileName}, forecasting ${target} from its own past values.
+
+Every method predicts each row's value from the rows before it and never
+after: one step ahead, in time-ordered folds. Two ways of doing nothing are
+scored the same way, carrying the last value forward and the average of
+every earlier value, and tuned boosting on the last few values runs beside
+them as the reference: on real business data it is often what wins. The
+benchmark behind the site never measured forecasting, so none of these has a
+measured record, and this run is the evidence. The other columns are not used.
+${pricedNote}
+    python dcn_shortlist.py path/to/${fileName}
+
+Needs pandas, scikit-learn and statsmodels (a missing one is reported and
+skipped). Every row of the file is used; the page read at most the first 5,000.`
+    : `Run the shortlist Data Craft Nexus recommended, on your own data.
 
 Generated ${date} by ${pageUrl}
 for ${fileName}, predicting ${target} (${bench}).
@@ -224,16 +416,17 @@ It uses the preprocessing, estimators and cross-validation the site's
 benchmark uses, and runs tuned boosting beside the shortlist: on the
 benchmark, ten configurations of boosting were worth more than the choice
 among the top model families, so a recommendation should be checked against it.
-${priced && !priced.bench ? `
-It scores by ${priced.metric}, from what you said a wrong answer costs. The
-benchmark scored by ${bench === 'classification' ? 'balanced accuracy' : 'R squared'}, and the page's order is by that, so
-the order here can differ from the page's; for your costs, this one counts.
-` : ''}
+Doing nothing is scored the same way (the most common answer, the average, or
+the last known value), so a model that cannot beat it is plain to see.
+${pricedNote}
     python dcn_shortlist.py path/to/${fileName}
 
 Needs pandas and scikit-learn; XGBoost and LightGBM if the shortlist has them
 (a missing one is reported and skipped). Every row of the file is used; the
-page read at most the first 5,000.
+page read at most the first 5,000.`;
+
+  return `#!/usr/bin/env python3
+"""${doc}
 """
 import re
 import sys
@@ -245,6 +438,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.dummy import DummyClassifier, DummyRegressor
 from sklearn.ensemble import (AdaBoostClassifier, AdaBoostRegressor, ExtraTreesClassifier, ExtraTreesRegressor,
                               GradientBoostingClassifier, GradientBoostingRegressor, HistGradientBoostingClassifier,
                               HistGradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor,
@@ -252,6 +446,7 @@ from sklearn.ensemble import (AdaBoostClassifier, AdaBoostRegressor, ExtraTreesC
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import (BayesianRidge, ElasticNet, Lasso, LinearRegression, LogisticRegression,
                                   Perceptron, Ridge)
+from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, r2_score
 from sklearn.model_selection import (GridSearchCV, KFold, ParameterSampler, ShuffleSplit, StratifiedKFold,
                                      StratifiedShuffleSplit, TimeSeriesSplit, cross_val_score)
 from sklearn.naive_bayes import GaussianNB
@@ -274,6 +469,12 @@ ORDERED = ${pyBool(ordered)}   # you said row order matters: split by time, neve
 NUMERIC = ${py(numeric)}
 CATEGORICAL = ${py(categorical)}
 SEED = 0${skippedNote}${leftOutNote}
+FORECAST = ${pyBool(fc)}   # ${fc ? 'a future value: each row predicted from the rows before it, from its own past'
+    : 'you asked for a number or a category: predicted from the other columns'}
+NOTES = []   # what the run noticed about the file, printed under the scores${fc ? `
+DATE_COLUMN = ${forecast.dateColumn ? py(forecast.dateColumn) : 'None'}   # checked to see the rows run oldest first
+SEASON = None   # set it to 7, 12, ... if the values repeat every so many rows: smoothing then uses it
+MIN_HISTORY = 10   # a fold is scored only when at least this many earlier rows are there to learn from` : ''}
 
 
 def base_learners():
@@ -291,9 +492,10 @@ def optional(module):
         return None
 
 
-xgboost, lightgbm = optional("xgboost"), optional("lightgbm")
-
-# The shortlist, in the order the page showed it: code -> (name, scaled, library, estimator).
+xgboost, lightgbm = optional("xgboost"), optional("lightgbm")${fc ? '\nstatsmodels = optional("statsmodels")' : ''}
+${fc ? FORECAST_METHODS : ''}
+${fc ? '# The forecasting models, in the order the page showed them: code -> (name, library, method).'
+    : '# The shortlist, in the order the page showed it: code -> (name, scaled, library, estimator).'}
 SHORTLIST = {
 ${entries}
 }
@@ -414,11 +616,54 @@ def splits(y):
     return KFold(5, shuffle=True, random_state=SEED)
 
 
+${fc ? FORECAST_EVALUATE : `class LastValue(BaseEstimator):
+    """Doing nothing on rows in time order: every row gets the last value seen in training."""
+
+    def __init__(self, task="classification"):
+        self.task = task
+
+    def fit(self, X, y):
+        y = np.asarray(y)
+        self.last_ = y[-1]
+        if self.task == "classification":
+            self.classes_ = np.unique(y)
+        return self
+
+    def predict(self, X):
+        return np.full(len(X), self.last_)
+
+    def predict_proba(self, X):
+        return np.tile((self.classes_ == self.last_).astype(float), (len(X), 1))
+
+    @property
+    def _estimator_type(self):   # scikit-learn before 1.6
+        return "classifier" if self.task == "classification" else "regressor"
+
+    def __sklearn_tags__(self):   # scikit-learn 1.6 and later
+        tags = super().__sklearn_tags__()
+        tags.estimator_type = self._estimator_type
+        return tags
+
+
+def baselines():
+    """Doing nothing, scored the same way as every model: the bar a model has to clear."""
+    if TASK == "classification":
+        runs = [("NAIVE-COMMON", "Do nothing: the most common answer", lambda: DummyClassifier(strategy="prior"))]
+    elif SCORING == "r2":
+        runs = [("NAIVE-AVERAGE", "Do nothing: the average", lambda: DummyRegressor(strategy="mean"))]
+    else:   # the constant that misses by least, when every unit or share of a miss counts the same
+        runs = [("NAIVE-AVERAGE", "Do nothing: the median", lambda: DummyRegressor(strategy="median"))]
+    if ORDERED:
+        runs.append(("NAIVE-LAST", "Do nothing: the last known value", lambda: LastValue(TASK)))
+    return runs
+
+
 def evaluate(frame, progress=print):
-    """Every model on the shortlist, and tuned boosting, cross-validated the same way."""
+    """Doing nothing, every model on the shortlist, and tuned boosting, cross-validated the same way."""
     X, y = prepare(frame)
     cv = splits(y)
-    runs = [(code, name, scale, needs, build) for code, (name, scale, needs, build) in SHORTLIST.items()]
+    runs = [(code, name, False, None, build) for code, name, build in baselines()]
+    runs += [(code, name, scale, needs, build) for code, (name, scale, needs, build) in SHORTLIST.items()]
     runs.append(("BASE-HGB-TUNED", "Histogram Gradient Boosting, tuned (reference)", False, None,
                  lambda: TunedHGB(TASK)))
     results = []
@@ -441,16 +686,40 @@ def evaluate(frame, progress=print):
                 row.update(status="error", detail=detail[:200])
         results.append(row)
         progress(row)
-    return results
+    return results`}
+
+
+def verdict(results):
+    """Whether any model beat doing nothing, compared at the four decimals shown."""
+    ok = [r for r in results if r["status"] == "ok"]
+    bars = [r for r in ok if r["code"].startswith("NAIVE-")]
+    models = [r for r in ok if not r["code"].startswith("NAIVE-")]
+    if not bars or not models:
+        return None
+    bar = max(bars, key=lambda r: r["score"])
+    best = max(models, key=lambda r: r["score"])
+    plain = bar["name"].replace("Do nothing: ", "")
+    if round(best["score"], 4) <= round(bar["score"], 4):
+        return (f"No model beat doing nothing ({plain}, {bar['score']:.4f}): on this file the models found "
+                "nothing it does not already know.")
+    return (f"The best model, {best['name']}, beat doing nothing ({plain}, {bar['score']:.4f}) by "
+            f"{best['score'] - bar['score']:.4f}. Compare that with the spread beside each score.")
 
 
 def report(results):
-    print(f"\\n{len(results)} models, 5-fold {'time-ordered ' if ORDERED else ''}cross-validation, {METRIC}:\\n")
+    how = ("one step ahead in time-ordered folds" if FORECAST
+           else f"5-fold {'time-ordered ' if ORDERED else ''}cross-validation")
+    print(f"\\n{len(results)} {'methods' if FORECAST else 'models'}, {how}, {METRIC}:\\n")
     for row in sorted(results, key=lambda r: -r.get("score", -np.inf)):
         if row["status"] == "ok":
             print(f"  {row['score']:.4f} ± {row['spread']:.4f}  {row['code']:15} {row['name']}  ({row['seconds']}s)")
         else:
             print(f"  {row['status']:>15}  {row['code']:15} {row['name']}: {row.get('detail', '')}")
+    said = verdict(results)
+    if said:
+        print(f"\\n{said}")
+    for note in NOTES:
+        print(f"\\nNote: {note}")
 ${miss ? THRESHOLD_CODE : ''}
 
 def load(source):

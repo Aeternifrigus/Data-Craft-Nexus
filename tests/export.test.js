@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseCSV } from '../site/js/csv.js';
 import { profileData } from '../site/js/profile.js';
-import { MODEL_CODE, columnRoles, pythonScript, scriptable, takeHomeTask } from '../site/js/export.js';
+import { MODEL_CODE, NOT_RUNNABLE, columnRoles, pythonScript, scriptable, takeHomeTask } from '../site/js/export.js';
 import { loadTaxonomyFromDisk } from './helpers.js';
 
 const T = loadTaxonomyFromDisk();
@@ -51,10 +51,34 @@ test('the script is offered for every answer it can check, and a reason is given
   const profile = { columns: [{ name: 'y', numeric: true }, { name: 'kind', numeric: false }] };
   assert.deepEqual(takeHomeTask('number', sig('A21'), profile), { task: 'number', framed: false });
   assert.deepEqual(takeHomeTask('category', sig('A22'), profile), { task: 'category', framed: false });
-  // A future value on rows in time order: the target as a number, split by time.
-  assert.deepEqual(takeHomeTask('forecast', sig('A22'), profile), { task: 'number', framed: true });
+  // A future number on rows in time order is forecast from its own past; a future category is
+  // predicted from the other columns, split by time.
+  assert.deepEqual(takeHomeTask('forecast', sig('A22'), profile), { task: 'number', framed: true, forecast: true });
   assert.deepEqual(takeHomeTask('forecast', sig('A22', 'kind'), profile), { task: 'category', framed: true });
   assert.match(takeHomeTask('forecast', sig('A21'), profile).why, /time order/);
   assert.match(takeHomeTask('group', sig('A21'), profile, 'Natural groupings').why, /"Natural groupings" is a different kind of answer/);
   assert.match(takeHomeTask('number', sig('A21', null), profile).why, /Pick the column to predict/);
+});
+
+test('a future number is forecast with the models on the cards, and the one that cannot run is named', () => {
+  const forecasting = T.MODELS.filter(m => m.c.startsWith('TSM')).map(m => m.c);
+  const { run, skipped } = scriptable(forecasting, 'forecast');
+  assert.deepEqual(run, ['TSM1', 'TSM2']);
+  assert.deepEqual(skipped, ['TSM3']);
+  assert.match(NOT_RUNNABLE.TSM3, /Prophet needs Stan/);
+  const base = {
+    fileName: 'fx.csv', columns: ['day', 'rate'], target: 'rate', task: 'number', ordered: true,
+    numeric: [], categorical: ['day'], shortlist: forecasting, date: '2026-01-01',
+  };
+  const text = pythonScript({ ...base, forecast: { dateColumn: 'day' } });
+  assert.match(text, /^FORECAST = True/m);
+  assert.match(text, /^DATE_COLUMN = "day"/m);
+  assert.match(text, /"TSM1": \("ARIMA", "statsmodels", arima\),/);
+  assert.match(text, /Recommended but not runnable here: TSM3 \(Prophet needs Stan/);
+  assert.match(text, /^statsmodels = optional\("statsmodels"\)$/m);
+  // Without the forecast flag the same answer is the old check: predicted from the other columns.
+  const plain = pythonScript({ ...base, shortlist: ['TR2'] });
+  assert.match(plain, /^FORECAST = False/m);
+  assert.doesNotMatch(plain, /statsmodels|def arima/);
+  assert.match(plain, /^def baselines\(\):/m);
 });

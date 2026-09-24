@@ -128,7 +128,7 @@ def test_run_it_here_gives_what_the_downloaded_script_gives():
     text = generate(csv, "label", "category", ["TR1", "LM2"])
     streamed, final = run_in_page(text, csv.read_text())
     assert streamed == final, "every row the page shows as it arrives is in the final result"
-    assert [r["code"] for r in final] == ["TR1", "LM2", "BASE-HGB-TUNED"]
+    assert [r["code"] for r in final] == ["NAIVE-COMMON", "TR1", "LM2", "BASE-HGB-TUNED"]
 
     script = load(text)
     direct = script["evaluate"](script["load"](str(csv)), progress=lambda row: None)
@@ -281,3 +281,134 @@ def test_a_priced_miss_runs_from_the_command_line(tmp_path):
 def test_an_answer_the_page_does_not_offer_is_refused():
     with pytest.raises(subprocess.CalledProcessError):
         generate(FIXTURES / "balanced.csv", "label", "category", ["TR1"], cost="miss:5")   # three classes
+
+
+# Doing nothing, and a future value forecast for real ------------------------------------------------------------
+
+def test_doing_nothing_is_scored_like_every_model():
+    """The bar a model has to clear: the most common answer, the average, and on ordered rows the last value."""
+    from sklearn.model_selection import cross_val_score
+    script = load(generate(FIXTURES / "balanced.csv", "label", "category", ["TR1"]))
+    X, y = script["prepare"](script["load"](str(FIXTURES / "balanced.csv")))
+    codes = [code for code, name, build in script["baselines"]()]
+    assert codes == ["NAIVE-COMMON"]
+    common = dict((code, build) for code, name, build in script["baselines"]())["NAIVE-COMMON"]
+    scores = cross_val_score(script["pipeline"](common(), False), X, y, cv=script["splits"](y), scoring="balanced_accuracy")
+    assert scores == pytest.approx(np.full(len(scores), 1 / 3)), "always the same answer: one class in three right"
+
+    ordered = load(generate(FIXTURES / "numeric.csv", "y", "number", ["LM3"], order="A22"))
+    assert [code for code, name, build in ordered["baselines"]()] == ["NAIVE-AVERAGE", "NAIVE-LAST"]
+    X, y = ordered["prepare"](ordered["load"](str(FIXTURES / "numeric.csv")))
+    last = dict((code, build) for code, name, build in ordered["baselines"]())["NAIVE-LAST"]
+    for train, test in ordered["splits"](y).split(X, y):
+        guess = ordered["pipeline"](last(), False).fit(X.iloc[train], y[train]).predict(X.iloc[test])
+        assert np.all(guess == y[train][-1])
+    median = load(generate(FIXTURES / "numeric.csv", "y", "number", ["LM3"], cost="absolute"))
+    assert [name for code, name, build in median["baselines"]()] == ["Do nothing: the median"]
+
+
+def test_the_verdict_says_when_nothing_beat_doing_nothing():
+    script = load(generate(FIXTURES / "balanced.csv", "label", "category", ["TR1"]))
+    rows = lambda *pairs: [{"code": c, "name": n, "status": "ok", "score": s} for c, n, s in pairs]
+    assert script["verdict"](rows(("NAIVE-COMMON", "Do nothing: the most common answer", 0.5),
+                                  ("TR1", "Decision Tree", 0.50004))).startswith("No model beat doing nothing")
+    assert "beat doing nothing (the most common answer, 0.5000) by 0.2000" in script["verdict"](
+        rows(("NAIVE-COMMON", "Do nothing: the most common answer", 0.5), ("TR1", "Decision Tree", 0.7)))
+
+
+def series_csv(tmp_path, n=120, newest_first=False, seed=0):
+    """A daily series with a trend and a weekly swing, beside a column the forecast must not use."""
+    rng = np.random.default_rng(seed)
+    t = np.arange(n)
+    value = 50 + 0.3 * t + 5 * np.sin(2 * np.pi * t / 7) + rng.normal(0, 1, n)
+    frame = pd.DataFrame({"day": pd.date_range("2025-01-01", periods=n, freq="D").strftime("%Y-%m-%d"),
+                          "other": rng.normal(size=n).round(3), "value": value.round(3)})
+    if newest_first:
+        frame = frame.iloc[::-1]
+    path = tmp_path / ("series_rev.csv" if newest_first else "series.csv")
+    frame.to_csv(path, index=False)
+    return path
+
+
+def forecast_script(csv, codes=("TSM1", "TSM2", "TSM3"), cost=None):
+    return generate(csv, "value", "forecast", list(codes), order="A22", cost=cost)
+
+
+def test_a_future_value_runs_the_forecasting_models_and_names_the_one_it_cannot(tmp_path):
+    text = forecast_script(series_csv(tmp_path))
+    script = load(text)
+    assert script["FORECAST"] is True and script["DATE_COLUMN"] == "day"
+    assert list(script["SHORTLIST"]) == ["TSM1", "TSM2"]
+    assert "TSM3 (Prophet needs Stan" in text, "Prophet is named, not silently dropped"
+    assert "statsmodels = optional" in text
+    plain = generate(FIXTURES / "numeric.csv", "y", "number", ["LM3"])
+    assert "statsmodels" not in plain and "FORECAST = False" in plain
+
+
+@pytest.mark.parametrize("method", ["last_value", "running_average", "arima", "smoothing", "boosted"])
+def test_no_forecast_sees_the_row_it_predicts(tmp_path, method):
+    """Change every value from row 90 on: the forecasts for rows 80 to 90 must not move."""
+    script = load(forecast_script(series_csv(tmp_path)))
+    y = script["series"](script["load"](str(series_csv(tmp_path))))
+    train, test = np.arange(80), np.arange(80, 100)
+    fn = (lambda y, tr, te: script["boosted_lags"](y, tr, te, 3)) if method == "boosted" else script[method]
+    before = fn(y, train, test)
+    changed = y.copy()
+    changed[90:] += 1000
+    after = fn(changed, train, test)
+    assert np.allclose(before[:11], after[:11]), "a forecast used a row at or after the one it predicts"
+    assert not np.allclose(before[11:], after[11:]), "later forecasts should use the earlier rows they may see"
+
+
+def test_doing_nothing_forecasts_are_what_they_say(tmp_path):
+    script = load(forecast_script(series_csv(tmp_path)))
+    y = script["series"](script["load"](str(series_csv(tmp_path))))
+    test = np.arange(60, 70)
+    assert np.array_equal(script["last_value"](y, np.arange(60), test), y[59:69])
+    assert script["running_average"](y, np.arange(60), test) == pytest.approx([y[:t].mean() for t in test])
+
+
+def test_a_series_that_runs_newest_first_is_turned_around(tmp_path):
+    forward = load(forecast_script(series_csv(tmp_path)))
+    backward = load(forecast_script(series_csv(tmp_path, newest_first=True)))
+    y = forward["series"](forward["load"](str(series_csv(tmp_path))))
+    y_back = backward["series"](backward["load"](str(series_csv(tmp_path, newest_first=True))))
+    assert np.array_equal(y, y_back)
+    assert any("newest first" in note for note in backward["NOTES"])
+
+
+def test_forecasts_beat_doing_nothing_on_a_series_with_a_pattern(tmp_path):
+    """A trend and a weekly swing: the forecasting models should see what carrying the last value forward cannot."""
+    csv = series_csv(tmp_path, n=200)
+    script = load(forecast_script(csv, cost="absolute"))
+    results = {r["code"]: r for r in script["evaluate"](script["load"](str(csv)), progress=lambda row: None)}
+    assert all(r["status"] == "ok" for r in results.values()), results
+    assert results["NAIVE-LAST"]["score"] > results["NAIVE-AVERAGE"]["score"], "on a trend, the last value beats the average"
+    best = max(results[c]["score"] for c in ["TSM1", "TSM2", "BASE-HGB-TUNED"])
+    assert best > results["NAIVE-LAST"]["score"]
+
+
+def test_a_forecast_runs_from_the_command_line_and_in_the_page(tmp_path):
+    csv = series_csv(tmp_path)
+    text = forecast_script(csv)
+    path = tmp_path / "dcn_shortlist.py"
+    path.write_text(text)
+    proc = subprocess.run([sys.executable, str(path), str(csv)], capture_output=True, text=True, timeout=600,
+                          env={"OMP_NUM_THREADS": "1", "PATH": "/usr/bin:/bin"})
+    assert proc.returncode == 0, proc.stderr
+    assert "one step ahead in time-ordered folds" in proc.stdout
+    assert "doing nothing" in proc.stdout
+    for code in ["NAIVE-LAST", "NAIVE-AVERAGE", "TSM1", "TSM2", "BASE-HGB-TUNED"]:
+        assert code in proc.stdout, code
+
+    streamed, final = run_in_page(text, csv.read_text())
+    assert streamed == final
+    assert [r["code"] for r in final] == ["NAIVE-LAST", "NAIVE-AVERAGE", "TSM1", "TSM2", "BASE-HGB-TUNED"]
+
+
+def test_too_short_a_series_is_said_not_scored(tmp_path):
+    csv = series_csv(tmp_path, n=11)
+    script = load(forecast_script(csv))
+    results = script["evaluate"](script["load"](str(csv)), progress=lambda row: None)
+    assert {r["status"] for r in results} == {"skipped"}
+    assert "too few rows" in results[0]["detail"]

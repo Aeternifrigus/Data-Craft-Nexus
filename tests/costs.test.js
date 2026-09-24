@@ -118,3 +118,10 @@ test('a percentage score on a target with zeros is warned about, and so is accur
   assert.match(costWarning('category', 'rows', column('imbalanced.csv', 'churn')), /Always answering "no" already gets 91%/);
   assert.equal(costWarning('category', 'rows', column('balanced.csv', 'label')), '');
 });
+
+test('where the cards are not in the benchmark\'s order, the page does not say they are', () => {
+  const y = column('numeric.csv', 'y');
+  assert.equal(costSentence(resolveCost('number', { id: 'absolute' }, y), false),
+    'It scores by mean absolute error, because you said every unit of error costs the same.');
+  assert.equal(costSentence(resolveCost('number', null, y), false), 'It scores by R squared, the page\'s default for a number.');
+});

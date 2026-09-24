@@ -12,7 +12,7 @@
 
 ## Why not just tune boosting?
 
-It tells you to, first, because it measured the alternative. The site was first built to pick models by matching a dataset's six-axis signature. On 195 PMLB datasets and 5,446 model runs, with every ranking judged leave-one-dataset-out and every family of related datasets counted once, that lost. Balanced accuracy lost against the best model, median over 78 independent classification datasets:
+It tells you to, first, because it measured the alternative. The site was first built to pick models by matching a dataset's six-axis signature. On 195 PMLB datasets and 5,541 model runs, with every ranking judged leave-one-dataset-out and every family of related datasets counted once, that lost. Balanced accuracy lost against the best model, median over 78 independent classification datasets:
 
 | how the first model is chosen | points lost |
 |---|---|
@@ -140,7 +140,7 @@ It was checked end to end in headless Chromium, with Pyodide 314.0.7's release f
 
 The instrument publishes its own scoreboard, in **The evidence** tab: 195
 datasets from [PMLB](https://github.com/EpistasisLab/pmlb), every runnable
-model fitted on every one of them, five-fold cross-validated, 5,446 model runs
+model fitted on every one of them, five-fold cross-validated, 5,541 model runs
 (40 of the datasets under three cross-validation seeds, to measure how much a
 split alone moves things, and tuned boosting on every dataset as a reference). Each recommendation also carries a line saying how
 that model did.
@@ -185,6 +185,12 @@ The drift checkers get a benchmark of their own (`bench/dcn/drift.py`): 18 real 
 
 It also found five defects, now fixed: six drift cards linked to the wrong function, error drift claimed to work without labels, mixed tables (most real files) were never offered a distribution test, SciPy's Cramér-von Mises test calls two samples of one mostly-zero column different at p < 10⁻⁹, and river's FHDDM, fed errors as its documentation says, fires when the model gets better. The full table is in the evidence tab and in [`bench/README.md`](bench/README.md#drift-checkers).
 
+### What a model pretrained for small tables was worth
+
+TabPFN is a transformer pretrained on synthetic tables to predict a small table in one pass. TabPFN-2's weights sit behind a login this environment could not reach; TabPFN-1's are public (Apache 2.0), so it ran, within its limits: classification only, up to 1,000 rows, 100 features and 10 classes. That is 42 datasets in 38 independent units. What it had to show was written down before it ran (`bench/README.md`, "Which TabPFN ran").
+
+Against tuned boosting it was better on 21 units and worse on 16 (p = 0.26). The rule asks for more than luck, so tuned boosting stays first on small tables too, and the size of a table still does not change the first recommendation. It did beat the order's own first pick more often than not (25 units better, 12 worse, p = 0.13 after correcting for four comparisons). None of this measures TabPFN-2 or later, which their authors report stronger.
+
 ### What the checks catch
 
 The first section of the results, **Before you trust a score**, was measured the same way: on the 195 benchmark datasets as a user would upload them, and on 40 of them with a problem planted. It caught the target renamed or rescaled in 40 of 40, shuffled row numbers and random row codes in 40 of 40, and 2% of rows copied in 32 of 40. On clean data its flags are mostly real: body fat computed from density, a phone number in a churn table, and 22 datasets with more copied rows than chance, the thyroid and wine quality tables among them. It cannot catch a leak with a few percent of mistakes in it (0 of 40 at 5%), and it looks at one column at a time. Details in [`bench/README.md`](bench/README.md#before-you-trust-a-score).
@@ -193,7 +199,7 @@ The first section of the results, **Before you trust a score**, was measured the
 
 - **Only boosting was tuned.** The page puts tuned boosting first because it beat the order's first pick, but the families below it are still ranked by what they were worth at their defaults. Tuning each of them the same way, and ranking them on that, would need a run the size of the tuned one for every family.
 - **Run it here has been run in Chromium only**, with Pyodide's files served locally rather than from the CDN. Firefox and Safari support module workers and should work; they have not been tried. If it fails in yours, the downloaded script runs the same thing.
-- **TabPFN has not been run yet.** Its weights need a Prior Labs login this benchmark's environment could not reach. `bench/tools/run_tabpfn.sh` adds it in one command, and what its result would change was written down before the run: TabPFN goes first on small tables only if it passes the same rule every other change of order has passed (`bench/README.md`, "What TabPFN has to show").
+- **Only TabPFN-1 has been run.** TabPFN-2 and later need a Prior Labs login this benchmark's environment could not reach. `bench/tools/run_tabpfn.sh` adds them in one command, judged by the same rule TabPFN-1 was.
 - **The order in use is a per-model prior, not yet a per-dataset one.** Both ways of making it depend on your data (interactions, and weighting toward the nearest benchmark datasets) are built, tested against the JavaScript, and judged leave-one-dataset-out, and neither beat the prior by more than luck on 195 datasets once families count once. With only 35 independent regression units, a per-dataset order needs more collected data to prove itself, not more of the same generators.
 - **The prior itself still counts a family's datasets one by one when it is fitted**, so on regression it leans toward what wins on Friedman's functions. Weighting a family once in the fit is the obvious change, and it should be declared before the next run rather than tried after this one.
 - **Heavy gaps and noisy targets still cost the first pick on regression.** An order that reads data quality was tested and did not help, so nothing here fixes that yet; it rests on 8 independent units either way.

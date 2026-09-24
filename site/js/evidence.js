@@ -623,6 +623,18 @@ function datasetTable(datasets, T) {
   </table>`;
 }
 
+// TabPFN against tuned boosting on the small tables it could take, by the
+// rule written down before it ran (choose_small_lead() in bench/dcn/learn.py).
+export function smallLeadSentence(ranking) {
+  const lead = ranking?.small_lead;
+  if (!lead) return '';
+  const parts = Object.entries(lead.tasks).map(([task, t]) =>
+    `on ${t.units} ${task === 'classification' ? 'classification' : task} units of at most ${lead.max_rows} rows it was better than tuned boosting on ${t.wins}, worse on ${t.losses}, level on ${t.ties} (p = ${formatP(t.p_holm)})`);
+  return `TabPFN-1, the pretrained small-table model, ran where its limits allow (classification only, up to ${lead.max_rows} rows, 100 features and 10 classes): ${parts.join('; ')}. ${lead.led
+    ? 'By the rule written before it ran, it goes before tuned boosting on tables that small.'
+    : 'By the rule written before it ran, that is not more than luck, so tuned boosting stays first on small tables too.'}`;
+}
+
 export function buildEvidence(T) {
   const intro = document.getElementById('ev-intro');
   const body = document.getElementById('ev-body');
@@ -666,7 +678,7 @@ export function buildEvidence(T) {
       held out together and counted once: sisters share a winner, and counting each would claim more certainty than the
       data holds.
       ${esc([boostingVerdict(ev.ranking), referenceVerdict(ev.ranking, 'tuned', 'tuned boosting'),
-        referenceVerdict(ev.ranking, 'tabpfn', 'TabPFN')].filter(Boolean).join(' '))}</p>
+        referenceVerdict(ev.ranking, 'tabpfn', 'TabPFN'), smallLeadSentence(ev.ranking)].filter(Boolean).join(' '))}</p>
     ${comparisonTable(ev.ranking)}
     <p class="sect-note" style="margin-top:14px">${esc(choiceNote(ev.ranking))}</p>
     ${ceilingTable(ev.ranking) ? `<h3 class="ev-h">How far from the best of everything</h3>

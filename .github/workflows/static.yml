@@ -39,6 +39,10 @@ jobs:
         env:
           # The page names the commit it was built from in a hidden meta tag, for the check below.
           DCN_BUILD: ${{ github.sha }}
+      - name: Publish the tour video beside the page
+        # GitHub does not play a video committed to the repo inside a README,
+        # so the README links here, where Pages serves it as video/mp4.
+        run: cp docs/media/dcn-tour.mp4 dist/
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

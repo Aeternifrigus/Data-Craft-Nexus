@@ -1,31 +1,49 @@
 # Data Craft Nexus
 
-**Every dataset has coordinates. Read them.**
+**Most tabular ML advice fits in one line: tune gradient boosting.** The 195-dataset benchmark behind this site agrees. Data Craft Nexus is for the three things that line leaves out, answered from your own CSV, in your browser, with nothing uploaded:
 
-Data Craft Nexus is a reference instrument for the full machine learning lifecycle. Feed it a CSV snippet, answer three questions about your intent, and it reads six data axes — then prescribes:
+1. **Is my file the kind of table that advice is for?** It measures column types, size, missing and junk values and drift, asks what a file cannot say (the target, whether row order matters), and rules out what cannot work, with the reason: a text model has nothing to read in a table of numbers, a supervised model has nothing to learn from without labels. Ordered rows get a warning to split by time.
+2. **Does the advice hold on my data?** Tuned boosting comes first, then a shortlist, each model with its benchmark record. A generated Python script runs them against each other on your whole file with the benchmark's cross-validation, or runs right in the page.
+3. **How will I know when the model stops working?** Drift detectors are filtered by how your data arrives and whether the true answers come back, then ranked by what they caught in a drift benchmark of their own.
 
-- **Models** that fit your data's signature
-- **Drift checkers** that watch for decay
-- **Pipelines** assembled from a reusable stage library
+**[Try it live](https://aeternifrigus.github.io/Data-Craft-Nexus/)** · [Watch the 75-second tour](https://aeternifrigus.github.io/Data-Craft-Nexus/dcn-tour.mp4) · [How the benchmark was run](bench/README.md)
 
-Every code is clickable, down to the formula underneath.
+[![Drop a CSV, see what kind of problem it is, get tuned boosting and a shortlist, run them on the whole file, and pick drift detectors. Click for the full tour.](docs/media/dcn-demo.gif)](https://aeternifrigus.github.io/Data-Craft-Nexus/dcn-tour.mp4)
+
+## Why not just tune boosting?
+
+It tells you to, first, because it measured the alternative. The site was first built to pick models by matching a dataset's six-axis signature. On 195 PMLB datasets and 5,446 model runs, with every ranking judged leave-one-dataset-out and every family of related datasets counted once, that lost. Balanced accuracy lost against the best model, median over 78 independent classification datasets:
+
+| how the first model is chosen | points lost |
+|---|---|
+| matching models to the data's signature (how the site first ranked them) | 4.79 |
+| a ranking learned from the benchmark | 1.60 |
+| always using gradient boosting | 1.45 |
+| gradient boosting, tuned over 10 settings | **1.12** |
+
+So tuned boosting leads, and the signature does what it is good at: telling you which problem you have and what cannot work on it. The other two questions have no one-line answer:
+
+- **What usually wins may not win on your file, and one split can mislead.** On 70% of the classification datasets re-run under three cross-validation seeds, the winner changed with the seed. The script runs the shortlist on your data and prints each score with its spread across folds, so you can see whether a gap is real.
+- **Drift detectors see different things.** Across 23 detectors and 630 test cases, adversarial validation caught 76% of broken correlations, where tests that check one column at a time caught at most 13%. Only detectors that watch the model's errors noticed labels changing meaning, and they paid with 26% to 41% false alarms.
+
+AutoML answers the second question with more search, once installed and given compute. It assumes rows are independent unless told otherwise, does not say what it ruled out or why, and leaves the third question to you.
+
+Every number above is in the page's evidence tab and in [`bench/results/`](bench/results), with the places where the site loses.
 
 ---
 
-## Live Demo
+## How the live page is deployed
 
-**[Try it here](https://aeternifrigus.github.io/Data-Craft-Nexus/)**
-
-The live page carries the commit it was built from in a meta tag (`dcn-build`), out of sight. The "Deploy static content to Pages" workflow builds the page, deploys it, and then fetches the live page until it carries the new commit, failing if it does not within five minutes, so a deploy that did not take shows up as a failed run under Actions. A browser can also hold on to an older copy for a few minutes; a hard refresh fetches the new one.
+The live page carries the commit it was built from in a meta tag (`dcn-build`), out of sight. The "Deploy static content to Pages" workflow builds the page, publishes the tour video beside it, deploys it, and then fetches the live page until it carries the new commit, failing if it does not within five minutes, so a deploy that did not take shows up as a failed run under Actions. A browser can also hold on to an older copy for a few minutes; a hard refresh fetches the new one.
 
 ---
 
 ## How It Works
 
-1. **Drop a CSV** — modality, scale, quality and drift are measured automatically
-2. **Declare your intent** — what to predict, what kind of answer, whether order matters
-3. **Read the specimen** — get the full six-axis signature
-4. **Prescriptions** — models, drift checkers, and pipelines that fit, and what your data rules out
+1. **Drop a CSV**: modality, scale, quality and drift are measured automatically
+2. **Declare your intent**: what to predict, what kind of answer, whether order matters
+3. **Read the specimen**: get the full six-axis signature
+4. **Prescriptions**: models, drift checkers, and pipelines that fit, and what your data rules out
 5. **Take it with you**: the shortlist as a Python script for your whole file, run here in the browser, or the whole reading saved as a Markdown file
 
 ### What is measured, and what is asked
@@ -195,15 +213,15 @@ The full written notes are in [`docs/taxonomy/`](docs/taxonomy): [Data](docs/tax
 
 ## Features
 
-- **Six-axis data signature** — every dataset gets graded like a specimen
-- **Metaphor-first explanations** — every model has a plain-language metaphor
-- **Clickable everything** — any code opens a drawer with formulas and mechanisms
-- **3D coordinate plot** — your data plotted against reference datasets
-- **Mermaid flowcharts** — every pipeline renders its diagram inline
-- **Full library** — search the entire taxonomy
+- **Six-axis data signature**: every dataset gets graded like a specimen
+- **Metaphor-first explanations**: every model has a plain-language metaphor
+- **Clickable everything**: any code opens a drawer with formulas and mechanisms
+- **3D coordinate plot**: your data plotted against reference datasets
+- **Mermaid flowcharts**: every pipeline renders its diagram inline
+- **Full library**: search the entire taxonomy
 - **Reads real exports**: comma, semicolon, tab or pipe separated; quoted fields; UTF-8 or Windows-1250; decimal commas like `1.234,56`
 - **Save this reading**: the signature, what fits, what was ruled out and why, and every measured line, as a Markdown file to keep or send on. The file's rows are not in it
-- **100% client-side** — nothing is uploaded. Everything runs in your browser.
+- **100% client-side**: nothing is uploaded. Everything runs in your browser.
 
 ---
 
@@ -291,4 +309,4 @@ By [Aeternifrigus](https://aeternifrigus.netlify.app/)
 ---
 
 License
-MIT — use it, remix it, cite it.
+MIT: use it, remix it, cite it.

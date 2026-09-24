@@ -25,6 +25,24 @@
    }
   }
  },
+ "small_lead": {
+  "candidate": "tabpfn",
+  "code": "BASE-TABPFN",
+  "against": "tuned",
+  "max_rows": 1000,
+  "led": false,
+  "no_worse": true,
+  "better_on": [],
+  "tasks": {
+   "classification": {
+    "wins": 21,
+    "losses": 16,
+    "ties": 1,
+    "units": 38,
+    "p_holm": 0.2612
+   }
+  }
+ },
  "trained_on": {
   "datasets": 195,
   "rows": 3511
@@ -115,7 +133,9 @@
   "SA-M2": "Survival",
   "TSM1": "Time series",
   "TSM2": "Time series",
-  "TSM3": "Time series"
+  "TSM3": "Time series",
+  "TSM4": "Time series",
+  "TSM5": "Time series"
  },
  "tasks": {
   "category": {

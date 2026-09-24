@@ -201,6 +201,18 @@ bound for the later versions, which their authors report stronger. It is not a
 measurement of them. If it fails, tuned boosting stays first, and the evidence
 tab says which TabPFN lost, on how many units.
 
+### What TabPFN-1 showed
+
+It ran on 42 classification datasets (38 independent units); 47 were over
+1,000 rows, 5 had more than 10 classes or 100 features after encoding, and one
+had a class too small to split. Against tuned boosting it was better on 21
+units, worse on 16 and level on one: p = 0.26, not more than luck, so
+`small_lead.led` is false and tuned boosting stays first on small tables. Its
+median regret was no worse. Against the order's own first pick it was better
+on 25 units and worse on 12 (p = 0.13, Holm over the four references). The
+size of a table still does not change the first recommendation, as far as
+TabPFN-1 can say; TabPFN-2 and later remain unmeasured here.
+
 ## Messy data
 
 PMLB's datasets are clean, and the files people upload are not: the quality
@@ -797,8 +809,8 @@ python -m dcn.forecast_learn --results results/forecast.csv
 
 ## Next
 
-- run TabPFN (`tools/run_tabpfn.sh`) and let the rule written down in "What
-  TabPFN has to show" decide whether small tables get it first
+- run TabPFN-2 or later (`tools/run_tabpfn.sh`, with a Prior Labs login),
+  judged by the same rule TabPFN-1 was
 - tune every family the way boosting was tuned, and rank them on that: the
   page puts tuned boosting first, but ranks the rest at their defaults
 - weight a synthetic family once when fitting the prior, declared before the

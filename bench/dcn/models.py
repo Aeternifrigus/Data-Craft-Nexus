@@ -28,7 +28,7 @@ from sklearn.ensemble import (
     StackingClassifier, StackingRegressor, VotingClassifier, VotingRegressor,
 )
 from sklearn.impute import SimpleImputer
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.model_selection import (GridSearchCV, KFold, ParameterSampler, ShuffleSplit, StratifiedKFold,
                                      StratifiedShuffleSplit)
 from sklearn.linear_model import (
@@ -276,11 +276,26 @@ TUNED = ModelSpec("BASE-HGB-TUNED", "Histogram Gradient Boosting, tuned", _hgb_t
 # up to 1,000 rows, so larger datasets are recorded as skipped unless
 # DCN_TABPFN_MAX_ROWS says the machine can take more.
 TABPFN_CODE = "BASE-TABPFN"
-TABPFN_VERSION = os.environ.get("DCN_TABPFN_VERSION", "v2")
 TABPFN_MAX_ROWS = int(os.environ.get("DCN_TABPFN_MAX_ROWS", "1000"))
 
 
+def _installed_tabpfn() -> str | None:
+    """The TabPFN release installed here, or None."""
+    try:  # pragma: no cover - depends on the environment
+        from importlib.metadata import version
+        return version("tabpfn")
+    except Exception:
+        return None
+
+
+# TabPFN-1 ships as tabpfn 0.1.x, a different API from the later releases.
+_RELEASE = _installed_tabpfn()
+TABPFN_VERSION = os.environ.get("DCN_TABPFN_VERSION") or ("v1" if (_RELEASE or "").startswith("0.1.") else "v2")
+
+
 def _tabpfn(task):
+    if TABPFN_VERSION == "v1":
+        return TabPFNv1()
     from tabpfn import TabPFNClassifier, TabPFNRegressor
     from tabpfn.constants import ModelVersion
 
@@ -289,14 +304,101 @@ def _tabpfn(task):
                                           ignore_pretraining_limits=TABPFN_MAX_ROWS > 1000)
 
 
-REFERENCES: list[ModelSpec] = [TUNED]
-try:  # pragma: no cover - depends on the environment
-    import tabpfn  # noqa: F401
+# TabPFN-1 (Hollmann et al., ICLR 2023). Its checkpoint lives on the project's
+# tabpfn_v1 branch, Apache 2.0. The package's own loader looks for the highest
+# epoch first and tries to download each missing one from a URL that no longer
+# serves it, so the verified checkpoint is put where it looks first.
+TABPFN_V1_URL = ("https://raw.githubusercontent.com/automl/TabPFN/tabpfn_v1/"
+                 "tabpfn/models_diff/prior_diff_real_checkpoint_n_0_epoch_42.cpkt")
+TABPFN_V1_SHA256 = "3c9aadaeddbf51462af8c0ee4b3ca3c697890f77e92318abbb0821b75261c392"
+TABPFN_V1_ENSEMBLE = 32          # its authors' recommendation; the package defaults to 3
+TABPFN_V1_LIMITS = {"features": 100, "classes": 10}
 
-    REFERENCES.append(ModelSpec(TABPFN_CODE, f"TabPFN ({TABPFN_VERSION})", _tabpfn, max_rows=TABPFN_MAX_ROWS,
-                                notes=f"pretrained for small tables; run on up to {TABPFN_MAX_ROWS} rows"))
-except ImportError:
-    pass
+
+def _tabpfn_v1_checkpoint() -> None:  # pragma: no cover - needs the network the first time
+    """Put TabPFN-1's checkpoint where its loader looks, after checking its hash."""
+    import hashlib
+    import urllib.request
+    from pathlib import Path
+
+    import tabpfn
+
+    target = Path(tabpfn.__file__).parent / "models_diff" / "prior_diff_real_checkpoint_n_0_epoch_100.cpkt"
+    if target.exists() and hashlib.sha256(target.read_bytes()).hexdigest() == TABPFN_V1_SHA256:
+        return
+    target.parent.mkdir(parents=True, exist_ok=True)
+    data = urllib.request.urlopen(TABPFN_V1_URL, timeout=300).read()
+    digest = hashlib.sha256(data).hexdigest()
+    if digest != TABPFN_V1_SHA256:
+        raise RuntimeError(f"TabPFN-1 checkpoint has SHA-256 {digest}, expected {TABPFN_V1_SHA256}")
+    target.write_bytes(data)
+
+
+def _tabpfn_v1_sklearn_shim() -> None:  # pragma: no cover - depends on the environment
+    """tabpfn 0.1.x passes force_all_finite, which scikit-learn 1.8 renamed ensure_all_finite."""
+    import functools
+
+    import tabpfn.scripts.transformer_prediction_interface as tpi
+    from sklearn.utils import validation
+
+    def renamed(fn):
+        @functools.wraps(fn)
+        def call(*args, force_all_finite=None, **kwargs):
+            if force_all_finite is not None:
+                kwargs.setdefault("ensure_all_finite", force_all_finite)
+            return fn(*args, **kwargs)
+        return call
+
+    tpi.check_X_y = renamed(validation.check_X_y)
+    tpi.check_array = renamed(validation.check_array)
+
+
+class TabPFNv1(ClassifierMixin, BaseEstimator):
+    """TabPFN-1 as a scikit-learn classifier, refusing what it was not built for.
+
+    Too many features or classes raise, so the runner records an error with the
+    reason and TabPFN-1 is judged only where it ran.
+    """
+
+    def fit(self, X, y):  # pragma: no cover - needs the checkpoint
+        X = np.asarray(X, dtype=float)
+        classes = np.unique(y)
+        if X.shape[1] > TABPFN_V1_LIMITS["features"]:
+            raise ValueError(f"TabPFN-1 takes at most {TABPFN_V1_LIMITS['features']} features, this has {X.shape[1]}")
+        if len(classes) > TABPFN_V1_LIMITS["classes"]:
+            raise ValueError(f"TabPFN-1 takes at most {TABPFN_V1_LIMITS['classes']} classes, this has {len(classes)}")
+        _tabpfn_v1_checkpoint()
+        _tabpfn_v1_sklearn_shim()
+        from tabpfn import TabPFNClassifier
+
+        # The checkpoint is a pickle from before PyTorch's weights-only loading;
+        # its hash was checked above, so it is loaded the old way, once.
+        previous = os.environ.get("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD")
+        os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = "1"
+        try:
+            self.model_ = TabPFNClassifier(device="cpu", N_ensemble_configurations=TABPFN_V1_ENSEMBLE, seed=SEED)
+        finally:
+            if previous is None:
+                os.environ.pop("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD", None)
+            else:
+                os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = previous
+        self.model_.fit(X, y)
+        self.classes_ = self.model_.classes_
+        return self
+
+    def predict(self, X):  # pragma: no cover - needs the checkpoint
+        return self.model_.predict(np.asarray(X, dtype=float))
+
+    def predict_proba(self, X):  # pragma: no cover - needs the checkpoint
+        return self.model_.predict_proba(np.asarray(X, dtype=float))
+
+
+REFERENCES: list[ModelSpec] = [TUNED]
+if _RELEASE:  # pragma: no cover - depends on the environment
+    REFERENCES.append(ModelSpec(
+        TABPFN_CODE, f"TabPFN ({TABPFN_VERSION})", _tabpfn, max_rows=TABPFN_MAX_ROWS,
+        tasks=("classification",) if TABPFN_VERSION == "v1" else ("classification", "regression"),
+        notes=f"pretrained for small tables; run on up to {TABPFN_MAX_ROWS} rows"))
 
 REFERENCE_BY_CODE = {spec.code: spec for spec in REFERENCES}
 # Names for every reference a results file may hold, installed here or not.

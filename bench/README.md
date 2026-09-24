@@ -135,6 +135,40 @@ Which weights, and what the licence allows:
   datasets are recorded as skipped with the reason, so TabPFN's comparisons are
   made only on the datasets it ran on, and the page says how many.
 
+`tools/run_tabpfn.sh` does all of the above in one command, from installing
+TabPFN to rebuilding the page and running every test. On an Apple-silicon Mac
+TabPFN uses the GPU (MPS) without being told to. Its arguments go to
+`dcn.run`, so `tools/run_tabpfn.sh --limit 5` is a quick first try. The whole
+pipeline was dry-run with a stand-in model in place of TabPFN's weights.
+
+### What TabPFN has to show, written before it ran
+
+Of the benchmark's datasets, 138 have 1,000 rows or fewer, the size TabPFN-2
+is run on by default: 48 classification datasets in 44 independent
+units, and 90 regression datasets in only 24, because most small regression
+sets come from a few generator families. TabPFN-2's authors report it beating
+tuned tree ensembles on datasets of up to 10,000 rows ([Hollmann et al.,
+Nature, 2025](https://www.nature.com/articles/s41586-024-08328-6)).
+
+**The prediction:** on those small tables, TabPFN-2 beats tuned boosting, so
+the size of a table decides which model to try first. That would be the first
+place the data itself changes the advice.
+
+**The rule** (`choose_small_lead()` in `dcn/learn.py`, committed before any
+TabPFN result existed): on the datasets TabPFN ran on, TabPFN goes before tuned
+boosting only if its median regret is no worse on either task and it is better
+by more than luck on at least one (paired Wilcoxon over independent units,
+Holm-corrected over the two tasks, more wins than losses). It is the rule every
+other change of order has had to pass. Its verdict is written to
+`ranking.json` as `small_lead`, with the size of the largest table it covers.
+
+**What follows either way:** if TabPFN passes, the page's next change shows it
+first on tables up to that size and tuned boosting first above it. If it fails,
+tuned boosting stays first everywhere and the evidence tab says TabPFN was
+tested, on how many units, and lost or tied. With 24 regression units, a tie on
+regression is the likely outcome there, and it would not be evidence that the
+two are equal, only that this benchmark cannot tell them apart.
+
 ## Messy data
 
 PMLB's datasets are clean, and the files people upload are not: the quality
@@ -605,8 +639,8 @@ choice. `tests/drift.test.js` recomputes every published rate from
 
 ## Next
 
-- run TabPFN (see "Running TabPFN on your own machine") and let the evidence
-  pick it up
+- run TabPFN (`tools/run_tabpfn.sh`) and let the rule written down in "What
+  TabPFN has to show" decide whether small tables get it first
 - tune every family the way boosting was tuned, and rank them on that: the
   page puts tuned boosting first, but ranks the rest at their defaults
 - weight a synthetic family once when fitting the prior, declared before the

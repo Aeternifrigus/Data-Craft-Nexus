@@ -26,6 +26,8 @@ const ALLOWED_HOSTS = [
   'stable-baselines3.readthedocs.io', 'optuna.readthedocs.io', 'mlflow.org', 'airflow.apache.org',
   // Open copies of forecasting papers at the authors' universities, and Hyndman and Athanasopoulos's open textbook.
   'eprints.lancs.ac.uk', 'research.rug.nl', 'otexts.com',
+  // Papers by their DOI, which resolves to the publisher's page.
+  'doi.org',
 ];
 
 test('every link is https and points at an allowed reference site', () => {

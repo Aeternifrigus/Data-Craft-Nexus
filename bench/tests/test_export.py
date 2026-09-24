@@ -345,11 +345,14 @@ def test_a_future_value_runs_the_forecasting_models_and_names_the_one_it_cannot(
     assert "statsmodels" not in plain and "FORECAST = False" in plain
 
 
-@pytest.mark.parametrize("method", ["last_value", "running_average", "arima", "smoothing", "boosted"])
+@pytest.mark.parametrize("method", ["last_value", "running_average", "seasonal_last", "arima", "smoothing", "boosted",
+                                    "croston_sba", "tsb"])
 def test_no_forecast_sees_the_row_it_predicts(tmp_path, method):
     """Change every value from row 90 on: the forecasts for rows 80 to 90 must not move."""
     script = load(forecast_script(series_csv(tmp_path)))
     y = script["series"](script["load"](str(series_csv(tmp_path))))
+    if method in ("croston_sba", "tsb"):   # demand: mostly nothing, now and then something
+        y = np.where(np.arange(len(y)) % 3 == 0, y, 0.0)
     train, test = np.arange(80), np.arange(80, 100)
     fn = (lambda y, tr, te: script["boosted_lags"](y, tr, te, 3)) if method == "boosted" else script[method]
     before = fn(y, train, test)
@@ -403,7 +406,42 @@ def test_a_forecast_runs_from_the_command_line_and_in_the_page(tmp_path):
 
     streamed, final = run_in_page(text, csv.read_text())
     assert streamed == final
-    assert [r["code"] for r in final] == ["NAIVE-LAST", "NAIVE-AVERAGE", "TSM1", "TSM2", "BASE-HGB-TUNED"]
+    # The dates step by a day, so a week of seven rows is the season, and doing nothing can repeat it.
+    assert [r["code"] for r in final] == ["NAIVE-LAST", "NAIVE-AVERAGE", "NAIVE-SEASON", "TSM1", "TSM2", "BASE-HGB-TUNED"]
+
+
+def test_the_season_comes_from_the_dates(tmp_path):
+    script = load(forecast_script(series_csv(tmp_path)))
+    assert script["SEASON"] == 7, "a daily series repeats weekly"
+    y = script["series"](script["load"](str(series_csv(tmp_path))))
+    test = np.arange(60, 70)
+    assert np.array_equal(script["seasonal_last"](y, np.arange(60), test), y[53:63])
+    undated = tmp_path / "undated.csv"
+    pd.read_csv(series_csv(tmp_path)).drop(columns="day").to_csv(undated, index=False)
+    assert load(forecast_script(undated))["SEASON"] is None, "without dates there is no season to read"
+
+
+def test_intermittent_demand_methods_follow_their_papers(tmp_path):
+    """Croston with Syntetos and Boylan's correction, and TSB, checked by hand on a short demand series."""
+    script = load(forecast_script(series_csv(tmp_path), codes=("TSM4", "TSM5")))
+    assert list(script["SHORTLIST"]) == ["TSM4", "TSM5"]
+    y = np.array([0, 0, 4, 0, 0, 0, 2, 0, 6, 0], dtype=float)
+    path = script["croston_path"](y, 0.1, 10)
+    # First demand of 4 after an interval of 3; then 2 after 4 periods; then 6 after 2.
+    size, interval = 4.0, 3.0
+    assert path[3] == pytest.approx(0.95 * size / interval)
+    size, interval = size + 0.1 * (2 - size), interval + 0.1 * (4 - interval)
+    assert path[7] == pytest.approx(0.95 * size / interval)
+    tsb = script["tsb_path"](y, 0.2, 0.1, 10, (0.5, 3.0))
+    chance, size = 0.5, 3.0
+    for t in range(10):
+        assert tsb[t] == pytest.approx(chance * size)
+        if y[t] > 0:
+            chance, size = chance + 0.1 * (1 - chance), size + 0.2 * (y[t] - size)
+        else:
+            chance = chance * 0.9
+    with pytest.raises(ValueError, match="never negative"):
+        script["croston_sba"](np.array([1.0, -1.0] * 10), np.arange(15), np.arange(15, 20))
 
 
 def test_too_short_a_series_is_said_not_scored(tmp_path):

@@ -12,6 +12,7 @@ import { profileData } from '../../site/js/profile.js';
 import { columnRoles, pythonScript, takeHomeTask } from '../../site/js/export.js';
 import { runChecks } from '../../site/js/checks.js';
 import { resolveCost } from '../../site/js/costs.js';
+import { forecastSetup } from '../../site/js/series.js';
 
 const [file, target, asked, order, ...codes] = process.argv.slice(2);
 const parsed = parseCSV(fs.readFileSync(file, 'utf8'));
@@ -19,7 +20,7 @@ const profile = profileData(parsed.head, parsed.body);
 const home = takeHomeTask(asked, { target, codes: ['A11', order] }, profile);
 if (!home.task) throw new Error(home.why);
 const task = home.task;
-const forecast = home.forecast ? { dateColumn: profile.dateCols[0]?.name ?? null } : null;
+const forecast = home.forecast ? forecastSetup(profile, target) : null;
 const leftOut = runChecks(profile, { target, task, order }).flags.filter(f => f.kind === 'id').map(f => f.column);
 const [id, ratio] = (process.env.DCN_COST ?? '').split(':');
 const cost = id ? resolveCost(task, { id, ratio: ratio == null ? undefined : Number(ratio) },

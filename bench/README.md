@@ -954,6 +954,40 @@ python -m dcn.anomaly_learn --results results/anomaly.csv
   such. Every detector runs at its defaults, the largest tables are sampled, and
   there is one seed.
 
+### What the run found
+
+47 tables, 282 fits. Robust covariance could not run on one table
+(InternetAds: 1,966 rows for 1,555 columns); everything else ran. How often
+each detector was the best of the six, and its median ROC AUC:
+
+| width | tables | sources | Isolation Forest | One-Class SVM | LOF | k-NN distance | robust covariance | DBSCAN |
+|---|---|---|---|---|---|---|---|---|
+| narrow (≤ 10 columns) | 19 | 16 | 21% (0.86) | 10% (0.87) | 0% (0.70) | 21% (0.83) | 37% (0.86) | 10% (0.55) |
+| middling (11 to 50) | 19 | 15 | 16% (0.74) | 16% (0.72) | 21% (0.61) | 21% (0.74) | 26% (0.80) | 0% (0.50) |
+| wide (> 50) | 9 | 9 | 44% (0.69) | 0% (0.66) | 11% (0.61) | 0% (0.68) | 44% (0.73) | 0% (0.50) |
+
+The rule's verdict: the width order does not replace the fixed one. By ROC AUC
+it was better on 17 sources and worse on 4 (p = 0.016, Holm), with median
+regret 0.053 against 0.086. By average precision it was better on 8 and
+worse on 12 (p = 0.25), and its median regret was higher, 0.060 against 0.048.
+The rule asks for no worse under both scores, so it fails on the second. The
+two scores disagree because they reward different things: ROC AUC the ranking
+of every anomaly against every normal row, average precision the top of the
+list, where a user actually looks.
+
+What it says about the mathematics: on wide tables the detectors that rank by
+distances to neighbours were rarely best (LOF on one of nine, k-NN distance on
+none), and Isolation Forest and robust covariance shared the rest, as
+concentration of distances predicts (math AD6). On middling tables k-NN
+distance was as good as anything, so width alone is not the whole story.
+
+What the page does with it: the cards for "Unusual records" are ordered by the
+fixed order by ROC AUC (robust covariance, Isolation Forest, k-NN distance,
+One-Class SVM, LOF, DBSCAN; the first two are within 0.004 of each other), each
+card says how the detector did on tables of the upload's width, and robust
+covariance is ruled out when a table has no more than twice as many rows as
+columns, the condition its fit needs (math AD5).
+
 ## What is in results/
 
 | file | one row per | what it holds |
@@ -975,6 +1009,8 @@ python -m dcn.anomaly_learn --results results/anomaly.csv
 | `forecast-lodo.csv` | score, order and series | which forecaster each order picked, leave one collection out, and its regret |
 | `forecast-2.csv` | series and forecasting method | the confirmation run, the same columns as `forecast.csv` |
 | `forecast-2-picks.csv` | score, order and series | which forecaster each frozen order picked on the confirmation run, and its regret |
+| `anomaly.csv` | table and detector | the table's source, size, width and anomaly share, and the detector's ROC AUC, average precision and seconds |
+| `anomaly-lodo.csv` | score, order and table | which detector each order picked, leave one source out, and its regret |
 
 ## Next
 

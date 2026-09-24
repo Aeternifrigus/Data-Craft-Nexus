@@ -1,0 +1,251 @@
+{
+ "version": 1,
+ "chosen": "fixed",
+ "decision": {
+  "candidate": "kind",
+  "against": "fixed",
+  "replaced": false,
+  "no_worse": false,
+  "better_on": [
+   "auc"
+  ],
+  "metrics": {
+   "auc": {
+    "units": 39,
+    "wins": 17,
+    "losses": 4,
+    "ties": 18,
+    "p_holm": 0.01602,
+    "median_regret": {
+     "kind": 0.0531,
+     "fixed": 0.0863
+    }
+   },
+   "ap": {
+    "units": 39,
+    "wins": 8,
+    "losses": 12,
+    "ties": 19,
+    "p_holm": 0.2455,
+    "median_regret": {
+     "kind": 0.0604,
+     "fixed": 0.0481
+    }
+   }
+  }
+ },
+ "fixed_before": "the kinds, their cut-offs, KIND_STRENGTH and the rule were committed before the run",
+ "kinds": {
+  "low": "narrow: at most 10 columns",
+  "mid": "middling: 11 to 50 columns",
+  "high": "wide: more than 50 columns"
+ },
+ "thresholds": {
+  "low_columns": 10,
+  "high_columns": 50,
+  "kind_strength": 5.0
+ },
+ "prior": {
+  "auc": {
+   "CL2": 0.3307,
+   "IB3": 0.5291,
+   "IB4": 0.6562,
+   "PR6": 0.6683,
+   "SV3": 0.6147,
+   "TR4": 0.665
+  },
+  "ap": {
+   "CL2": 0.3176,
+   "IB3": 0.5111,
+   "IB4": 0.6654,
+   "PR6": 0.6333,
+   "SV3": 0.6562,
+   "TR4": 0.6797
+  }
+ },
+ "kind_prior": {
+  "auc": {
+   "high": {
+    "CL2": 0.3348,
+    "IB3": 0.4913,
+    "IB4": 0.6367,
+    "PR6": 0.7058,
+    "SV3": 0.6731,
+    "TR4": 0.6601
+   },
+   "low": {
+    "CL2": 0.3328,
+    "IB3": 0.4713,
+    "IB4": 0.6506,
+    "PR6": 0.7156,
+    "SV3": 0.6003,
+    "TR4": 0.7219
+   },
+   "mid": {
+    "CL2": 0.2981,
+    "IB3": 0.6137,
+    "IB4": 0.6992,
+    "PR6": 0.6288,
+    "SV3": 0.6142,
+    "TR4": 0.6385
+   }
+  },
+  "ap": {
+   "high": {
+    "CL2": 0.3063,
+    "IB3": 0.5087,
+    "IB4": 0.6733,
+    "PR6": 0.6282,
+    "SV3": 0.6963,
+    "TR4": 0.6832
+   },
+   "low": {
+    "CL2": 0.3301,
+    "IB3": 0.4398,
+    "IB4": 0.6456,
+    "PR6": 0.6597,
+    "SV3": 0.6714,
+    "TR4": 0.7458
+   },
+   "mid": {
+    "CL2": 0.2815,
+    "IB3": 0.5856,
+    "IB4": 0.7081,
+    "PR6": 0.6319,
+    "SV3": 0.6437,
+    "TR4": 0.6416
+   }
+  }
+ },
+ "per_kind": {
+  "low": {
+   "datasets": 19,
+   "units": 16,
+   "best_share": {
+    "TR4": 0.211,
+    "SV3": 0.105,
+    "IB3": 0.0,
+    "IB4": 0.211,
+    "PR6": 0.368,
+    "CL2": 0.105
+   },
+   "median_auc": {
+    "TR4": 0.863,
+    "SV3": 0.872,
+    "IB3": 0.698,
+    "IB4": 0.833,
+    "PR6": 0.86,
+    "CL2": 0.546
+   },
+   "worse_than_chance": {
+    "TR4": 0.158,
+    "SV3": 0.158,
+    "IB3": 0.211,
+    "IB4": 0.158,
+    "PR6": 0.105,
+    "CL2": 0.211
+   },
+   "median_regret_auc": {
+    "fixed": 0.0697,
+    "kind": 0.0559
+   },
+   "median_regret_ap": {
+    "fixed": 0.0282,
+    "kind": 0.0282
+   }
+  },
+  "mid": {
+   "datasets": 19,
+   "units": 15,
+   "best_share": {
+    "TR4": 0.158,
+    "SV3": 0.158,
+    "IB3": 0.211,
+    "IB4": 0.211,
+    "PR6": 0.263,
+    "CL2": 0.0
+   },
+   "median_auc": {
+    "TR4": 0.736,
+    "SV3": 0.721,
+    "IB3": 0.614,
+    "IB4": 0.74,
+    "PR6": 0.796,
+    "CL2": 0.5
+   },
+   "worse_than_chance": {
+    "TR4": 0.105,
+    "SV3": 0.105,
+    "IB3": 0.105,
+    "IB4": 0.053,
+    "PR6": 0.105,
+    "CL2": 0.0
+   },
+   "median_regret_auc": {
+    "fixed": 0.118,
+    "kind": 0.0194
+   },
+   "median_regret_ap": {
+    "fixed": 0.0515,
+    "kind": 0.0849
+   }
+  },
+  "high": {
+   "datasets": 9,
+   "units": 9,
+   "best_share": {
+    "TR4": 0.444,
+    "SV3": 0.0,
+    "IB3": 0.111,
+    "IB4": 0.0,
+    "PR6": 0.444,
+    "CL2": 0.0
+   },
+   "median_auc": {
+    "TR4": 0.691,
+    "SV3": 0.659,
+    "IB3": 0.61,
+    "IB4": 0.677,
+    "PR6": 0.726,
+    "CL2": 0.5
+   },
+   "worse_than_chance": {
+    "TR4": 0.111,
+    "SV3": 0.111,
+    "IB3": 0.111,
+    "IB4": 0.222,
+    "PR6": 0.333,
+    "CL2": 0.111
+   },
+   "median_regret_auc": {
+    "fixed": 0.0749,
+    "kind": 0.0147
+   },
+   "median_regret_ap": {
+    "fixed": 0.0082,
+    "kind": 0.0836
+   }
+  }
+ },
+ "median_unit_regret": {
+  "auc": {
+   "fixed": 0.0863,
+   "kind": 0.0531
+  },
+  "ap": {
+   "fixed": 0.0481,
+   "kind": 0.0604
+  }
+ },
+ "datasets": 47,
+ "units": 39,
+ "failures": {
+  "TR4": 0,
+  "SV3": 0,
+  "IB3": 0,
+  "IB4": 0,
+  "PR6": 1,
+  "CL2": 0
+ },
+ "runs": 282
+}

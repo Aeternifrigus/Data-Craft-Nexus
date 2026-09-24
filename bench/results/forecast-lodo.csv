@@ -1,0 +1,961 @@
+metric,strategy,dataset,unit,series,cell,pick,regret
+r2,fixed,aus_livestock,aus_livestock,"Bulls, bullocks and steers|South Australia",trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,"Bulls, bullocks and steers|Tasmania",trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Calves|Queensland,trend,TSM2,0.40623285361612127
+r2,fixed,aus_livestock,aus_livestock,Calves|South Australia,seasonal-trend,TSM2,1.5304158906892364
+r2,fixed,aus_livestock,aus_livestock,Calves|Victoria,seasonal,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Cattle (excl. calves)|Northern Territory,intermittent,TSM2,0.6202837786352906
+r2,fixed,aus_livestock,aus_livestock,Cattle (excl. calves)|Queensland,seasonal-trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Cattle (excl. calves)|Victoria,trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Cows and heifers|New South Wales,seasonal-trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Cows and heifers|Queensland,seasonal-trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Cows and heifers|Victoria,trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Lambs|New South Wales,trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Lambs|Victoria,trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Pigs|New South Wales,trend,TSM2,1.3080490504110416
+r2,fixed,aus_livestock,aus_livestock,Pigs|Queensland,seasonal-trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Pigs|Victoria,trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Sheep|New South Wales,trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Sheep|Tasmania,seasonal-trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Sheep|Victoria,seasonal-trend,TSM2,0.0
+r2,fixed,aus_livestock,aus_livestock,Sheep|Western Australia,seasonal-trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,"Bulls, bullocks and steers|South Australia",trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,"Bulls, bullocks and steers|Tasmania",trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Calves|Queensland,trend,TSM2,0.40623285361612127
+r2,kind,aus_livestock,aus_livestock,Calves|South Australia,seasonal-trend,TSM2,1.5304158906892364
+r2,kind,aus_livestock,aus_livestock,Calves|Victoria,seasonal,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Cattle (excl. calves)|Northern Territory,intermittent,TSM5,0.5567180484435805
+r2,kind,aus_livestock,aus_livestock,Cattle (excl. calves)|Queensland,seasonal-trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Cattle (excl. calves)|Victoria,trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Cows and heifers|New South Wales,seasonal-trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Cows and heifers|Queensland,seasonal-trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Cows and heifers|Victoria,trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Lambs|New South Wales,trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Lambs|Victoria,trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Pigs|New South Wales,trend,TSM2,1.3080490504110416
+r2,kind,aus_livestock,aus_livestock,Pigs|Queensland,seasonal-trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Pigs|Victoria,trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Sheep|New South Wales,trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Sheep|Tasmania,seasonal-trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Sheep|Victoria,seasonal-trend,TSM2,0.0
+r2,kind,aus_livestock,aus_livestock,Sheep|Western Australia,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349335T,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349401C,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349414R,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349415T,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349434X,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349442X,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349443A,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349468W,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349483V,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349562T,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349563V,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349564W,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349605F,trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349639C,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349765T,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349773T,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349797K,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349905J,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349909T,seasonal-trend,TSM2,0.0
+r2,fixed,aus_retail,aus_retail,A3349925T,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349335T,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349401C,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349414R,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349415T,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349434X,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349442X,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349443A,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349468W,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349483V,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349562T,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349563V,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349564W,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349605F,trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349639C,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349765T,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349773T,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349797K,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349905J,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349909T,seasonal-trend,TSM2,0.0
+r2,kind,aus_retail,aus_retail,A3349925T,seasonal-trend,TSM2,0.0
+r2,fixed,carparts,carparts,11526788,lumpy,TSM1,0.46236220842170134
+r2,fixed,carparts,carparts,16096870,intermittent,TSM1,0.0632103597313701
+r2,fixed,carparts,carparts,21033031,intermittent,TSM2,0.008108374486073017
+r2,fixed,carparts,carparts,21034396,intermittent,TSM2,1.4647639260800122e-05
+r2,fixed,carparts,carparts,21034595,intermittent,TSM2,1.0377603494933294
+r2,fixed,carparts,carparts,21046487,lumpy,TSM2,0.0104477580751456
+r2,fixed,carparts,carparts,21049103,intermittent,TSM2,0.019636638974507806
+r2,fixed,carparts,carparts,21050773,intermittent,TSM2,6.286184028997478
+r2,fixed,carparts,carparts,21051274,intermittent,TSM2,1.4676966886921785
+r2,fixed,carparts,carparts,21051396,intermittent,TSM2,2.5205897549019154
+r2,fixed,carparts,carparts,21053570,intermittent,TSM2,0.0
+r2,fixed,carparts,carparts,21055715,intermittent,TSM1,0.8475923073305655
+r2,fixed,carparts,carparts,21056628,intermittent,TSM2,1.729518816865074
+r2,fixed,carparts,carparts,21056919,intermittent,TSM2,0.0
+r2,fixed,carparts,carparts,21060700,intermittent,TSM2,1.4833274954486853
+r2,fixed,carparts,carparts,21061853,lumpy,TSM2,0.761827743791335
+r2,fixed,carparts,carparts,21062875,intermittent,TSM2,0.0179979532073532
+r2,fixed,carparts,carparts,21121231,intermittent,TSM2,0.2246946787906403
+r2,fixed,carparts,carparts,21312690,intermittent,TSM1,0.020194398736160316
+r2,fixed,carparts,carparts,90606307,lumpy,TSM1,0.640091755100969
+r2,kind,carparts,carparts,11526788,lumpy,TSM1,0.46236220842170134
+r2,kind,carparts,carparts,16096870,intermittent,TSM5,0.6300135392722604
+r2,kind,carparts,carparts,21033031,intermittent,TSM5,0.0
+r2,kind,carparts,carparts,21034396,intermittent,TSM5,0.0029393191788891996
+r2,kind,carparts,carparts,21034595,intermittent,TSM5,0.0
+r2,kind,carparts,carparts,21046487,lumpy,TSM2,0.0104477580751456
+r2,kind,carparts,carparts,21049103,intermittent,TSM5,0.010942752949282208
+r2,kind,carparts,carparts,21050773,intermittent,TSM5,2.2577994238679095
+r2,kind,carparts,carparts,21051274,intermittent,TSM5,0.7029158314625189
+r2,kind,carparts,carparts,21051396,intermittent,TSM5,0.0
+r2,kind,carparts,carparts,21053570,intermittent,TSM5,0.0294026684840394
+r2,kind,carparts,carparts,21055715,intermittent,TSM5,0.026365538097034708
+r2,kind,carparts,carparts,21056628,intermittent,TSM5,0.17394374462235906
+r2,kind,carparts,carparts,21056919,intermittent,TSM5,0.030201956151509696
+r2,kind,carparts,carparts,21060700,intermittent,TSM5,0.2123453483027298
+r2,kind,carparts,carparts,21061853,lumpy,TSM2,0.761827743791335
+r2,kind,carparts,carparts,21062875,intermittent,TSM5,0.0380539448961695
+r2,kind,carparts,carparts,21121231,intermittent,TSM5,0.1179816243606229
+r2,kind,carparts,carparts,21312690,intermittent,TSM5,0.0
+r2,kind,carparts,carparts,90606307,lumpy,TSM1,0.640091755100969
+r2,fixed,m4_daily,m4_daily,D1218,trend,TSM2,0.00042790608140641506
+r2,fixed,m4_daily,m4_daily,D1283,trend,TSM2,0.0025328752737797666
+r2,fixed,m4_daily,m4_daily,D1380,trend,TSM2,0.04422826552253356
+r2,fixed,m4_daily,m4_daily,D1832,trend,TSM2,0.003292149615317208
+r2,fixed,m4_daily,m4_daily,D1844,trend,TSM2,0.0
+r2,fixed,m4_daily,m4_daily,D2064,trend,TSM2,0.028838485556662352
+r2,fixed,m4_daily,m4_daily,D2286,trend,TSM2,0.0
+r2,fixed,m4_daily,m4_daily,D2365,trend,TSM2,0.00031934550451795385
+r2,fixed,m4_daily,m4_daily,D2424,trend,TSM2,0.0
+r2,fixed,m4_daily,m4_daily,D2732,trend,TSM2,0.0
+r2,fixed,m4_daily,m4_daily,D2918,trend,TSM2,0.0
+r2,fixed,m4_daily,m4_daily,D2988,trend,TSM2,0.0
+r2,fixed,m4_daily,m4_daily,D3243,trend,TSM2,0.00923928336258717
+r2,fixed,m4_daily,m4_daily,D3636,trend,TSM2,0.0003101842293924406
+r2,fixed,m4_daily,m4_daily,D3985,trend,TSM2,8.492975696283711e-05
+r2,fixed,m4_daily,m4_daily,D4108,trend,TSM2,0.0
+r2,fixed,m4_daily,m4_daily,D653,trend,TSM2,0.0
+r2,fixed,m4_daily,m4_daily,D709,trend,TSM2,0.0024091274682332964
+r2,fixed,m4_daily,m4_daily,D821,trend,TSM2,0.0007084981445040217
+r2,fixed,m4_daily,m4_daily,D834,trend,TSM2,0.0
+r2,kind,m4_daily,m4_daily,D1218,trend,TSM2,0.00042790608140641506
+r2,kind,m4_daily,m4_daily,D1283,trend,TSM2,0.0025328752737797666
+r2,kind,m4_daily,m4_daily,D1380,trend,TSM2,0.04422826552253356
+r2,kind,m4_daily,m4_daily,D1832,trend,TSM2,0.003292149615317208
+r2,kind,m4_daily,m4_daily,D1844,trend,TSM2,0.0
+r2,kind,m4_daily,m4_daily,D2064,trend,TSM2,0.028838485556662352
+r2,kind,m4_daily,m4_daily,D2286,trend,TSM2,0.0
+r2,kind,m4_daily,m4_daily,D2365,trend,TSM2,0.00031934550451795385
+r2,kind,m4_daily,m4_daily,D2424,trend,TSM2,0.0
+r2,kind,m4_daily,m4_daily,D2732,trend,TSM2,0.0
+r2,kind,m4_daily,m4_daily,D2918,trend,TSM2,0.0
+r2,kind,m4_daily,m4_daily,D2988,trend,TSM2,0.0
+r2,kind,m4_daily,m4_daily,D3243,trend,TSM2,0.00923928336258717
+r2,kind,m4_daily,m4_daily,D3636,trend,TSM2,0.0003101842293924406
+r2,kind,m4_daily,m4_daily,D3985,trend,TSM2,8.492975696283711e-05
+r2,kind,m4_daily,m4_daily,D4108,trend,TSM2,0.0
+r2,kind,m4_daily,m4_daily,D653,trend,TSM2,0.0
+r2,kind,m4_daily,m4_daily,D709,trend,TSM2,0.0024091274682332964
+r2,kind,m4_daily,m4_daily,D821,trend,TSM2,0.0007084981445040217
+r2,kind,m4_daily,m4_daily,D834,trend,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H113,seasonal-trend,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H147,seasonal,TSM2,1.1302733944353327
+r2,fixed,m4_hourly,m4_hourly,H153,seasonal,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H210,seasonal-trend,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H242,seasonal,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H268,seasonal,TSM2,0.012749610853379556
+r2,fixed,m4_hourly,m4_hourly,H271,level,TSM2,0.0872877150761332
+r2,fixed,m4_hourly,m4_hourly,H29,seasonal-trend,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H292,seasonal-trend,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H313,seasonal-trend,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H32,seasonal-trend,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H326,seasonal,TSM2,0.0061924576005168985
+r2,fixed,m4_hourly,m4_hourly,H354,seasonal,TSM2,0.0011753804697937076
+r2,fixed,m4_hourly,m4_hourly,H360,seasonal-trend,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H369,seasonal,TSM2,0.029287201963493992
+r2,fixed,m4_hourly,m4_hourly,H384,seasonal,TSM2,0.01519194322920936
+r2,fixed,m4_hourly,m4_hourly,H60,seasonal-trend,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H65,seasonal-trend,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H89,seasonal-trend,TSM2,0.0
+r2,fixed,m4_hourly,m4_hourly,H90,seasonal-trend,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H113,seasonal-trend,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H147,seasonal,TSM2,1.1302733944353327
+r2,kind,m4_hourly,m4_hourly,H153,seasonal,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H210,seasonal-trend,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H242,seasonal,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H268,seasonal,TSM2,0.012749610853379556
+r2,kind,m4_hourly,m4_hourly,H271,level,TSM2,0.0872877150761332
+r2,kind,m4_hourly,m4_hourly,H29,seasonal-trend,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H292,seasonal-trend,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H313,seasonal-trend,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H32,seasonal-trend,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H326,seasonal,TSM2,0.0061924576005168985
+r2,kind,m4_hourly,m4_hourly,H354,seasonal,TSM2,0.0011753804697937076
+r2,kind,m4_hourly,m4_hourly,H360,seasonal-trend,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H369,seasonal,TSM2,0.029287201963493992
+r2,kind,m4_hourly,m4_hourly,H384,seasonal,TSM2,0.01519194322920936
+r2,kind,m4_hourly,m4_hourly,H60,seasonal-trend,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H65,seasonal-trend,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H89,seasonal-trend,TSM2,0.0
+r2,kind,m4_hourly,m4_hourly,H90,seasonal-trend,TSM2,0.0
+r2,fixed,m4_monthly,m4_monthly,M1415,seasonal-trend,TSM2,0.0
+r2,fixed,m4_monthly,m4_monthly,M14782,trend,TSM2,0.2580182178847989
+r2,fixed,m4_monthly,m4_monthly,M16254,trend,TSM2,0.12470760674158388
+r2,fixed,m4_monthly,m4_monthly,M16922,trend,TSM2,0.0
+r2,fixed,m4_monthly,m4_monthly,M18177,seasonal-trend,TSM2,0.026196458867429606
+r2,fixed,m4_monthly,m4_monthly,M18958,trend,TSM2,0.8979821349134622
+r2,fixed,m4_monthly,m4_monthly,M20790,trend,TSM2,1.8455004778960584
+r2,fixed,m4_monthly,m4_monthly,M22966,trend,TSM2,0.02214734855860573
+r2,fixed,m4_monthly,m4_monthly,M27574,trend,TSM2,0.0
+r2,fixed,m4_monthly,m4_monthly,M27649,seasonal-trend,TSM2,0.0
+r2,fixed,m4_monthly,m4_monthly,M27676,trend,TSM2,0.12449640998336128
+r2,fixed,m4_monthly,m4_monthly,M35369,trend,TSM2,0.0
+r2,fixed,m4_monthly,m4_monthly,M36745,trend,TSM2,0.0
+r2,fixed,m4_monthly,m4_monthly,M40017,trend,TSM2,0.0
+r2,fixed,m4_monthly,m4_monthly,M4147,trend,TSM2,0.23594570128573872
+r2,fixed,m4_monthly,m4_monthly,M43122,seasonal-trend,TSM2,0.0
+r2,fixed,m4_monthly,m4_monthly,M43312,trend,TSM2,0.004707354775408956
+r2,fixed,m4_monthly,m4_monthly,M46528,trend,TSM2,0.0
+r2,fixed,m4_monthly,m4_monthly,M5152,seasonal-trend,TSM2,0.0
+r2,fixed,m4_monthly,m4_monthly,M651,seasonal-trend,TSM2,0.0
+r2,kind,m4_monthly,m4_monthly,M1415,seasonal-trend,TSM2,0.0
+r2,kind,m4_monthly,m4_monthly,M14782,trend,TSM2,0.2580182178847989
+r2,kind,m4_monthly,m4_monthly,M16254,trend,TSM2,0.12470760674158388
+r2,kind,m4_monthly,m4_monthly,M16922,trend,TSM2,0.0
+r2,kind,m4_monthly,m4_monthly,M18177,seasonal-trend,TSM2,0.026196458867429606
+r2,kind,m4_monthly,m4_monthly,M18958,trend,TSM2,0.8979821349134622
+r2,kind,m4_monthly,m4_monthly,M20790,trend,TSM2,1.8455004778960584
+r2,kind,m4_monthly,m4_monthly,M22966,trend,TSM2,0.02214734855860573
+r2,kind,m4_monthly,m4_monthly,M27574,trend,TSM2,0.0
+r2,kind,m4_monthly,m4_monthly,M27649,seasonal-trend,TSM2,0.0
+r2,kind,m4_monthly,m4_monthly,M27676,trend,TSM2,0.12449640998336128
+r2,kind,m4_monthly,m4_monthly,M35369,trend,TSM2,0.0
+r2,kind,m4_monthly,m4_monthly,M36745,trend,TSM2,0.0
+r2,kind,m4_monthly,m4_monthly,M40017,trend,TSM2,0.0
+r2,kind,m4_monthly,m4_monthly,M4147,trend,TSM2,0.23594570128573872
+r2,kind,m4_monthly,m4_monthly,M43122,seasonal-trend,TSM2,0.0
+r2,kind,m4_monthly,m4_monthly,M43312,trend,TSM2,0.004707354775408956
+r2,kind,m4_monthly,m4_monthly,M46528,trend,TSM2,0.0
+r2,kind,m4_monthly,m4_monthly,M5152,seasonal-trend,TSM2,0.0
+r2,kind,m4_monthly,m4_monthly,M651,seasonal-trend,TSM2,0.0
+r2,fixed,m4_quarterly,m4_quarterly,Q12358,trend,TSM2,0.0
+r2,fixed,m4_quarterly,m4_quarterly,Q13466,trend,TSM2,0.0
+r2,fixed,m4_quarterly,m4_quarterly,Q14284,trend,TSM2,0.23550538027146373
+r2,fixed,m4_quarterly,m4_quarterly,Q15067,trend,TSM2,0.0
+r2,fixed,m4_quarterly,m4_quarterly,Q15154,trend,TSM2,0.3659439607013395
+r2,fixed,m4_quarterly,m4_quarterly,Q16154,trend,TSM2,0.33504664154077096
+r2,fixed,m4_quarterly,m4_quarterly,Q18013,trend,TSM2,1.2180189581423455
+r2,fixed,m4_quarterly,m4_quarterly,Q18152,level,TSM2,0.27583326388798307
+r2,fixed,m4_quarterly,m4_quarterly,Q183,seasonal-trend,TSM2,0.0
+r2,fixed,m4_quarterly,m4_quarterly,Q19170,seasonal-trend,TSM2,0.0
+r2,fixed,m4_quarterly,m4_quarterly,Q20154,seasonal-trend,TSM2,0.0
+r2,fixed,m4_quarterly,m4_quarterly,Q21426,trend,TSM2,0.0
+r2,fixed,m4_quarterly,m4_quarterly,Q22223,trend,TSM2,6.162568115686273e-05
+r2,fixed,m4_quarterly,m4_quarterly,Q22693,trend,TSM2,0.018775482348913686
+r2,fixed,m4_quarterly,m4_quarterly,Q23358,trend,TSM2,1.5667241459682568e-05
+r2,fixed,m4_quarterly,m4_quarterly,Q26,seasonal,TSM2,0.0
+r2,fixed,m4_quarterly,m4_quarterly,Q3427,trend,TSM2,0.0
+r2,fixed,m4_quarterly,m4_quarterly,Q3836,trend,TSM2,0.021104136005594132
+r2,fixed,m4_quarterly,m4_quarterly,Q4756,trend,TSM2,0.037923276519608584
+r2,fixed,m4_quarterly,m4_quarterly,Q8814,trend,TSM2,0.050980819203197636
+r2,kind,m4_quarterly,m4_quarterly,Q12358,trend,TSM2,0.0
+r2,kind,m4_quarterly,m4_quarterly,Q13466,trend,TSM2,0.0
+r2,kind,m4_quarterly,m4_quarterly,Q14284,trend,TSM2,0.23550538027146373
+r2,kind,m4_quarterly,m4_quarterly,Q15067,trend,TSM2,0.0
+r2,kind,m4_quarterly,m4_quarterly,Q15154,trend,TSM2,0.3659439607013395
+r2,kind,m4_quarterly,m4_quarterly,Q16154,trend,TSM2,0.33504664154077096
+r2,kind,m4_quarterly,m4_quarterly,Q18013,trend,TSM2,1.2180189581423455
+r2,kind,m4_quarterly,m4_quarterly,Q18152,level,TSM2,0.27583326388798307
+r2,kind,m4_quarterly,m4_quarterly,Q183,seasonal-trend,TSM2,0.0
+r2,kind,m4_quarterly,m4_quarterly,Q19170,seasonal-trend,TSM2,0.0
+r2,kind,m4_quarterly,m4_quarterly,Q20154,seasonal-trend,TSM2,0.0
+r2,kind,m4_quarterly,m4_quarterly,Q21426,trend,TSM2,0.0
+r2,kind,m4_quarterly,m4_quarterly,Q22223,trend,TSM2,6.162568115686273e-05
+r2,kind,m4_quarterly,m4_quarterly,Q22693,trend,TSM2,0.018775482348913686
+r2,kind,m4_quarterly,m4_quarterly,Q23358,trend,TSM2,1.5667241459682568e-05
+r2,kind,m4_quarterly,m4_quarterly,Q26,seasonal,TSM2,0.0
+r2,kind,m4_quarterly,m4_quarterly,Q3427,trend,TSM2,0.0
+r2,kind,m4_quarterly,m4_quarterly,Q3836,trend,TSM2,0.021104136005594132
+r2,kind,m4_quarterly,m4_quarterly,Q4756,trend,TSM2,0.037923276519608584
+r2,kind,m4_quarterly,m4_quarterly,Q8814,trend,TSM2,0.050980819203197636
+r2,fixed,m4_weekly,m4_weekly,W105,trend,TSM2,0.00019382563157654964
+r2,fixed,m4_weekly,m4_weekly,W117,seasonal-trend,TSM2,0.009715773541787764
+r2,fixed,m4_weekly,m4_weekly,W144,trend,TSM2,0.0
+r2,fixed,m4_weekly,m4_weekly,W148,trend,TSM2,0.0
+r2,fixed,m4_weekly,m4_weekly,W175,seasonal-trend,TSM2,0.006841724805365601
+r2,fixed,m4_weekly,m4_weekly,W177,trend,TSM2,0.0
+r2,fixed,m4_weekly,m4_weekly,W211,trend,TSM2,0.0
+r2,fixed,m4_weekly,m4_weekly,W215,trend,TSM2,0.0
+r2,fixed,m4_weekly,m4_weekly,W218,level,TSM2,4.020613108877297
+r2,fixed,m4_weekly,m4_weekly,W266,seasonal-trend,TSM2,0.0
+r2,fixed,m4_weekly,m4_weekly,W275,trend,TSM2,0.0
+r2,fixed,m4_weekly,m4_weekly,W283,seasonal,TSM2,0.0
+r2,fixed,m4_weekly,m4_weekly,W304,trend,TSM2,1.2433665311272146
+r2,fixed,m4_weekly,m4_weekly,W314,trend,TSM2,0.06279499931815319
+r2,fixed,m4_weekly,m4_weekly,W327,trend,TSM2,1.935525632442134
+r2,fixed,m4_weekly,m4_weekly,W333,trend,TSM2,0.05883621395554561
+r2,fixed,m4_weekly,m4_weekly,W34,seasonal-trend,TSM2,0.0
+r2,fixed,m4_weekly,m4_weekly,W52,trend,TSM2,0.0
+r2,fixed,m4_weekly,m4_weekly,W64,seasonal-trend,TSM2,0.4219346084025597
+r2,fixed,m4_weekly,m4_weekly,W67,seasonal-trend,TSM2,0.0
+r2,kind,m4_weekly,m4_weekly,W105,trend,TSM2,0.00019382563157654964
+r2,kind,m4_weekly,m4_weekly,W117,seasonal-trend,TSM2,0.009715773541787764
+r2,kind,m4_weekly,m4_weekly,W144,trend,TSM2,0.0
+r2,kind,m4_weekly,m4_weekly,W148,trend,TSM2,0.0
+r2,kind,m4_weekly,m4_weekly,W175,seasonal-trend,TSM2,0.006841724805365601
+r2,kind,m4_weekly,m4_weekly,W177,trend,TSM2,0.0
+r2,kind,m4_weekly,m4_weekly,W211,trend,TSM2,0.0
+r2,kind,m4_weekly,m4_weekly,W215,trend,TSM2,0.0
+r2,kind,m4_weekly,m4_weekly,W218,level,TSM2,4.020613108877297
+r2,kind,m4_weekly,m4_weekly,W266,seasonal-trend,TSM2,0.0
+r2,kind,m4_weekly,m4_weekly,W275,trend,TSM2,0.0
+r2,kind,m4_weekly,m4_weekly,W283,seasonal,TSM2,0.0
+r2,kind,m4_weekly,m4_weekly,W304,trend,TSM2,1.2433665311272146
+r2,kind,m4_weekly,m4_weekly,W314,trend,TSM2,0.06279499931815319
+r2,kind,m4_weekly,m4_weekly,W327,trend,TSM2,1.935525632442134
+r2,kind,m4_weekly,m4_weekly,W333,trend,TSM2,0.05883621395554561
+r2,kind,m4_weekly,m4_weekly,W34,seasonal-trend,TSM2,0.0
+r2,kind,m4_weekly,m4_weekly,W52,trend,TSM2,0.0
+r2,kind,m4_weekly,m4_weekly,W64,seasonal-trend,TSM2,0.4219346084025597
+r2,kind,m4_weekly,m4_weekly,W67,seasonal-trend,TSM2,0.0
+r2,fixed,m4_yearly,m4_yearly,Y11084,trend,TSM2,0.0
+r2,fixed,m4_yearly,m4_yearly,Y11686,trend,TSM2,4.0557157701033395
+r2,fixed,m4_yearly,m4_yearly,Y1223,trend,TSM2,3.751079160571834
+r2,fixed,m4_yearly,m4_yearly,Y13275,trend,TSM2,0.06629174053233289
+r2,fixed,m4_yearly,m4_yearly,Y13782,trend,TSM2,0.6858600270022674
+r2,fixed,m4_yearly,m4_yearly,Y1405,trend,TSM2,0.0
+r2,fixed,m4_yearly,m4_yearly,Y14115,trend,TSM2,0.0
+r2,fixed,m4_yearly,m4_yearly,Y16136,trend,TSM2,0.0
+r2,fixed,m4_yearly,m4_yearly,Y1725,trend,TSM2,0.005663322284335193
+r2,fixed,m4_yearly,m4_yearly,Y18267,trend,TSM2,0.0
+r2,fixed,m4_yearly,m4_yearly,Y20401,trend,TSM2,3.971623557568533
+r2,fixed,m4_yearly,m4_yearly,Y2057,trend,TSM2,0.8703002554659057
+r2,fixed,m4_yearly,m4_yearly,Y22900,trend,TSM2,3.3082944498094164
+r2,fixed,m4_yearly,m4_yearly,Y3668,trend,TSM2,0.0
+r2,fixed,m4_yearly,m4_yearly,Y5052,trend,TSM2,0.4989970387260404
+r2,fixed,m4_yearly,m4_yearly,Y5607,trend,TSM2,0.007658430615645084
+r2,fixed,m4_yearly,m4_yearly,Y7267,trend,TSM2,0.0
+r2,fixed,m4_yearly,m4_yearly,Y7502,trend,TSM2,0.0
+r2,fixed,m4_yearly,m4_yearly,Y9439,trend,TSM2,0.12291562038498738
+r2,fixed,m4_yearly,m4_yearly,Y9887,trend,TSM2,0.0
+r2,kind,m4_yearly,m4_yearly,Y11084,trend,TSM2,0.0
+r2,kind,m4_yearly,m4_yearly,Y11686,trend,TSM2,4.0557157701033395
+r2,kind,m4_yearly,m4_yearly,Y1223,trend,TSM2,3.751079160571834
+r2,kind,m4_yearly,m4_yearly,Y13275,trend,TSM2,0.06629174053233289
+r2,kind,m4_yearly,m4_yearly,Y13782,trend,TSM2,0.6858600270022674
+r2,kind,m4_yearly,m4_yearly,Y1405,trend,TSM2,0.0
+r2,kind,m4_yearly,m4_yearly,Y14115,trend,TSM2,0.0
+r2,kind,m4_yearly,m4_yearly,Y16136,trend,TSM2,0.0
+r2,kind,m4_yearly,m4_yearly,Y1725,trend,TSM2,0.005663322284335193
+r2,kind,m4_yearly,m4_yearly,Y18267,trend,TSM2,0.0
+r2,kind,m4_yearly,m4_yearly,Y20401,trend,TSM2,3.971623557568533
+r2,kind,m4_yearly,m4_yearly,Y2057,trend,TSM2,0.8703002554659057
+r2,kind,m4_yearly,m4_yearly,Y22900,trend,TSM2,3.3082944498094164
+r2,kind,m4_yearly,m4_yearly,Y3668,trend,TSM2,0.0
+r2,kind,m4_yearly,m4_yearly,Y5052,trend,TSM2,0.4989970387260404
+r2,kind,m4_yearly,m4_yearly,Y5607,trend,TSM2,0.007658430615645084
+r2,kind,m4_yearly,m4_yearly,Y7267,trend,TSM2,0.0
+r2,kind,m4_yearly,m4_yearly,Y7502,trend,TSM2,0.0
+r2,kind,m4_yearly,m4_yearly,Y9439,trend,TSM2,0.12291562038498738
+r2,kind,m4_yearly,m4_yearly,Y9887,trend,TSM2,0.0
+r2,fixed,m5_items,m5,FOODS_1_061|WI_1,intermittent,TSM2,0.0005471683974523009
+r2,fixed,m5_items,m5,FOODS_1_107|CA_1,intermittent,TSM2,0.0014187075314161003
+r2,fixed,m5_items,m5,FOODS_1_123|CA_1,intermittent,TSM2,0.28126141907303903
+r2,fixed,m5_items,m5,FOODS_2_264|CA_1,intermittent,TSM2,0.1320443409066291
+r2,fixed,m5_items,m5,FOODS_2_370|TX_3,intermittent,TSM2,0.1101207543601785
+r2,fixed,m5_items,m5,FOODS_3_083|TX_1,lumpy,TSM2,0.061877257444512196
+r2,fixed,m5_items,m5,FOODS_3_085|TX_1,lumpy,TSM2,0.06569595816376939
+r2,fixed,m5_items,m5,FOODS_3_095|CA_1,intermittent,TSM2,0.6695049589380856
+r2,fixed,m5_items,m5,FOODS_3_245|CA_2,level,TSM2,0.0
+r2,fixed,m5_items,m5,FOODS_3_445|TX_1,intermittent,TSM2,0.17436168446976302
+r2,fixed,m5_items,m5,FOODS_3_524|CA_4,lumpy,TSM1,0.1411027927379408
+r2,fixed,m5_items,m5,HOBBIES_1_308|TX_1,intermittent,TSM1,0.0680762482220967
+r2,fixed,m5_items,m5,HOBBIES_1_315|WI_2,intermittent,TSM2,0.0475575597514602
+r2,fixed,m5_items,m5,HOBBIES_2_129|CA_2,lumpy,TSM2,26.70580990255729
+r2,fixed,m5_items,m5,HOUSEHOLD_1_127|WI_1,intermittent,TSM2,0.0
+r2,fixed,m5_items,m5,HOUSEHOLD_1_315|CA_4,intermittent,TSM2,0.0
+r2,fixed,m5_items,m5,HOUSEHOLD_2_065|CA_3,intermittent,TSM2,0.1641962534168603
+r2,fixed,m5_items,m5,HOUSEHOLD_2_083|TX_3,intermittent,TSM1,0.2329115070769509
+r2,fixed,m5_items,m5,HOUSEHOLD_2_158|CA_3,intermittent,TSM2,0.4103939552087032
+r2,fixed,m5_items,m5,HOUSEHOLD_2_390|CA_3,intermittent,TSM2,0.7547662405429646
+r2,fixed,m5_store_departments,m5,CA_1|FOODS_1,level,TSM2,0.0
+r2,fixed,m5_store_departments,m5,CA_1|FOODS_2,seasonal-trend,TSM2,0.0
+r2,fixed,m5_store_departments,m5,CA_1|HOBBIES_1,level,TSM2,0.0
+r2,fixed,m5_store_departments,m5,CA_1|HOUSEHOLD_1,seasonal,TSM2,0.0
+r2,fixed,m5_store_departments,m5,CA_2|HOUSEHOLD_1,seasonal,TSM2,0.0
+r2,fixed,m5_store_departments,m5,CA_3|HOBBIES_1,level,TSM2,0.0
+r2,fixed,m5_store_departments,m5,CA_3|HOBBIES_2,trend,TSM2,0.170923642330101
+r2,fixed,m5_store_departments,m5,CA_3|HOUSEHOLD_2,seasonal-trend,TSM2,0.0
+r2,fixed,m5_store_departments,m5,CA_4|FOODS_3,trend,TSM2,0.0
+r2,fixed,m5_store_departments,m5,TX_1|FOODS_3,seasonal-trend,TSM2,0.0
+r2,fixed,m5_store_departments,m5,TX_1|HOUSEHOLD_2,seasonal-trend,TSM2,0.0
+r2,fixed,m5_store_departments,m5,TX_3|FOODS_1,level,TSM2,0.10958305209121749
+r2,fixed,m5_store_departments,m5,TX_3|FOODS_2,trend,TSM2,0.0
+r2,fixed,m5_store_departments,m5,TX_3|HOBBIES_1,level,TSM2,0.0
+r2,fixed,m5_store_departments,m5,TX_3|HOBBIES_2,level,TSM2,0.2677871430773876
+r2,fixed,m5_store_departments,m5,WI_1|FOODS_1,level,TSM2,0.0
+r2,fixed,m5_store_departments,m5,WI_1|HOUSEHOLD_1,seasonal,TSM2,0.0
+r2,fixed,m5_store_departments,m5,WI_2|FOODS_2,trend,TSM2,0.08908629652843031
+r2,fixed,m5_store_departments,m5,WI_2|HOBBIES_1,level,TSM2,0.0032216016389364985
+r2,fixed,m5_store_departments,m5,WI_2|HOBBIES_2,level,TSM2,0.0443378432342636
+r2,kind,m5_items,m5,FOODS_1_061|WI_1,intermittent,TSM2,0.0005471683974523009
+r2,kind,m5_items,m5,FOODS_1_107|CA_1,intermittent,TSM2,0.0014187075314161003
+r2,kind,m5_items,m5,FOODS_1_123|CA_1,intermittent,TSM2,0.28126141907303903
+r2,kind,m5_items,m5,FOODS_2_264|CA_1,intermittent,TSM2,0.1320443409066291
+r2,kind,m5_items,m5,FOODS_2_370|TX_3,intermittent,TSM2,0.1101207543601785
+r2,kind,m5_items,m5,FOODS_3_083|TX_1,lumpy,TSM2,0.061877257444512196
+r2,kind,m5_items,m5,FOODS_3_085|TX_1,lumpy,TSM2,0.06569595816376939
+r2,kind,m5_items,m5,FOODS_3_095|CA_1,intermittent,TSM2,0.6695049589380856
+r2,kind,m5_items,m5,FOODS_3_245|CA_2,level,TSM2,0.0
+r2,kind,m5_items,m5,FOODS_3_445|TX_1,intermittent,TSM2,0.17436168446976302
+r2,kind,m5_items,m5,FOODS_3_524|CA_4,lumpy,TSM1,0.1411027927379408
+r2,kind,m5_items,m5,HOBBIES_1_308|TX_1,intermittent,TSM5,0.0
+r2,kind,m5_items,m5,HOBBIES_1_315|WI_2,intermittent,TSM2,0.0475575597514602
+r2,kind,m5_items,m5,HOBBIES_2_129|CA_2,lumpy,TSM2,26.70580990255729
+r2,kind,m5_items,m5,HOUSEHOLD_1_127|WI_1,intermittent,TSM2,0.0
+r2,kind,m5_items,m5,HOUSEHOLD_1_315|CA_4,intermittent,TSM2,0.0
+r2,kind,m5_items,m5,HOUSEHOLD_2_065|CA_3,intermittent,TSM2,0.1641962534168603
+r2,kind,m5_items,m5,HOUSEHOLD_2_083|TX_3,intermittent,TSM5,0.0
+r2,kind,m5_items,m5,HOUSEHOLD_2_158|CA_3,intermittent,TSM2,0.4103939552087032
+r2,kind,m5_items,m5,HOUSEHOLD_2_390|CA_3,intermittent,TSM2,0.7547662405429646
+r2,kind,m5_store_departments,m5,CA_1|FOODS_1,level,TSM2,0.0
+r2,kind,m5_store_departments,m5,CA_1|FOODS_2,seasonal-trend,TSM2,0.0
+r2,kind,m5_store_departments,m5,CA_1|HOBBIES_1,level,TSM2,0.0
+r2,kind,m5_store_departments,m5,CA_1|HOUSEHOLD_1,seasonal,TSM2,0.0
+r2,kind,m5_store_departments,m5,CA_2|HOUSEHOLD_1,seasonal,TSM2,0.0
+r2,kind,m5_store_departments,m5,CA_3|HOBBIES_1,level,TSM2,0.0
+r2,kind,m5_store_departments,m5,CA_3|HOBBIES_2,trend,TSM2,0.170923642330101
+r2,kind,m5_store_departments,m5,CA_3|HOUSEHOLD_2,seasonal-trend,TSM2,0.0
+r2,kind,m5_store_departments,m5,CA_4|FOODS_3,trend,TSM2,0.0
+r2,kind,m5_store_departments,m5,TX_1|FOODS_3,seasonal-trend,TSM2,0.0
+r2,kind,m5_store_departments,m5,TX_1|HOUSEHOLD_2,seasonal-trend,TSM2,0.0
+r2,kind,m5_store_departments,m5,TX_3|FOODS_1,level,TSM2,0.10958305209121749
+r2,kind,m5_store_departments,m5,TX_3|FOODS_2,trend,TSM2,0.0
+r2,kind,m5_store_departments,m5,TX_3|HOBBIES_1,level,TSM2,0.0
+r2,kind,m5_store_departments,m5,TX_3|HOBBIES_2,level,TSM2,0.2677871430773876
+r2,kind,m5_store_departments,m5,WI_1|FOODS_1,level,TSM2,0.0
+r2,kind,m5_store_departments,m5,WI_1|HOUSEHOLD_1,seasonal,TSM2,0.0
+r2,kind,m5_store_departments,m5,WI_2|FOODS_2,trend,TSM2,0.08908629652843031
+r2,kind,m5_store_departments,m5,WI_2|HOBBIES_1,level,TSM2,0.0032216016389364985
+r2,kind,m5_store_departments,m5,WI_2|HOBBIES_2,level,TSM2,0.0443378432342636
+r2,fixed,pbs,pbs,Concessional|Co-payments|A|A02,seasonal-trend,TSM2,0.0
+r2,fixed,pbs,pbs,Concessional|Co-payments|H|H04,seasonal-trend,TSM2,0.0
+r2,fixed,pbs,pbs,Concessional|Co-payments|V|V06,trend,TSM2,1.0137893808649125
+r2,fixed,pbs,pbs,Concessional|Safety net|A|A06,seasonal-trend,TSM2,0.0
+r2,fixed,pbs,pbs,Concessional|Safety net|A|A10,seasonal-trend,TSM2,0.0
+r2,fixed,pbs,pbs,Concessional|Safety net|A|A15,seasonal-trend,TSM2,0.0
+r2,fixed,pbs,pbs,Concessional|Safety net|D|D05,seasonal-trend,TSM2,0.0
+r2,fixed,pbs,pbs,General|Co-payments|A|A14,trend,TSM2,0.17354391755967302
+r2,fixed,pbs,pbs,General|Co-payments|C|C07,seasonal-trend,TSM2,0.0
+r2,fixed,pbs,pbs,General|Co-payments|C|C09,seasonal-trend,TSM2,0.0
+r2,fixed,pbs,pbs,General|Co-payments|D|D01,trend,TSM2,0.004674392428252461
+r2,fixed,pbs,pbs,General|Co-payments|H|H03,trend,TSM2,0.0801812972627457
+r2,fixed,pbs,pbs,General|Co-payments|S|S03,intermittent,TSM2,0.003741625160692999
+r2,fixed,pbs,pbs,General|Safety net|A|A07,seasonal,TSM2,0.0
+r2,fixed,pbs,pbs,General|Safety net|A|A10,seasonal-trend,TSM2,0.0
+r2,fixed,pbs,pbs,General|Safety net|B|B05,seasonal-trend,TSM2,0.04593068925269417
+r2,fixed,pbs,pbs,General|Safety net|C|C07,seasonal,TSM2,0.0
+r2,fixed,pbs,pbs,General|Safety net|G|G02,seasonal,TSM2,0.0
+r2,fixed,pbs,pbs,General|Safety net|J|J06,intermittent,TSM2,0.0
+r2,fixed,pbs,pbs,General|Safety net|R|R05,seasonal-trend,TSM2,0.0
+r2,kind,pbs,pbs,Concessional|Co-payments|A|A02,seasonal-trend,TSM2,0.0
+r2,kind,pbs,pbs,Concessional|Co-payments|H|H04,seasonal-trend,TSM2,0.0
+r2,kind,pbs,pbs,Concessional|Co-payments|V|V06,trend,TSM2,1.0137893808649125
+r2,kind,pbs,pbs,Concessional|Safety net|A|A06,seasonal-trend,TSM2,0.0
+r2,kind,pbs,pbs,Concessional|Safety net|A|A10,seasonal-trend,TSM2,0.0
+r2,kind,pbs,pbs,Concessional|Safety net|A|A15,seasonal-trend,TSM2,0.0
+r2,kind,pbs,pbs,Concessional|Safety net|D|D05,seasonal-trend,TSM2,0.0
+r2,kind,pbs,pbs,General|Co-payments|A|A14,trend,TSM2,0.17354391755967302
+r2,kind,pbs,pbs,General|Co-payments|C|C07,seasonal-trend,TSM2,0.0
+r2,kind,pbs,pbs,General|Co-payments|C|C09,seasonal-trend,TSM2,0.0
+r2,kind,pbs,pbs,General|Co-payments|D|D01,trend,TSM2,0.004674392428252461
+r2,kind,pbs,pbs,General|Co-payments|H|H03,trend,TSM2,0.0801812972627457
+r2,kind,pbs,pbs,General|Co-payments|S|S03,intermittent,TSM5,0.0
+r2,kind,pbs,pbs,General|Safety net|A|A07,seasonal,TSM2,0.0
+r2,kind,pbs,pbs,General|Safety net|A|A10,seasonal-trend,TSM2,0.0
+r2,kind,pbs,pbs,General|Safety net|B|B05,seasonal-trend,TSM2,0.04593068925269417
+r2,kind,pbs,pbs,General|Safety net|C|C07,seasonal,TSM2,0.0
+r2,kind,pbs,pbs,General|Safety net|G|G02,seasonal,TSM2,0.0
+r2,kind,pbs,pbs,General|Safety net|J|J06,intermittent,TSM5,0.0
+r2,kind,pbs,pbs,General|Safety net|R|R05,seasonal-trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,"Bulls, bullocks and steers|South Australia",trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,"Bulls, bullocks and steers|Tasmania",trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Calves|Queensland,trend,TSM2,0.6741104076583031
+mae,fixed,aus_livestock,aus_livestock,Calves|South Australia,seasonal-trend,TSM2,0.4821511311028698
+mae,fixed,aus_livestock,aus_livestock,Calves|Victoria,seasonal,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Cattle (excl. calves)|Northern Territory,intermittent,TSM2,0.24490374722792402
+mae,fixed,aus_livestock,aus_livestock,Cattle (excl. calves)|Queensland,seasonal-trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Cattle (excl. calves)|Victoria,trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Cows and heifers|New South Wales,seasonal-trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Cows and heifers|Queensland,seasonal-trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Cows and heifers|Victoria,trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Lambs|New South Wales,trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Lambs|Victoria,trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Pigs|New South Wales,trend,TSM2,0.33327118604486256
+mae,fixed,aus_livestock,aus_livestock,Pigs|Queensland,seasonal-trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Pigs|Victoria,trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Sheep|New South Wales,trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Sheep|Tasmania,seasonal-trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Sheep|Victoria,seasonal-trend,TSM2,0.0
+mae,fixed,aus_livestock,aus_livestock,Sheep|Western Australia,seasonal-trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,"Bulls, bullocks and steers|South Australia",trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,"Bulls, bullocks and steers|Tasmania",trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Calves|Queensland,trend,TSM2,0.6741104076583031
+mae,kind,aus_livestock,aus_livestock,Calves|South Australia,seasonal-trend,TSM2,0.4821511311028698
+mae,kind,aus_livestock,aus_livestock,Calves|Victoria,seasonal,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Cattle (excl. calves)|Northern Territory,intermittent,TSM5,0.0
+mae,kind,aus_livestock,aus_livestock,Cattle (excl. calves)|Queensland,seasonal-trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Cattle (excl. calves)|Victoria,trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Cows and heifers|New South Wales,seasonal-trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Cows and heifers|Queensland,seasonal-trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Cows and heifers|Victoria,trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Lambs|New South Wales,trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Lambs|Victoria,trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Pigs|New South Wales,trend,TSM2,0.33327118604486256
+mae,kind,aus_livestock,aus_livestock,Pigs|Queensland,seasonal-trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Pigs|Victoria,trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Sheep|New South Wales,trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Sheep|Tasmania,seasonal-trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Sheep|Victoria,seasonal-trend,TSM2,0.0
+mae,kind,aus_livestock,aus_livestock,Sheep|Western Australia,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349335T,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349401C,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349414R,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349415T,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349434X,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349442X,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349443A,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349468W,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349483V,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349562T,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349563V,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349564W,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349605F,trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349639C,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349765T,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349773T,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349797K,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349905J,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349909T,seasonal-trend,TSM2,0.0
+mae,fixed,aus_retail,aus_retail,A3349925T,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349335T,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349401C,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349414R,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349415T,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349434X,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349442X,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349443A,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349468W,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349483V,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349562T,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349563V,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349564W,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349605F,trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349639C,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349765T,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349773T,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349797K,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349905J,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349909T,seasonal-trend,TSM2,0.0
+mae,kind,aus_retail,aus_retail,A3349925T,seasonal-trend,TSM2,0.0
+mae,fixed,carparts,carparts,11526788,lumpy,TSM1,0.18881906128182477
+mae,fixed,carparts,carparts,16096870,intermittent,TSM1,0.13489458155552198
+mae,fixed,carparts,carparts,21033031,intermittent,TSM2,0.01991063085583627
+mae,fixed,carparts,carparts,21034396,intermittent,TSM2,0.572101502935598
+mae,fixed,carparts,carparts,21034595,intermittent,TSM2,0.10420693313760859
+mae,fixed,carparts,carparts,21046487,lumpy,TSM2,0.049371976180742155
+mae,fixed,carparts,carparts,21049103,intermittent,TSM2,0.0
+mae,fixed,carparts,carparts,21050773,intermittent,TSM2,0.6747463630508441
+mae,fixed,carparts,carparts,21051274,intermittent,TSM2,0.08632402886087574
+mae,fixed,carparts,carparts,21051396,intermittent,TSM2,0.10350322708578545
+mae,fixed,carparts,carparts,21053570,intermittent,TSM2,0.0
+mae,fixed,carparts,carparts,21055715,intermittent,TSM1,0.3069785208897005
+mae,fixed,carparts,carparts,21056628,intermittent,TSM2,0.297688160006632
+mae,fixed,carparts,carparts,21056919,intermittent,TSM2,0.028868539386621428
+mae,fixed,carparts,carparts,21060700,intermittent,TSM2,0.39352657257754015
+mae,fixed,carparts,carparts,21061853,lumpy,TSM2,0.2996756554708486
+mae,fixed,carparts,carparts,21062875,intermittent,TSM2,0.10346742049589741
+mae,fixed,carparts,carparts,21121231,intermittent,TSM2,0.050080233047004534
+mae,fixed,carparts,carparts,21312690,intermittent,TSM1,0.0
+mae,fixed,carparts,carparts,90606307,lumpy,TSM1,0.11884899877118428
+mae,kind,carparts,carparts,11526788,lumpy,TSM1,0.18881906128182477
+mae,kind,carparts,carparts,16096870,intermittent,TSM5,0.07072300563863974
+mae,kind,carparts,carparts,21033031,intermittent,TSM2,0.01991063085583627
+mae,kind,carparts,carparts,21034396,intermittent,TSM2,0.572101502935598
+mae,kind,carparts,carparts,21034595,intermittent,TSM2,0.10420693313760859
+mae,kind,carparts,carparts,21046487,lumpy,TSM2,0.049371976180742155
+mae,kind,carparts,carparts,21049103,intermittent,TSM2,0.0
+mae,kind,carparts,carparts,21050773,intermittent,TSM2,0.6747463630508441
+mae,kind,carparts,carparts,21051274,intermittent,TSM2,0.08632402886087574
+mae,kind,carparts,carparts,21051396,intermittent,TSM2,0.10350322708578545
+mae,kind,carparts,carparts,21053570,intermittent,TSM2,0.0
+mae,kind,carparts,carparts,21055715,intermittent,TSM5,0.11857463807949192
+mae,kind,carparts,carparts,21056628,intermittent,TSM2,0.297688160006632
+mae,kind,carparts,carparts,21056919,intermittent,TSM2,0.028868539386621428
+mae,kind,carparts,carparts,21060700,intermittent,TSM2,0.39352657257754015
+mae,kind,carparts,carparts,21061853,lumpy,TSM2,0.2996756554708486
+mae,kind,carparts,carparts,21062875,intermittent,TSM2,0.10346742049589741
+mae,kind,carparts,carparts,21121231,intermittent,TSM2,0.050080233047004534
+mae,kind,carparts,carparts,21312690,intermittent,TSM5,0.019243512982519733
+mae,kind,carparts,carparts,90606307,lumpy,TSM1,0.11884899877118428
+mae,fixed,m4_daily,m4_daily,D1218,trend,TSM2,0.0012462106037054023
+mae,fixed,m4_daily,m4_daily,D1283,trend,TSM2,0.024542132605602965
+mae,fixed,m4_daily,m4_daily,D1380,trend,TSM2,0.0744080323918408
+mae,fixed,m4_daily,m4_daily,D1832,trend,TSM2,0.005932468179559385
+mae,fixed,m4_daily,m4_daily,D1844,trend,TSM2,0.0
+mae,fixed,m4_daily,m4_daily,D2064,trend,TSM2,0.016144532337343545
+mae,fixed,m4_daily,m4_daily,D2286,trend,TSM2,0.0
+mae,fixed,m4_daily,m4_daily,D2365,trend,TSM2,1.3601101744597675e-05
+mae,fixed,m4_daily,m4_daily,D2424,trend,TSM2,0.0
+mae,fixed,m4_daily,m4_daily,D2732,trend,TSM2,0.0
+mae,fixed,m4_daily,m4_daily,D2918,trend,TSM2,0.0
+mae,fixed,m4_daily,m4_daily,D2988,trend,TSM2,0.0
+mae,fixed,m4_daily,m4_daily,D3243,trend,TSM2,0.0381930845305705
+mae,fixed,m4_daily,m4_daily,D3636,trend,TSM2,0.0
+mae,fixed,m4_daily,m4_daily,D3985,trend,TSM2,0.0008474149690299275
+mae,fixed,m4_daily,m4_daily,D4108,trend,TSM2,0.0
+mae,fixed,m4_daily,m4_daily,D653,trend,TSM2,0.0
+mae,fixed,m4_daily,m4_daily,D709,trend,TSM2,0.004289600170430527
+mae,fixed,m4_daily,m4_daily,D821,trend,TSM2,0.0029382643396814196
+mae,fixed,m4_daily,m4_daily,D834,trend,TSM2,0.0
+mae,kind,m4_daily,m4_daily,D1218,trend,TSM2,0.0012462106037054023
+mae,kind,m4_daily,m4_daily,D1283,trend,TSM2,0.024542132605602965
+mae,kind,m4_daily,m4_daily,D1380,trend,TSM2,0.0744080323918408
+mae,kind,m4_daily,m4_daily,D1832,trend,TSM2,0.005932468179559385
+mae,kind,m4_daily,m4_daily,D1844,trend,TSM2,0.0
+mae,kind,m4_daily,m4_daily,D2064,trend,TSM2,0.016144532337343545
+mae,kind,m4_daily,m4_daily,D2286,trend,TSM2,0.0
+mae,kind,m4_daily,m4_daily,D2365,trend,TSM2,1.3601101744597675e-05
+mae,kind,m4_daily,m4_daily,D2424,trend,TSM2,0.0
+mae,kind,m4_daily,m4_daily,D2732,trend,TSM2,0.0
+mae,kind,m4_daily,m4_daily,D2918,trend,TSM2,0.0
+mae,kind,m4_daily,m4_daily,D2988,trend,TSM2,0.0
+mae,kind,m4_daily,m4_daily,D3243,trend,TSM2,0.0381930845305705
+mae,kind,m4_daily,m4_daily,D3636,trend,TSM2,0.0
+mae,kind,m4_daily,m4_daily,D3985,trend,TSM2,0.0008474149690299275
+mae,kind,m4_daily,m4_daily,D4108,trend,TSM2,0.0
+mae,kind,m4_daily,m4_daily,D653,trend,TSM2,0.0
+mae,kind,m4_daily,m4_daily,D709,trend,TSM2,0.004289600170430527
+mae,kind,m4_daily,m4_daily,D821,trend,TSM2,0.0029382643396814196
+mae,kind,m4_daily,m4_daily,D834,trend,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H113,seasonal-trend,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H147,seasonal,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H153,seasonal,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H210,seasonal-trend,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H242,seasonal,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H268,seasonal,TSM2,0.1450358207945301
+mae,fixed,m4_hourly,m4_hourly,H271,level,TSM2,0.442440277555314
+mae,fixed,m4_hourly,m4_hourly,H29,seasonal-trend,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H292,seasonal-trend,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H313,seasonal-trend,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H32,seasonal-trend,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H326,seasonal,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H354,seasonal,TSM2,0.0050414461089949595
+mae,fixed,m4_hourly,m4_hourly,H360,seasonal-trend,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H369,seasonal,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H384,seasonal,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H60,seasonal-trend,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H65,seasonal-trend,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H89,seasonal-trend,TSM2,0.0
+mae,fixed,m4_hourly,m4_hourly,H90,seasonal-trend,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H113,seasonal-trend,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H147,seasonal,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H153,seasonal,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H210,seasonal-trend,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H242,seasonal,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H268,seasonal,TSM2,0.1450358207945301
+mae,kind,m4_hourly,m4_hourly,H271,level,TSM2,0.442440277555314
+mae,kind,m4_hourly,m4_hourly,H29,seasonal-trend,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H292,seasonal-trend,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H313,seasonal-trend,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H32,seasonal-trend,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H326,seasonal,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H354,seasonal,TSM2,0.0050414461089949595
+mae,kind,m4_hourly,m4_hourly,H360,seasonal-trend,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H369,seasonal,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H384,seasonal,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H60,seasonal-trend,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H65,seasonal-trend,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H89,seasonal-trend,TSM2,0.0
+mae,kind,m4_hourly,m4_hourly,H90,seasonal-trend,TSM2,0.0
+mae,fixed,m4_monthly,m4_monthly,M1415,seasonal-trend,TSM2,0.0
+mae,fixed,m4_monthly,m4_monthly,M14782,trend,TSM2,0.08953916636841855
+mae,fixed,m4_monthly,m4_monthly,M16254,trend,TSM2,0.16904370174776526
+mae,fixed,m4_monthly,m4_monthly,M16922,trend,TSM2,0.015806292683146074
+mae,fixed,m4_monthly,m4_monthly,M18177,seasonal-trend,TSM2,0.0
+mae,fixed,m4_monthly,m4_monthly,M18958,trend,TSM2,0.20453774602204913
+mae,fixed,m4_monthly,m4_monthly,M20790,trend,TSM2,1.6509884507634471
+mae,fixed,m4_monthly,m4_monthly,M22966,trend,TSM2,0.02850727634328783
+mae,fixed,m4_monthly,m4_monthly,M27574,trend,TSM2,0.0
+mae,fixed,m4_monthly,m4_monthly,M27649,seasonal-trend,TSM2,0.0
+mae,fixed,m4_monthly,m4_monthly,M27676,trend,TSM2,0.16465911374274356
+mae,fixed,m4_monthly,m4_monthly,M35369,trend,TSM2,0.0
+mae,fixed,m4_monthly,m4_monthly,M36745,trend,TSM2,0.0
+mae,fixed,m4_monthly,m4_monthly,M40017,trend,TSM2,0.0
+mae,fixed,m4_monthly,m4_monthly,M4147,trend,TSM2,0.0635514827276792
+mae,fixed,m4_monthly,m4_monthly,M43122,seasonal-trend,TSM2,0.0
+mae,fixed,m4_monthly,m4_monthly,M43312,trend,TSM2,0.04645070429216678
+mae,fixed,m4_monthly,m4_monthly,M46528,trend,TSM2,0.0
+mae,fixed,m4_monthly,m4_monthly,M5152,seasonal-trend,TSM2,0.0
+mae,fixed,m4_monthly,m4_monthly,M651,seasonal-trend,TSM2,0.0
+mae,kind,m4_monthly,m4_monthly,M1415,seasonal-trend,TSM2,0.0
+mae,kind,m4_monthly,m4_monthly,M14782,trend,TSM2,0.08953916636841855
+mae,kind,m4_monthly,m4_monthly,M16254,trend,TSM2,0.16904370174776526
+mae,kind,m4_monthly,m4_monthly,M16922,trend,TSM2,0.015806292683146074
+mae,kind,m4_monthly,m4_monthly,M18177,seasonal-trend,TSM2,0.0
+mae,kind,m4_monthly,m4_monthly,M18958,trend,TSM2,0.20453774602204913
+mae,kind,m4_monthly,m4_monthly,M20790,trend,TSM2,1.6509884507634471
+mae,kind,m4_monthly,m4_monthly,M22966,trend,TSM2,0.02850727634328783
+mae,kind,m4_monthly,m4_monthly,M27574,trend,TSM2,0.0
+mae,kind,m4_monthly,m4_monthly,M27649,seasonal-trend,TSM2,0.0
+mae,kind,m4_monthly,m4_monthly,M27676,trend,TSM2,0.16465911374274356
+mae,kind,m4_monthly,m4_monthly,M35369,trend,TSM2,0.0
+mae,kind,m4_monthly,m4_monthly,M36745,trend,TSM2,0.0
+mae,kind,m4_monthly,m4_monthly,M40017,trend,TSM2,0.0
+mae,kind,m4_monthly,m4_monthly,M4147,trend,TSM2,0.0635514827276792
+mae,kind,m4_monthly,m4_monthly,M43122,seasonal-trend,TSM2,0.0
+mae,kind,m4_monthly,m4_monthly,M43312,trend,TSM2,0.04645070429216678
+mae,kind,m4_monthly,m4_monthly,M46528,trend,TSM2,0.0
+mae,kind,m4_monthly,m4_monthly,M5152,seasonal-trend,TSM2,0.0
+mae,kind,m4_monthly,m4_monthly,M651,seasonal-trend,TSM2,0.0
+mae,fixed,m4_quarterly,m4_quarterly,Q12358,trend,TSM2,0.021870406054869992
+mae,fixed,m4_quarterly,m4_quarterly,Q13466,trend,TSM2,0.0
+mae,fixed,m4_quarterly,m4_quarterly,Q14284,trend,TSM2,0.1402191097476452
+mae,fixed,m4_quarterly,m4_quarterly,Q15067,trend,TSM2,0.0
+mae,fixed,m4_quarterly,m4_quarterly,Q15154,trend,TSM2,0.14231087554271826
+mae,fixed,m4_quarterly,m4_quarterly,Q16154,trend,TSM2,0.0919438833354773
+mae,fixed,m4_quarterly,m4_quarterly,Q18013,trend,TSM2,0.5336778755118041
+mae,fixed,m4_quarterly,m4_quarterly,Q18152,level,TSM2,0.059508719614552945
+mae,fixed,m4_quarterly,m4_quarterly,Q183,seasonal-trend,TSM2,0.0
+mae,fixed,m4_quarterly,m4_quarterly,Q19170,seasonal-trend,TSM2,0.0
+mae,fixed,m4_quarterly,m4_quarterly,Q20154,seasonal-trend,TSM2,0.0
+mae,fixed,m4_quarterly,m4_quarterly,Q21426,trend,TSM2,0.0
+mae,fixed,m4_quarterly,m4_quarterly,Q22223,trend,TSM2,4.145209303368844e-05
+mae,fixed,m4_quarterly,m4_quarterly,Q22693,trend,TSM2,0.0
+mae,fixed,m4_quarterly,m4_quarterly,Q23358,trend,TSM2,2.050391220981692e-05
+mae,fixed,m4_quarterly,m4_quarterly,Q26,seasonal,TSM2,0.0
+mae,fixed,m4_quarterly,m4_quarterly,Q3427,trend,TSM2,0.0
+mae,fixed,m4_quarterly,m4_quarterly,Q3836,trend,TSM2,0.1771784652154187
+mae,fixed,m4_quarterly,m4_quarterly,Q4756,trend,TSM2,0.020715586228217408
+mae,fixed,m4_quarterly,m4_quarterly,Q8814,trend,TSM2,0.028211878439042673
+mae,kind,m4_quarterly,m4_quarterly,Q12358,trend,TSM2,0.021870406054869992
+mae,kind,m4_quarterly,m4_quarterly,Q13466,trend,TSM2,0.0
+mae,kind,m4_quarterly,m4_quarterly,Q14284,trend,TSM2,0.1402191097476452
+mae,kind,m4_quarterly,m4_quarterly,Q15067,trend,TSM2,0.0
+mae,kind,m4_quarterly,m4_quarterly,Q15154,trend,TSM2,0.14231087554271826
+mae,kind,m4_quarterly,m4_quarterly,Q16154,trend,TSM2,0.0919438833354773
+mae,kind,m4_quarterly,m4_quarterly,Q18013,trend,TSM2,0.5336778755118041
+mae,kind,m4_quarterly,m4_quarterly,Q18152,level,TSM2,0.059508719614552945
+mae,kind,m4_quarterly,m4_quarterly,Q183,seasonal-trend,TSM2,0.0
+mae,kind,m4_quarterly,m4_quarterly,Q19170,seasonal-trend,TSM2,0.0
+mae,kind,m4_quarterly,m4_quarterly,Q20154,seasonal-trend,TSM2,0.0
+mae,kind,m4_quarterly,m4_quarterly,Q21426,trend,TSM2,0.0
+mae,kind,m4_quarterly,m4_quarterly,Q22223,trend,TSM2,4.145209303368844e-05
+mae,kind,m4_quarterly,m4_quarterly,Q22693,trend,TSM2,0.0
+mae,kind,m4_quarterly,m4_quarterly,Q23358,trend,TSM2,2.050391220981692e-05
+mae,kind,m4_quarterly,m4_quarterly,Q26,seasonal,TSM2,0.0
+mae,kind,m4_quarterly,m4_quarterly,Q3427,trend,TSM2,0.0
+mae,kind,m4_quarterly,m4_quarterly,Q3836,trend,TSM2,0.1771784652154187
+mae,kind,m4_quarterly,m4_quarterly,Q4756,trend,TSM2,0.020715586228217408
+mae,kind,m4_quarterly,m4_quarterly,Q8814,trend,TSM2,0.028211878439042673
+mae,fixed,m4_weekly,m4_weekly,W105,trend,TSM2,0.0
+mae,fixed,m4_weekly,m4_weekly,W117,seasonal-trend,TSM2,0.031505872215037735
+mae,fixed,m4_weekly,m4_weekly,W144,trend,TSM2,0.0
+mae,fixed,m4_weekly,m4_weekly,W148,trend,TSM2,0.00010540587875568279
+mae,fixed,m4_weekly,m4_weekly,W175,seasonal-trend,TSM2,0.0
+mae,fixed,m4_weekly,m4_weekly,W177,trend,TSM2,0.0
+mae,fixed,m4_weekly,m4_weekly,W211,trend,TSM2,0.0
+mae,fixed,m4_weekly,m4_weekly,W215,trend,TSM2,0.0
+mae,fixed,m4_weekly,m4_weekly,W218,level,TSM2,0.0
+mae,fixed,m4_weekly,m4_weekly,W266,seasonal-trend,TSM2,0.015610156909421122
+mae,fixed,m4_weekly,m4_weekly,W275,trend,TSM2,0.0
+mae,fixed,m4_weekly,m4_weekly,W283,seasonal,TSM2,0.0016744492111643175
+mae,fixed,m4_weekly,m4_weekly,W304,trend,TSM2,0.3818682190722427
+mae,fixed,m4_weekly,m4_weekly,W314,trend,TSM2,0.0
+mae,fixed,m4_weekly,m4_weekly,W327,trend,TSM2,0.32165504764147873
+mae,fixed,m4_weekly,m4_weekly,W333,trend,TSM2,0.0046097120158175315
+mae,fixed,m4_weekly,m4_weekly,W34,seasonal-trend,TSM2,0.016485461893160545
+mae,fixed,m4_weekly,m4_weekly,W52,trend,TSM2,0.0
+mae,fixed,m4_weekly,m4_weekly,W64,seasonal-trend,TSM2,0.10416697207106689
+mae,fixed,m4_weekly,m4_weekly,W67,seasonal-trend,TSM2,0.0
+mae,kind,m4_weekly,m4_weekly,W105,trend,TSM2,0.0
+mae,kind,m4_weekly,m4_weekly,W117,seasonal-trend,TSM2,0.031505872215037735
+mae,kind,m4_weekly,m4_weekly,W144,trend,TSM2,0.0
+mae,kind,m4_weekly,m4_weekly,W148,trend,TSM2,0.00010540587875568279
+mae,kind,m4_weekly,m4_weekly,W175,seasonal-trend,TSM2,0.0
+mae,kind,m4_weekly,m4_weekly,W177,trend,TSM2,0.0
+mae,kind,m4_weekly,m4_weekly,W211,trend,TSM2,0.0
+mae,kind,m4_weekly,m4_weekly,W215,trend,TSM2,0.0
+mae,kind,m4_weekly,m4_weekly,W218,level,TSM2,0.0
+mae,kind,m4_weekly,m4_weekly,W266,seasonal-trend,TSM2,0.015610156909421122
+mae,kind,m4_weekly,m4_weekly,W275,trend,TSM2,0.0
+mae,kind,m4_weekly,m4_weekly,W283,seasonal,TSM2,0.0016744492111643175
+mae,kind,m4_weekly,m4_weekly,W304,trend,TSM2,0.3818682190722427
+mae,kind,m4_weekly,m4_weekly,W314,trend,TSM2,0.0
+mae,kind,m4_weekly,m4_weekly,W327,trend,TSM2,0.32165504764147873
+mae,kind,m4_weekly,m4_weekly,W333,trend,TSM2,0.0046097120158175315
+mae,kind,m4_weekly,m4_weekly,W34,seasonal-trend,TSM2,0.016485461893160545
+mae,kind,m4_weekly,m4_weekly,W52,trend,TSM2,0.0
+mae,kind,m4_weekly,m4_weekly,W64,seasonal-trend,TSM2,0.10416697207106689
+mae,kind,m4_weekly,m4_weekly,W67,seasonal-trend,TSM2,0.0
+mae,fixed,m4_yearly,m4_yearly,Y11084,trend,TSM2,0.0
+mae,fixed,m4_yearly,m4_yearly,Y11686,trend,TSM2,0.16181530420045012
+mae,fixed,m4_yearly,m4_yearly,Y1223,trend,TSM2,0.34868037907907135
+mae,fixed,m4_yearly,m4_yearly,Y13275,trend,TSM2,0.0
+mae,fixed,m4_yearly,m4_yearly,Y13782,trend,TSM2,0.3548216097714784
+mae,fixed,m4_yearly,m4_yearly,Y1405,trend,TSM2,0.0
+mae,fixed,m4_yearly,m4_yearly,Y14115,trend,TSM2,0.0
+mae,fixed,m4_yearly,m4_yearly,Y16136,trend,TSM2,0.3258912045341076
+mae,fixed,m4_yearly,m4_yearly,Y1725,trend,TSM2,0.022117257479369674
+mae,fixed,m4_yearly,m4_yearly,Y18267,trend,TSM2,0.0
+mae,fixed,m4_yearly,m4_yearly,Y20401,trend,TSM2,0.052593854043138266
+mae,fixed,m4_yearly,m4_yearly,Y2057,trend,TSM2,0.4228861292748721
+mae,fixed,m4_yearly,m4_yearly,Y22900,trend,TSM2,0.30198352372871734
+mae,fixed,m4_yearly,m4_yearly,Y3668,trend,TSM2,0.0
+mae,fixed,m4_yearly,m4_yearly,Y5052,trend,TSM2,0.46915441353919085
+mae,fixed,m4_yearly,m4_yearly,Y5607,trend,TSM2,0.008733117895220122
+mae,fixed,m4_yearly,m4_yearly,Y7267,trend,TSM2,0.0
+mae,fixed,m4_yearly,m4_yearly,Y7502,trend,TSM2,0.0
+mae,fixed,m4_yearly,m4_yearly,Y9439,trend,TSM2,0.07011445844634057
+mae,fixed,m4_yearly,m4_yearly,Y9887,trend,TSM2,0.0
+mae,kind,m4_yearly,m4_yearly,Y11084,trend,TSM2,0.0
+mae,kind,m4_yearly,m4_yearly,Y11686,trend,TSM2,0.16181530420045012
+mae,kind,m4_yearly,m4_yearly,Y1223,trend,TSM2,0.34868037907907135
+mae,kind,m4_yearly,m4_yearly,Y13275,trend,TSM2,0.0
+mae,kind,m4_yearly,m4_yearly,Y13782,trend,TSM2,0.3548216097714784
+mae,kind,m4_yearly,m4_yearly,Y1405,trend,TSM2,0.0
+mae,kind,m4_yearly,m4_yearly,Y14115,trend,TSM2,0.0
+mae,kind,m4_yearly,m4_yearly,Y16136,trend,TSM2,0.3258912045341076
+mae,kind,m4_yearly,m4_yearly,Y1725,trend,TSM2,0.022117257479369674
+mae,kind,m4_yearly,m4_yearly,Y18267,trend,TSM2,0.0
+mae,kind,m4_yearly,m4_yearly,Y20401,trend,TSM2,0.052593854043138266
+mae,kind,m4_yearly,m4_yearly,Y2057,trend,TSM2,0.4228861292748721
+mae,kind,m4_yearly,m4_yearly,Y22900,trend,TSM2,0.30198352372871734
+mae,kind,m4_yearly,m4_yearly,Y3668,trend,TSM2,0.0
+mae,kind,m4_yearly,m4_yearly,Y5052,trend,TSM2,0.46915441353919085
+mae,kind,m4_yearly,m4_yearly,Y5607,trend,TSM2,0.008733117895220122
+mae,kind,m4_yearly,m4_yearly,Y7267,trend,TSM2,0.0
+mae,kind,m4_yearly,m4_yearly,Y7502,trend,TSM2,0.0
+mae,kind,m4_yearly,m4_yearly,Y9439,trend,TSM2,0.07011445844634057
+mae,kind,m4_yearly,m4_yearly,Y9887,trend,TSM2,0.0
+mae,fixed,m5_items,m5,FOODS_1_061|WI_1,intermittent,TSM2,6.45396806074693e-05
+mae,fixed,m5_items,m5,FOODS_1_107|CA_1,intermittent,TSM2,0.9124255050973581
+mae,fixed,m5_items,m5,FOODS_1_123|CA_1,intermittent,TSM2,0.0556615814592831
+mae,fixed,m5_items,m5,FOODS_2_264|CA_1,intermittent,TSM2,0.023697731609056603
+mae,fixed,m5_items,m5,FOODS_2_370|TX_3,intermittent,TSM2,0.054178412323255286
+mae,fixed,m5_items,m5,FOODS_3_083|TX_1,lumpy,TSM2,0.04715957351638987
+mae,fixed,m5_items,m5,FOODS_3_085|TX_1,lumpy,TSM2,0.02581092872724331
+mae,fixed,m5_items,m5,FOODS_3_095|CA_1,intermittent,TSM2,0.20497916459308774
+mae,fixed,m5_items,m5,FOODS_3_245|CA_2,level,TSM2,0.0
+mae,fixed,m5_items,m5,FOODS_3_445|TX_1,intermittent,TSM2,0.2301895549880902
+mae,fixed,m5_items,m5,FOODS_3_524|CA_4,lumpy,TSM1,0.0661695129892343
+mae,fixed,m5_items,m5,HOBBIES_1_308|TX_1,intermittent,TSM1,0.000428365217505068
+mae,fixed,m5_items,m5,HOBBIES_1_315|WI_2,intermittent,TSM2,0.23566062478094657
+mae,fixed,m5_items,m5,HOBBIES_2_129|CA_2,lumpy,TSM2,0.350633372429711
+mae,fixed,m5_items,m5,HOUSEHOLD_1_127|WI_1,intermittent,TSM2,0.0
+mae,fixed,m5_items,m5,HOUSEHOLD_1_315|CA_4,intermittent,TSM2,0.0
+mae,fixed,m5_items,m5,HOUSEHOLD_2_065|CA_3,intermittent,TSM2,0.0940491989339187
+mae,fixed,m5_items,m5,HOUSEHOLD_2_083|TX_3,intermittent,TSM1,0.11735497498073028
+mae,fixed,m5_items,m5,HOUSEHOLD_2_158|CA_3,intermittent,TSM2,0.1024521453168049
+mae,fixed,m5_items,m5,HOUSEHOLD_2_390|CA_3,intermittent,TSM2,0.17940163496729836
+mae,fixed,m5_store_departments,m5,CA_1|FOODS_1,level,TSM2,0.0
+mae,fixed,m5_store_departments,m5,CA_1|FOODS_2,seasonal-trend,TSM2,0.0
+mae,fixed,m5_store_departments,m5,CA_1|HOBBIES_1,level,TSM2,0.0
+mae,fixed,m5_store_departments,m5,CA_1|HOUSEHOLD_1,seasonal,TSM2,0.0
+mae,fixed,m5_store_departments,m5,CA_2|HOUSEHOLD_1,seasonal,TSM2,0.0
+mae,fixed,m5_store_departments,m5,CA_3|HOBBIES_1,level,TSM2,0.0
+mae,fixed,m5_store_departments,m5,CA_3|HOBBIES_2,trend,TSM2,0.05062032881743715
+mae,fixed,m5_store_departments,m5,CA_3|HOUSEHOLD_2,seasonal-trend,TSM2,0.0
+mae,fixed,m5_store_departments,m5,CA_4|FOODS_3,trend,TSM2,0.0
+mae,fixed,m5_store_departments,m5,TX_1|FOODS_3,seasonal-trend,TSM2,0.0
+mae,fixed,m5_store_departments,m5,TX_1|HOUSEHOLD_2,seasonal-trend,TSM2,0.0
+mae,fixed,m5_store_departments,m5,TX_3|FOODS_1,level,TSM2,0.0534597084560314
+mae,fixed,m5_store_departments,m5,TX_3|FOODS_2,trend,TSM2,0.0
+mae,fixed,m5_store_departments,m5,TX_3|HOBBIES_1,level,TSM2,0.0
+mae,fixed,m5_store_departments,m5,TX_3|HOBBIES_2,level,TSM2,0.1344328672883382
+mae,fixed,m5_store_departments,m5,WI_1|FOODS_1,level,TSM2,0.0
+mae,fixed,m5_store_departments,m5,WI_1|HOUSEHOLD_1,seasonal,TSM2,0.0
+mae,fixed,m5_store_departments,m5,WI_2|FOODS_2,trend,TSM2,0.08305826214450648
+mae,fixed,m5_store_departments,m5,WI_2|HOBBIES_1,level,TSM2,0.011740321309803342
+mae,fixed,m5_store_departments,m5,WI_2|HOBBIES_2,level,TSM2,0.061880978347090755
+mae,kind,m5_items,m5,FOODS_1_061|WI_1,intermittent,TSM2,6.45396806074693e-05
+mae,kind,m5_items,m5,FOODS_1_107|CA_1,intermittent,TSM2,0.9124255050973581
+mae,kind,m5_items,m5,FOODS_1_123|CA_1,intermittent,TSM2,0.0556615814592831
+mae,kind,m5_items,m5,FOODS_2_264|CA_1,intermittent,TSM2,0.023697731609056603
+mae,kind,m5_items,m5,FOODS_2_370|TX_3,intermittent,TSM2,0.054178412323255286
+mae,kind,m5_items,m5,FOODS_3_083|TX_1,lumpy,TSM2,0.04715957351638987
+mae,kind,m5_items,m5,FOODS_3_085|TX_1,lumpy,TSM2,0.02581092872724331
+mae,kind,m5_items,m5,FOODS_3_095|CA_1,intermittent,TSM2,0.20497916459308774
+mae,kind,m5_items,m5,FOODS_3_245|CA_2,level,TSM2,0.0
+mae,kind,m5_items,m5,FOODS_3_445|TX_1,intermittent,TSM2,0.2301895549880902
+mae,kind,m5_items,m5,FOODS_3_524|CA_4,lumpy,TSM1,0.0661695129892343
+mae,kind,m5_items,m5,HOBBIES_1_308|TX_1,intermittent,TSM5,0.0196712024735824
+mae,kind,m5_items,m5,HOBBIES_1_315|WI_2,intermittent,TSM2,0.23566062478094657
+mae,kind,m5_items,m5,HOBBIES_2_129|CA_2,lumpy,TSM2,0.350633372429711
+mae,kind,m5_items,m5,HOUSEHOLD_1_127|WI_1,intermittent,TSM2,0.0
+mae,kind,m5_items,m5,HOUSEHOLD_1_315|CA_4,intermittent,TSM2,0.0
+mae,kind,m5_items,m5,HOUSEHOLD_2_065|CA_3,intermittent,TSM2,0.0940491989339187
+mae,kind,m5_items,m5,HOUSEHOLD_2_083|TX_3,intermittent,TSM5,0.15981932246727984
+mae,kind,m5_items,m5,HOUSEHOLD_2_158|CA_3,intermittent,TSM2,0.1024521453168049
+mae,kind,m5_items,m5,HOUSEHOLD_2_390|CA_3,intermittent,TSM2,0.17940163496729836
+mae,kind,m5_store_departments,m5,CA_1|FOODS_1,level,TSM2,0.0
+mae,kind,m5_store_departments,m5,CA_1|FOODS_2,seasonal-trend,TSM2,0.0
+mae,kind,m5_store_departments,m5,CA_1|HOBBIES_1,level,TSM2,0.0
+mae,kind,m5_store_departments,m5,CA_1|HOUSEHOLD_1,seasonal,TSM2,0.0
+mae,kind,m5_store_departments,m5,CA_2|HOUSEHOLD_1,seasonal,TSM2,0.0
+mae,kind,m5_store_departments,m5,CA_3|HOBBIES_1,level,TSM2,0.0
+mae,kind,m5_store_departments,m5,CA_3|HOBBIES_2,trend,TSM2,0.05062032881743715
+mae,kind,m5_store_departments,m5,CA_3|HOUSEHOLD_2,seasonal-trend,TSM2,0.0
+mae,kind,m5_store_departments,m5,CA_4|FOODS_3,trend,TSM2,0.0
+mae,kind,m5_store_departments,m5,TX_1|FOODS_3,seasonal-trend,TSM2,0.0
+mae,kind,m5_store_departments,m5,TX_1|HOUSEHOLD_2,seasonal-trend,TSM2,0.0
+mae,kind,m5_store_departments,m5,TX_3|FOODS_1,level,TSM2,0.0534597084560314
+mae,kind,m5_store_departments,m5,TX_3|FOODS_2,trend,TSM2,0.0
+mae,kind,m5_store_departments,m5,TX_3|HOBBIES_1,level,TSM2,0.0
+mae,kind,m5_store_departments,m5,TX_3|HOBBIES_2,level,TSM2,0.1344328672883382
+mae,kind,m5_store_departments,m5,WI_1|FOODS_1,level,TSM2,0.0
+mae,kind,m5_store_departments,m5,WI_1|HOUSEHOLD_1,seasonal,TSM2,0.0
+mae,kind,m5_store_departments,m5,WI_2|FOODS_2,trend,TSM2,0.08305826214450648
+mae,kind,m5_store_departments,m5,WI_2|HOBBIES_1,level,TSM2,0.011740321309803342
+mae,kind,m5_store_departments,m5,WI_2|HOBBIES_2,level,TSM2,0.061880978347090755
+mae,fixed,pbs,pbs,Concessional|Co-payments|A|A02,seasonal-trend,TSM2,0.0
+mae,fixed,pbs,pbs,Concessional|Co-payments|H|H04,seasonal-trend,TSM2,0.0
+mae,fixed,pbs,pbs,Concessional|Co-payments|V|V06,trend,TSM2,0.751664545560184
+mae,fixed,pbs,pbs,Concessional|Safety net|A|A06,seasonal-trend,TSM2,0.0
+mae,fixed,pbs,pbs,Concessional|Safety net|A|A10,seasonal-trend,TSM2,0.0
+mae,fixed,pbs,pbs,Concessional|Safety net|A|A15,seasonal-trend,TSM2,0.0
+mae,fixed,pbs,pbs,Concessional|Safety net|D|D05,seasonal-trend,TSM2,0.0
+mae,fixed,pbs,pbs,General|Co-payments|A|A14,trend,TSM2,0.08072429156560441
+mae,fixed,pbs,pbs,General|Co-payments|C|C07,seasonal-trend,TSM2,0.0
+mae,fixed,pbs,pbs,General|Co-payments|C|C09,seasonal-trend,TSM2,0.0
+mae,fixed,pbs,pbs,General|Co-payments|D|D01,trend,TSM2,0.0316421244793605
+mae,fixed,pbs,pbs,General|Co-payments|H|H03,trend,TSM2,0.0
+mae,fixed,pbs,pbs,General|Co-payments|S|S03,intermittent,TSM2,0.11876805710083323
+mae,fixed,pbs,pbs,General|Safety net|A|A07,seasonal,TSM2,0.0
+mae,fixed,pbs,pbs,General|Safety net|A|A10,seasonal-trend,TSM2,0.0
+mae,fixed,pbs,pbs,General|Safety net|B|B05,seasonal-trend,TSM2,0.016077262324588667
+mae,fixed,pbs,pbs,General|Safety net|C|C07,seasonal,TSM2,0.0
+mae,fixed,pbs,pbs,General|Safety net|G|G02,seasonal,TSM2,0.0
+mae,fixed,pbs,pbs,General|Safety net|J|J06,intermittent,TSM2,
+mae,fixed,pbs,pbs,General|Safety net|R|R05,seasonal-trend,TSM2,0.0
+mae,kind,pbs,pbs,Concessional|Co-payments|A|A02,seasonal-trend,TSM2,0.0
+mae,kind,pbs,pbs,Concessional|Co-payments|H|H04,seasonal-trend,TSM2,0.0
+mae,kind,pbs,pbs,Concessional|Co-payments|V|V06,trend,TSM2,0.751664545560184
+mae,kind,pbs,pbs,Concessional|Safety net|A|A06,seasonal-trend,TSM2,0.0
+mae,kind,pbs,pbs,Concessional|Safety net|A|A10,seasonal-trend,TSM2,0.0
+mae,kind,pbs,pbs,Concessional|Safety net|A|A15,seasonal-trend,TSM2,0.0
+mae,kind,pbs,pbs,Concessional|Safety net|D|D05,seasonal-trend,TSM2,0.0
+mae,kind,pbs,pbs,General|Co-payments|A|A14,trend,TSM2,0.08072429156560441
+mae,kind,pbs,pbs,General|Co-payments|C|C07,seasonal-trend,TSM2,0.0
+mae,kind,pbs,pbs,General|Co-payments|C|C09,seasonal-trend,TSM2,0.0
+mae,kind,pbs,pbs,General|Co-payments|D|D01,trend,TSM2,0.0316421244793605
+mae,kind,pbs,pbs,General|Co-payments|H|H03,trend,TSM2,0.0
+mae,kind,pbs,pbs,General|Co-payments|S|S03,intermittent,TSM5,0.0
+mae,kind,pbs,pbs,General|Safety net|A|A07,seasonal,TSM2,0.0
+mae,kind,pbs,pbs,General|Safety net|A|A10,seasonal-trend,TSM2,0.0
+mae,kind,pbs,pbs,General|Safety net|B|B05,seasonal-trend,TSM2,0.016077262324588667
+mae,kind,pbs,pbs,General|Safety net|C|C07,seasonal,TSM2,0.0
+mae,kind,pbs,pbs,General|Safety net|G|G02,seasonal,TSM2,0.0
+mae,kind,pbs,pbs,General|Safety net|J|J06,intermittent,TSM5,
+mae,kind,pbs,pbs,General|Safety net|R|R05,seasonal-trend,TSM2,0.0

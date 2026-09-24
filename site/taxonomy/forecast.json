@@ -1,6 +1,7 @@
 {
  "version": 1,
  "chosen": "fixed",
+ "confirmation": null,
  "decision": {
   "candidate": "kind",
   "against": "fixed",

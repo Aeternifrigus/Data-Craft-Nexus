@@ -41,7 +41,7 @@ The live page carries the commit it was built from in a meta tag (`dcn-build`), 
 ## How It Works
 
 1. **Drop a CSV**: modality, scale, quality and drift are measured automatically
-2. **Declare your intent**: what to predict, what kind of answer, whether order matters
+2. **Declare your intent**: what to predict, what kind of answer, whether order matters, and what a wrong answer costs
 3. **Read the specimen**: get the full six-axis signature
 4. **Before you trust a score**: one column that predicts the target almost perfectly on its own, ID-like columns, more repeated rows than chance, and dates with rows declared independent. None of these is fixed by choosing a better model
 5. **Prescriptions**: models, drift checkers, and pipelines that fit, and what your data rules out
@@ -124,7 +124,9 @@ python dcn_shortlist.py shipments.csv
 
 The script checks models that predict a column, so it is offered when you answer "A number" or "A category". For "A future value" on rows in time order, it checks the nearest thing it can, the target predicted from the other columns and split by time, and says so above the buttons; it does not build lag features or run the forecasting models. For any other kind of answer, the section says why there is no script and what to answer instead, rather than leaving a gap.
 
-The script is held to the benchmark by `bench/tests/test_export.py`: it is generated with the site's own JavaScript, every estimator in it is compared with the benchmark's registry, and on the test fixtures it produces exactly the benchmark's scores.
+**What a wrong answer costs** decides what the script scores by. Left alone, it is the benchmark's own score: balanced accuracy for a category, R² for a number. For a category you can instead say every row counts the same (accuracy), that you will work through the riskiest rows first (ROC AUC), or that you will use the chances themselves (log loss). For a number, that every unit of error costs the same (mean absolute error), or that a miss matters relative to the true value (mean absolute percentage error, with a warning when the target has zeros). On a yes or no target you can price a miss, as in "a missed yes costs 10 false alarms". Each model is then scored by its cost per row, flagging a row when its chance is above 1 / (1 + 10), where a miss and a false alarm cost the same if the chances are right. After the scores, the script prints the threshold that cost least on your file, beside that one and the usual 0.5, and says which of them was picked after looking. Tuned boosting is tuned for the same score. The order on the page stays the benchmark's, and the page says so under the buttons: on your file, for your costs, the script's order is the one that counts.
+
+The script is held to the benchmark by `bench/tests/test_export.py`: it is generated with the site's own JavaScript, every estimator in it is compared with the benchmark's registry, and on the test fixtures it produces exactly the benchmark's scores. Each other score is recomputed by hand, fold by fold, and the reported threshold is checked against every threshold on a grid.
 
 **Run it here** runs the same script without installing anything. The page downloads Python from cdn.jsdelivr.net ([Pyodide](https://pyodide.org) 314.0.7 with pandas and scikit-learn, about 40 MB, plus XGBoost or LightGBM when the shortlist has them), starts it in a Web Worker, and hands it the page's own copy of your file: nothing is uploaded anywhere. Each model's score appears as it finishes, and the page then says where its own first pick landed on your data. What runs is the downloaded script, through its own `load()` and `evaluate()` (`site/js/verify.js`).
 
@@ -258,6 +260,8 @@ npm test             # Node 20+
 - `tests/taxonomy.test.js`: every code a model, drift checker or pipeline points at must exist.
 - `tests/build.test.js`: the built page is self-contained, carries exactly the taxonomy in `site/`, and is up to date.
 - `tests/export.test.js`: what the generated script carries: the page's reading of the file, the column roles, every runnable model's estimator, and the models it cannot run, named.
+- `tests/checks.test.js`: "Before you trust a score": what each check catches and leaves alone, and every published rate recomputed from `bench/results/checks.csv`.
+- `tests/costs.test.js`: "What does a wrong answer cost?": which choices a target gets, the score each one puts in the script, and what the page says about it.
 - `tests/verify.test.js`: "Run it here": the messages between the page and its Python worker, with a stand-in worker.
 - `tests/drift.test.js`: drift checkers ordered by what they measured, and every published rate recomputed from `bench/results/drift.csv`.
 - `tests/messy.test.js`: which damaged run a messy upload is told about, and that every one is published.
@@ -284,6 +288,8 @@ site/                  the source
     ranking.js         the learned order, fitted by the benchmark
     nearest.js         meta-features, and the benchmark datasets nearest to yours
     evidence.js        "The evidence" view, and the measured line on each card
+    checks.js          "Before you trust a score": leaks, IDs, repeated rows, dates (no DOM)
+    costs.js           "What does a wrong answer cost?": what the script scores by (no DOM)
     export.js          the take-home Python script
     report.js          "Save this reading": the findings as Markdown
     verify.js          "Run it here": that script in a Pyodide worker

@@ -11,6 +11,7 @@ import { MODEL_CODE, columnRoles, downloadScript, pythonScript, scriptable, take
 import { PYODIDE_VERSION, verdict, verifyInBrowser } from './verify.js';
 import { downloadReading, readingFileName, readingMarkdown } from './report.js';
 import { checksSummary, runChecks } from './checks.js';
+import { costSentence, resolveCost } from './costs.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
@@ -42,7 +43,8 @@ function chip(code, kind, codes) {
   return `<span class="chip${cls}" ${attr}="${esc(code)}">${esc(code)}</span>`;
 }
 
-export function renderResults(T, sig, task, profile, source = null) {
+// `answer` is what a wrong answer costs, as answered on the page (costs.js), or null.
+export function renderResults(T, sig, task, profile, source = null, answer = null) {
   const codes = matchCodes(sig);
 
   // What can make any score look better than it is, before any score.
@@ -176,10 +178,15 @@ export function renderResults(T, sig, task, profile, source = null) {
 
   renderRuledOut('pipeline-ruled', pipelines.ruledOut, 'pipelines');
 
+  // The script's task can differ from the answer: a future value is checked as a number, split by time.
+  const home = takeHomeTask(task, sig, profile, T.TASKS.find(t => t.id === task)?.label ?? task);
+  const cost = home.task && profile
+    ? resolveCost(home.task, answer, profile.columns.find(c => c.name === sig.target)) : null;
+
   renderSaveBar(() => readingMarkdown({
     T, sig, task, fileName: source?.fileName ?? 'data.csv', date: new Date().toISOString().slice(0, 10),
     build: document.querySelector('meta[name="dcn-build"]')?.content?.split(' ')[0] ?? null,
-    lead, leadText: lead ? leadSentence(T, lead) : '', models, drifts, pipelines,
+    lead, leadText: lead ? leadSentence(T, lead) : '', models, drifts, pipelines, cost,
     checks: checks ? { flags: checks.flags.map(f => ({ ...f, measured: checkSentence(T, f.kind) })),
       clear: checksSummary(checks, sig.target) } : null,
     notes: { models: document.getElementById('model-note').textContent,
@@ -201,11 +208,9 @@ export function renderResults(T, sig, task, profile, source = null) {
     }
   });
 
-  // The script's task can differ from the answer: a future value is checked as a number, split by time.
-  const home = takeHomeTask(task, sig, profile, T.TASKS.find(t => t.id === task)?.label ?? task);
   const homeModels = home.task && home.task !== task ? rankModels(T, sig, home.task, 4, meta) : models;
   renderTakeHome(T, sig, home, profile, source, homeModels.items.map(m => m.c),
-    home.task ? leadRecommendation(T, sig, home.task) : null, leftOut);
+    home.task ? leadRecommendation(T, sig, home.task) : null, leftOut, cost);
   renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
   renderNeighbours(T, neighbours, task);
   plotSpace(T, sig, meta, neighbours);
@@ -267,7 +272,7 @@ function leadCard(T, lead) {
 
 // "Take it home": the shortlist as a Python script, for the tasks the
 // benchmark covers (it needs a target to score against).
-function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftOut = []) {
+function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftOut = [], cost = null) {
   const el = document.getElementById('takehome');
   if (!el) return;
   if (!profile) { el.innerHTML = ''; return; }
@@ -283,7 +288,7 @@ function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftO
   const script = () => pythonScript({
     fileName: source?.fileName ?? 'data.csv', read: source?.read, columns: source?.columns ?? profile.columns.map(c => c.name),
     target: sig.target, task, ordered: sig.codes[1] === 'A22', ...columnRoles(profile, sig.target, leftOut),
-    shortlist: codes, leftOut,
+    shortlist: codes, leftOut, cost,
   });
   const framing = home.framed
     ? `<p class="sect-note">A future value is not something the benchmark or the script covers, so this checks the
@@ -296,7 +301,8 @@ function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftO
     <p class="sect-note">A Python script that runs ${lead ? (home.framed ? 'tuned boosting and ' : 'tuned boosting, which the page puts first, and ') : ''}${
       run.map(c => esc(names[c] ?? c)).join(', ')} on your whole file, with the preprocessing and cross-validation the
       benchmark used${lead ? '' : ', and tuned boosting beside them: on the benchmark, a small tuning budget was worth more than the choice among the top models'}.
-      ${leftOut.length ? `It leaves out ${leftOut.map(esc).join(', ')}, which ${leftOut.length === 1 ? 'looks' : 'look'} like ${leftOut.length === 1 ? 'an ID' : 'IDs'}. ` : ''}It needs pandas and scikit-learn.</p>
+      ${leftOut.length ? `It leaves out ${leftOut.map(esc).join(', ')}, which ${leftOut.length === 1 ? 'looks' : 'look'} like ${leftOut.length === 1 ? 'an ID' : 'IDs'}. ` : ''}${
+      esc(costSentence(cost))}${cost?.id === 'miss' ? ' The downloaded script also finds the threshold on the chances that cost least on your file.' : ''} It needs pandas and scikit-learn.</p>
     <div class="takehome-row">
       <button class="run takehome-btn" id="takehome-btn" type="button">Download the script</button>
       ${source?.text ? '<button class="run takehome-btn ghost" id="verify-btn" type="button">Run it here</button>' : ''}
@@ -308,18 +314,19 @@ function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftO
     <div class="verify" id="verify-out" hidden></div>` : ''}`;
   document.getElementById('takehome-btn').addEventListener('click', () => downloadScript(script()));
   document.getElementById('verify-btn')?.addEventListener('click', (event) =>
-    runHere(event.currentTarget, script(), source.text, run, home.framed ? null : (lead ? lead.c : codes[0])));
+    runHere(event.currentTarget, script(), source.text, run, home.framed ? null : (lead ? lead.c : codes[0]), cost));
 }
 
 // "Run it here": the script in a Pyodide worker, results as they arrive.
-async function runHere(button, script, csv, run, firstCode) {
+async function runHere(button, script, csv, run, firstCode, cost = null) {
+  const metric = cost ? `${cost.metric}${cost.higher ? '' : ', negative'}` : 'score';
   const out = document.getElementById('verify-out');
   const rows = [];
   const needs = run.map(c => MODEL_CODE[c]?.needs).filter(Boolean);
   const draw = (status, done = false) => {
     const sorted = done ? [...rows].sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity)) : rows;
     out.innerHTML = `<p class="verify-status">${esc(status)}</p>
-      ${rows.length ? `<table class="ev-table verify-table"><thead><tr><th>model</th><th>score</th><th>spread</th>
+      ${rows.length ? `<table class="ev-table verify-table"><thead><tr><th>model</th><th>${esc(metric)}</th><th>spread</th>
         <th>seconds</th></tr></thead><tbody>${sorted.map(r => `<tr>
         <td><span class="rec-code">${esc(r.code)}</span> ${esc(r.name)}</td>
         <td>${r.status === 'ok' ? r.score.toFixed(4) : esc(r.status)}</td>

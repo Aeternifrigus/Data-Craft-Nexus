@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -27,9 +28,11 @@ FIXTURES = ROOT / "tests" / "fixtures"
 TASKS = {"category": "classification", "number": "regression"}
 
 
-def generate(csv: Path, target: str, task: str, codes: list[str], order: str = "A21") -> str:
+def generate(csv: Path, target: str, task: str, codes: list[str], order: str = "A21", cost: str | None = None) -> str:
+    """The script the page writes. `cost` answers "What does a wrong answer cost?" (site/js/costs.js)."""
+    env = {**os.environ, "DCN_COST": cost} if cost else None
     proc = subprocess.run(["node", str(ROOT / "bench" / "tools" / "js_script.mjs"), str(csv), target, task, order,
-                           *codes], capture_output=True, text=True, check=True, cwd=ROOT)
+                           *codes], capture_output=True, text=True, check=True, cwd=ROOT, env=env)
     return proc.stdout
 
 
@@ -142,3 +145,139 @@ def test_the_page_copy_needs_no_encoding():
     from_path = script["load"](str(FIXTURES / "balanced.csv"))
     from_text = script["load"](io.StringIO((FIXTURES / "balanced.csv").read_text()))
     assert from_text.equals(from_path)
+
+
+# "What does a wrong answer cost?" -----------------------------------------------------------------------------------
+
+def fold_scores(script, code, metric, proba=False):
+    """The shortlist model's score in each of the script's folds, computed by hand with the named metric."""
+    from sklearn.base import clone
+    frame = script["load"](str(script["_csv"]))
+    X, y = script["prepare"](frame)
+    name, scale, needs, build = script["SHORTLIST"][code]
+    model = script["pipeline"](build(), scale)
+    out = []
+    for train, test in script["splits"](y).split(X, y):
+        fitted = clone(model).fit(X.iloc[train], y[train])
+        guess = fitted.predict_proba(X.iloc[test]) if proba else fitted.predict(X.iloc[test])
+        out.append(metric(y[test], guess))
+    return out
+
+
+@pytest.mark.parametrize("task,csv,target,code,cost,scoring,metric,proba,sign", [
+    ("category", "imbalanced.csv", "churn", "LM2", "rows", "accuracy", "accuracy_score", False, 1),
+    ("category", "imbalanced.csv", "churn", "LM2", "rank", "roc_auc", "roc_auc_score", "positive", 1),
+    ("category", "balanced.csv", "label", "LM2", "rank", "roc_auc_ovr", "roc_auc_score", "ovr", 1),
+    ("category", "balanced.csv", "label", "LM2", "chances", "neg_log_loss", "log_loss", True, -1),
+    ("number", "numeric.csv", "y", "LM3", "absolute", "neg_mean_absolute_error", "mean_absolute_error", False, -1),
+    ("number", "numeric.csv", "y", "LM3", "percent", "neg_mean_absolute_percentage_error",
+     "mean_absolute_percentage_error", False, -1),
+])
+def test_each_answer_is_scored_by_the_score_the_page_names(task, csv, target, code, cost, scoring, metric, proba, sign):
+    """The script's score for each answer is the metric the page describes, with the sign it says."""
+    from sklearn import metrics
+    from sklearn.model_selection import cross_val_score
+    script = load(generate(FIXTURES / csv, target, task, [code], cost=cost))
+    script["_csv"] = FIXTURES / csv
+    assert script["SCORING"] == scoring
+    assert ("shown negative" in script["METRIC"]) == (sign < 0)
+    fn = getattr(metrics, metric)
+    by_hand = {
+        False: lambda: fold_scores(script, code, fn),
+        True: lambda: fold_scores(script, code, fn, proba=True),
+        "positive": lambda: fold_scores(script, code, lambda t, p: fn(t, p[:, 1]), proba=True),
+        "ovr": lambda: fold_scores(script, code, lambda t, p: fn(t, p, multi_class="ovr"), proba=True),
+    }[proba]()
+    frame = script["load"](str(FIXTURES / csv))
+    X, y = script["prepare"](frame)
+    name, scale, needs, build = script["SHORTLIST"][code]
+    ours = cross_val_score(script["pipeline"](build(), scale), X, y, cv=script["splits"](y), scoring=script["SCORING"])
+    assert list(ours) == pytest.approx([sign * v for v in by_hand], abs=1e-12)
+
+
+def test_tuned_boosting_gives_chances_when_a_score_needs_them():
+    """Log loss and ROC AUC ask a classifier for its chances; the script's tuned boosting has to count as one."""
+    from sklearn.base import is_classifier
+    from sklearn.model_selection import cross_val_score
+    script = load(generate(FIXTURES / "imbalanced.csv", "churn", "category", ["TR1"], cost="chances"))
+    X, y = script["prepare"](script["load"](str(FIXTURES / "imbalanced.csv")))
+    model = script["pipeline"](script["TunedHGB"]("classification"), False)
+    assert is_classifier(model) and not is_classifier(script["TunedHGB"]("regression"))
+    scores = cross_val_score(model, X, y, cv=script["splits"](y), scoring=script["SCORING"], error_score="raise")
+    assert np.all(np.isfinite(scores)) and np.all(scores < 0)
+
+
+def fraud(tmp_path, n=600, seed=0):
+    """A yes or no target with signal in it: fraud is rare, and likelier as x1 grows."""
+    rng = np.random.default_rng(seed)
+    x1, x2 = rng.normal(size=n), rng.normal(size=n)
+    chance = 1 / (1 + np.exp(-(-3 + 2 * x1)))
+    frame = pd.DataFrame({"x1": x1.round(4), "x2": x2.round(4),
+                          "outcome": np.where(rng.random(n) < chance, "fraud", "ok")})
+    path = tmp_path / "fraud.csv"
+    frame.to_csv(path, index=False)
+    return path
+
+
+def test_a_priced_miss_is_scored_by_what_the_mistakes_cost(tmp_path):
+    from sklearn.base import clone
+    csv = fraud(tmp_path)
+    script = load(generate(csv, "outcome", "category", ["LM2", "SV1"], cost="miss:10"))
+    assert script["POSITIVE"] == "fraud" and script["MISS_COST"] == 10
+    assert script["THRESHOLD"] == pytest.approx(1 / 11)
+    frame = script["load"](str(csv))
+    X, y = script["prepare"](frame)
+    assert np.array_equal(y, (frame["outcome"] == "fraud").astype(int).to_numpy()), "1 is the case a miss is about"
+
+    train, test = next(script["splits"](y).split(X, y))
+    for code in ["LM2", "SV1"]:
+        name, scale, needs, build = script["SHORTLIST"][code]
+        fitted = clone(script["pipeline"](build(), scale)).fit(X.iloc[train], y[train])
+        if hasattr(fitted, "predict_proba"):
+            flagged = fitted.predict_proba(X.iloc[test])[:, 1] > 1 / 11
+        else:   # a model that gives no chances is scored on its plain answer
+            flagged = fitted.predict(X.iloc[test]) == 1
+        truth = y[test]
+        by_hand = (10 * np.sum((truth == 1) & ~flagged) + np.sum((truth == 0) & flagged)) / len(truth)
+        assert script["cost_score"](fitted, X.iloc[test], truth) == pytest.approx(-by_hand), code
+
+
+def test_the_threshold_reported_is_the_cheapest_on_the_file(tmp_path, capsys):
+    from sklearn.base import clone
+    csv = fraud(tmp_path)
+    script = load(generate(csv, "outcome", "category", ["SV1", "LM2"], cost="miss:10"))
+    frame = script["load"](str(csv))
+    # SV1 scored best but gives no chances, so the threshold is LM2's.
+    results = [{"code": "SV1", "name": "SVM (linear)", "status": "ok", "score": -0.1},
+               {"code": "LM2", "name": "Logistic Regression", "status": "ok", "score": -0.2}]
+    found = script["threshold_report"](results, frame)
+    out = capsys.readouterr().out
+    assert found["code"] == "LM2" and "Threshold, for Logistic Regression" in out
+
+    X, y = script["prepare"](frame)
+    name, scale, needs, build = script["SHORTLIST"]["LM2"]
+    p = np.zeros(len(y))
+    for train, test in script["splits"](y).split(X, y):
+        p[test] = clone(script["pipeline"](build(), scale)).fit(X.iloc[train], y[train]).predict_proba(X.iloc[test])[:, 1]
+    grid = np.linspace(0, 1, 1001)
+    costs = np.array([script["cost_per_row"](y, p > t) for t in grid])
+    assert found["cost"] == pytest.approx(costs.min(), abs=1e-12)
+    cheapest = grid[np.isclose(costs, costs.min(), rtol=0, atol=1e-12)]
+    assert found["best"] == pytest.approx(cheapest[np.argmin(np.abs(cheapest - 1 / 11))])
+    assert costs.min() <= script["cost_per_row"](y, p > 0.5), "no dearer than the default cut"
+
+
+def test_a_priced_miss_runs_from_the_command_line(tmp_path):
+    csv = fraud(tmp_path)
+    path = tmp_path / "dcn_shortlist.py"
+    path.write_text(generate(csv, "outcome", "category", ["LM2"], cost="miss:10"))
+    proc = subprocess.run([sys.executable, str(path), str(csv)], capture_output=True, text=True, timeout=600,
+                          env={"OMP_NUM_THREADS": "1", "PATH": "/usr/bin:/bin"})
+    assert proc.returncode == 0, proc.stderr
+    assert "cost per row (shown negative: closer to zero is better)" in proc.stdout
+    assert "flag a row as 'fraud' when its chance is above" in proc.stdout
+
+
+def test_an_answer_the_page_does_not_offer_is_refused():
+    with pytest.raises(subprocess.CalledProcessError):
+        generate(FIXTURES / "balanced.csv", "label", "category", ["TR1"], cost="miss:5")   # three classes

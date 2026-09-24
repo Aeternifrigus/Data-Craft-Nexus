@@ -6,13 +6,15 @@ import { profileData, signature } from '../site/js/profile.js';
 import { leadRecommendation, rankDrifts, rankModels, rankPipelines } from '../site/js/recommend.js';
 import { leadSentence } from '../site/js/evidence.js';
 import { readingFileName, readingMarkdown } from '../site/js/report.js';
+import { resolveCost } from '../site/js/costs.js';
 import { loadTaxonomyFromDisk, readFixture } from './helpers.js';
 
 const T = loadTaxonomyFromDisk();
 
-function reading(file, target, task) {
+function reading(file, target, task, answer = null) {
   const { head, body } = parseCSV(readFixture(file));
-  const sig = signature(profileData(head, body), { target, task, order: 'A21' });
+  const profile = profileData(head, body);
+  const sig = signature(profile, { target, task, order: 'A21' });
   const lead = leadRecommendation(T, sig, task);
   return {
     body,
@@ -20,6 +22,7 @@ function reading(file, target, task) {
       T, sig, task, fileName: file, date: '2026-09-24', build: 'abc1234', lead,
       leadText: lead ? leadSentence(T, lead) : '',
       models: rankModels(T, sig, task), drifts: rankDrifts(T, sig), pipelines: rankPipelines(T, sig, task),
+      cost: resolveCost(task, answer, profile.columns.find(c => c.name === target)),
       notes: { models: 'Ordered by evidence.' }, sentences: { EN4: 'On 94 classification datasets it was best 9 times.' },
     }),
   };
@@ -52,4 +55,10 @@ test('names and pipes in a file cannot break the document', () => {
   for (const row of text.split('\n').filter(l => l.startsWith('| A'))) {
     assert.equal(row.split(/(?<!\\)\|/).length, 4, `a table row split into the wrong number of cells: ${row}`);
   }
+});
+
+test('a reading says what the script scores by, and why', () => {
+  assert.match(reading('imbalanced.csv', 'churn', 'category').text, /It scores by balanced accuracy, the benchmark's own score\./);
+  const { text } = reading('imbalanced.csv', 'churn', 'category', { id: 'miss', ratio: 10 });
+  assert.match(text, /It scores by cost per row, because you said a missed "yes" costs 10 false alarms\./);
 });

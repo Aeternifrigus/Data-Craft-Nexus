@@ -166,6 +166,12 @@ button.link:hover{border-bottom-color:var(--teal)}
 .opt:hover{border-color:var(--dim);color:var(--ink)}
 .opt.sel{border-color:var(--amber);color:var(--amber);background:rgba(224,164,88,.07)}
 select.opt{color:var(--ink);padding-right:28px}
+.cost-says{font-size:12px;color:var(--dim);line-height:1.7;margin-top:10px;max-width:62ch}
+.cost-says:empty{display:none}
+.cost-ratio{display:block;color:var(--ink);margin-bottom:6px}
+.cost-ratio input{width:5.5em;background:none;border:1px solid var(--rule);color:var(--amber);
+  font:inherit;font-size:12.5px;padding:4px 6px;margin:0 4px}
+.cost-warn{color:var(--clay)}
 .runrow{padding-top:30px}
 .run{
   background:var(--chrome);border:none;color:var(--ground);font:inherit;
@@ -483,6 +489,15 @@ footer .sig{font-size:27px}
         <p class="why">A number, a category, a forecast, a grouping. This decides the paradigm before data ranks the models.</p>
       </div>
       <div><div class="opts" id="q-task"></div></div>
+    </div>
+
+    <div class="qrow">
+      <div>
+        <h4>What does a wrong answer cost?</h4>
+        <p class="why">Decides what the take-home script scores models by. Left alone, it is the benchmark's own score.
+          The order on this page stays the benchmark's either way.</p>
+      </div>
+      <div><div class="opts" id="q-cost"></div><p class="cost-says" id="cost-says"></p></div>
     </div>
 
     <div class="qrow">
@@ -1826,11 +1841,11 @@ footer .sig{font-size:27px}
     const n = Math.max(features.length, 1);
     const numeric = features.filter((c) => c.numeric && !c.dateLike).length;
     const textOrDate = features.filter((c) => c.textLike || c.dateLike).length;
-    const targetColumn = profile.columns.find((c) => c.name === target);
+    const targetColumn2 = profile.columns.find((c) => c.name === target);
     let majority = 0;
-    if (targetColumn && !targetColumn.numeric) {
+    if (targetColumn2 && !targetColumn2.numeric) {
       const counts = /* @__PURE__ */ new Map();
-      for (const value of targetColumn.values) {
+      for (const value of targetColumn2.values) {
         if (value !== "") counts.set(value, ((_a = counts.get(value)) != null ? _a : 0) + 1);
       }
       const total = [...counts.values()].reduce((a, b) => a + b, 0);
@@ -1985,6 +2000,94 @@ footer .sig{font-size:27px}
   };
   var py = (value) => JSON.stringify(value);
   var pyBool = (b) => b ? "True" : "False";
+  var oneLine = (text) => String(text).replace(/[\r\n]+/g, " ");
+  var fmtNumber = (x) => Number.isInteger(x) ? String(x) : String(Math.round(x * 1e4) / 1e4);
+  function scoringCode(cost, bench) {
+    const shown = (c) => c.metric + (c.higher ? "" : " (shown negative: closer to zero is better)");
+    if ((cost == null ? void 0 : cost.id) !== "miss") {
+      const c = cost != null ? cost : bench === "classification" ? { bench: true, scoring: "balanced_accuracy", metric: "balanced accuracy", higher: true } : { bench: true, scoring: "r2", metric: "R squared", higher: true };
+      const why = c.bench ? "the benchmark's own score" : `what you said a wrong answer costs: ${oneLine(c.label.charAt(0).toLowerCase() + c.label.slice(1))}`;
+      return `# How every model is scored, and what tuned boosting is tuned for: ${why}.
+SCORING = ${py(c.scoring)}
+METRIC = ${py(shown(c))}`;
+    }
+    return `# How every model is scored, and what tuned boosting is tuned for: what its
+# mistakes cost. You said a missed ${oneLine(py(cost.positive))} costs ${fmtNumber(cost.ratio)} false alarms. A row
+# is flagged when its chance of being POSITIVE is above THRESHOLD, where a miss
+# and a false alarm cost the same if the chances are right; a model that gives
+# no chances is scored on its plain answer.
+POSITIVE = ${py(cost.positive)}
+MISS_COST = ${fmtNumber(cost.ratio)}
+THRESHOLD = 1 / (1 + MISS_COST)
+
+
+def cost_per_row(y, flagged):
+    """A missed case costs MISS_COST, a false alarm costs 1."""
+    y = np.asarray(y)
+    return float(MISS_COST * np.sum((y == 1) & ~flagged) + np.sum((y == 0) & flagged)) / len(y)
+
+
+def chances(model, X):
+    """Each row's chance of being POSITIVE, or None from a model that gives none."""
+    if not hasattr(model, "predict_proba"):
+        return None
+    classes = list(model.classes_)
+    if 1 not in classes:   # a training fold with no case in it
+        return np.zeros(len(X))
+    return model.predict_proba(X)[:, classes.index(1)]
+
+
+def cost_score(model, X, y):
+    p = chances(model, X)
+    flagged = np.asarray(model.predict(X)) == 1 if p is None else p > THRESHOLD
+    return -cost_per_row(y, flagged)
+
+
+SCORING = cost_score
+METRIC = ${py(shown(cost))}`;
+  }
+  var THRESHOLD_CODE = `
+
+def threshold_report(results, frame):
+    """The threshold on the chances that cost least on your file, for the best model that gives chances.
+
+    The chances come from rows each model did not train on, in the same folds as above.
+    """
+    X, y = prepare(frame)
+    cv = splits(y)
+    builds = {code: (scale, build) for code, (name, scale, needs, build) in SHORTLIST.items()}
+    builds["BASE-HGB-TUNED"] = (False, lambda: TunedHGB(TASK))
+    for row in sorted((r for r in results if r["status"] == "ok"), key=lambda r: -r["score"]):
+        scale, build = builds[row["code"]]
+        if not hasattr(pipeline(build(), scale), "predict_proba"):
+            continue
+        print(f"\\nThreshold, for {row['name']}, the best model that gives chances:")
+        p, seen = np.zeros(len(y)), np.zeros(len(y), dtype=bool)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for train, test in cv.split(X, y):
+                fitted = pipeline(build(), scale).fit(X.iloc[train], y[train])
+                p[test], seen[test] = chances(fitted, X.iloc[test]), True
+        p, truth = p[seen], y[seen]
+        order = np.argsort(p)
+        cases_below = np.concatenate([[0], np.cumsum(truth[order] == 1)])   # cases among the k lowest chances
+        grid = np.linspace(0, 1, 1001)
+        kept = np.searchsorted(p[order], grid, side="right")               # rows at or below each threshold
+        missed = cases_below[kept]
+        false_alarms = (len(p) - kept) - (cases_below[-1] - missed)
+        costs = (MISS_COST * missed + false_alarms) / len(p)
+        ties = grid[costs == costs.min()]   # of equally cheap thresholds, the one nearest THRESHOLD
+        best = float(ties[np.argmin(np.abs(ties - THRESHOLD))])
+        print(f"  flag a row as {POSITIVE!r} when its chance is above")
+        print(f"    {best:.3f}  cost {costs.min():.4f} per row on your file, the least of any threshold")
+        print(f"    {THRESHOLD:.3f}  cost {cost_per_row(truth, p > THRESHOLD):.4f}, where a miss and a false alarm cost the same")
+        print(f"    0.500  cost {cost_per_row(truth, p > 0.5):.4f}, what a plain yes or no from the model does")
+        print(f"  The first was picked on the rows it is scored on, so it flatters itself; {THRESHOLD:.3f} was set")
+        print("  before looking. Prefer it unless the gap is large.")
+        return {"code": row["code"], "best": best, "cost": float(costs.min())}
+    print("\\nNo model that finished gives chances, so there is no threshold to tune.")
+    return None
+`;
   function scriptable(codes, task) {
     const key = task === "category" ? "cls" : "reg";
     const run = codes.filter((c) => {
@@ -2033,6 +2136,7 @@ footer .sig{font-size:27px}
     categorical,
     shortlist,
     leftOut = [],
+    cost = null,
     pageUrl = "https://aeternifrigus.github.io/Data-Craft-Nexus/",
     date = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
   }) {
@@ -2043,6 +2147,8 @@ footer .sig{font-size:27px}
     const entries = run.map((c) => `    ${py(c)}: (${py(MODEL_CODE[c].name)}, ${pyBool(!!MODEL_CODE[c].scale)}, ${MODEL_CODE[c].needs ? py(MODEL_CODE[c].needs) : "None"}, lambda: ${MODEL_CODE[c][key]}),`).join("\n");
     const skippedNote = skipped.length ? `
 # Recommended but not runnable on a table here: ${skipped.join(", ")}.` : "";
+    const priced = cost && cost.kind === task ? cost : null;
+    const miss = (priced == null ? void 0 : priced.id) === "miss";
     const leftOutNote = leftOut.length ? `
 # Left out of the features: ${leftOut.join(", ")}. The page found a different value in almost every row,
 # like an ID, which a model can memorise and which says nothing about new rows.` : "";
@@ -2056,7 +2162,11 @@ It uses the preprocessing, estimators and cross-validation the site's
 benchmark uses, and runs tuned boosting beside the shortlist: on the
 benchmark, ten configurations of boosting were worth more than the choice
 among the top model families, so a recommendation should be checked against it.
-
+${priced && !priced.bench ? `
+It scores by ${priced.metric}, from what you said a wrong answer costs. The
+benchmark scored by ${bench === "classification" ? "balanced accuracy" : "R squared"}, and the page's order is by that, so
+the order here can differ from the page's; for your costs, this one counts.
+` : ""}
     python dcn_shortlist.py path/to/${fileName}
 
 Needs pandas and scikit-learn; XGBoost and LightGBM if the shortlist has them
@@ -2163,8 +2273,22 @@ class TunedHGB(BaseEstimator):
     def predict(self, X):
         return self.search_.predict(X)
 
+    def predict_proba(self, X):
+        return self.search_.predict_proba(X)
 
-SCORING = "balanced_accuracy" if TASK == "classification" else "r2"
+    # A classifier to scikit-learn when it predicts a category, so a score
+    # that needs chances can ask it for them.
+    @property
+    def _estimator_type(self):   # scikit-learn before 1.6
+        return "classifier" if self.task == "classification" else "regressor"
+
+    def __sklearn_tags__(self):   # scikit-learn 1.6 and later
+        tags = super().__sklearn_tags__()
+        tags.estimator_type = self._estimator_type
+        return tags
+
+
+${scoringCode(priced, bench)}
 
 
 def pipeline(estimator, scale):
@@ -2209,7 +2333,9 @@ def prepare(frame):
     frame = frame[frame[TARGET].map(as_text).notna()]
     X = frame[NUMERIC + CATEGORICAL]
     if TASK == "classification":
-        y = LabelEncoder().fit_transform(frame[TARGET].astype(str))
+        ${miss ? `y = (frame[TARGET].astype(str).str.strip() == POSITIVE).astype(int).to_numpy()   # 1 is a case
+        if not y.any():
+            raise SystemExit(f"No row of {TARGET} is {POSITIVE!r}, the case the page priced. Is this the same file?")` : "y = LabelEncoder().fit_transform(frame[TARGET].astype(str))"}
     else:
         y = frame[TARGET].map(as_number).astype(float)
         X, y = X[y.notna()], y[y.notna()].to_numpy()
@@ -2247,21 +2373,22 @@ def evaluate(frame, progress=print):
                 row.update(status="ok", score=float(np.mean(scores)), spread=float(np.std(scores)),
                            seconds=round(time.time() - started, 1))
             except Exception as exc:  # a model that cannot handle this data is a result too
-                row.update(status="error", detail=f"{type(exc).__name__}: {exc}"[:200])
+                detail = ("gives no chances, which this score needs" if "predict_proba" in str(exc)
+                          else f"{type(exc).__name__}: {exc}")
+                row.update(status="error", detail=detail[:200])
         results.append(row)
         progress(row)
     return results
 
 
 def report(results):
-    metric = "balanced accuracy" if TASK == "classification" else "R squared"
-    print(f"\\n{len(results)} models, 5-fold {'time-ordered ' if ORDERED else ''}cross-validation, {metric}:\\n")
+    print(f"\\n{len(results)} models, 5-fold {'time-ordered ' if ORDERED else ''}cross-validation, {METRIC}:\\n")
     for row in sorted(results, key=lambda r: -r.get("score", -np.inf)):
         if row["status"] == "ok":
             print(f"  {row['score']:.4f} \xB1 {row['spread']:.4f}  {row['code']:15} {row['name']}  ({row['seconds']}s)")
         else:
             print(f"  {row['status']:>15}  {row['code']:15} {row['name']}: {row.get('detail', '')}")
-
+${miss ? THRESHOLD_CODE : ""}
 
 def load(source):
     """The file as the page read it: every cell as text, under the page's column names.
@@ -2280,7 +2407,9 @@ def load(source):
 
 def main():
     path = sys.argv[1] if len(sys.argv) > 1 else FILE
-    report(evaluate(load(path), progress=lambda row: print(".", end="", flush=True)))
+    frame = load(path)
+    results = evaluate(frame, progress=lambda row: print(".", end="", flush=True))
+    report(results)${miss ? "\n    threshold_report(results, frame)" : ""}
 
 
 if __name__ == "__main__":
@@ -2418,6 +2547,158 @@ self.onmessage = async (event) => {
     return `${n}${suffix}`;
   }
 
+  // site/js/costs.js
+  var MISS_RATIO = 5;
+  var MISS_RATIO_MAX = 1e3;
+  var OPTIONS = {
+    category: [
+      {
+        id: "balanced",
+        bench: true,
+        label: "Every class matters the same, however rare",
+        scoring: "balanced_accuracy",
+        metric: "balanced accuracy",
+        higher: true,
+        says: "The benchmark's own score: the share of each class it gets right, averaged over the classes, so a rare class counts as much as a common one."
+      },
+      {
+        id: "rows",
+        label: "Every row counts the same",
+        scoring: "accuracy",
+        metric: "accuracy",
+        higher: true,
+        says: "The share of rows it gets right. When one class is rare, always guessing the common one already scores well, so read it beside how rare the rare class is."
+      },
+      {
+        id: "miss",
+        binary: true,
+        label: "Missing a rare case costs more than a false alarm",
+        scoring: null,
+        metric: "cost per row",
+        higher: false,
+        says: "Each model is scored by what its mistakes cost per row: a missed case at the price you set, a false alarm at 1. The script also finds the threshold on the model's chances that cost least on your file."
+      },
+      {
+        id: "rank",
+        label: "I will work through the riskiest rows first",
+        scoring: "roc_auc",
+        metric: "ROC AUC",
+        higher: true,
+        says: "How often the model ranks a real case above one that is not, from its chances: 1 is a perfect order, 0.5 a coin toss. What matters is the order, not where the line is drawn."
+      },
+      {
+        id: "chances",
+        label: "I will use the chances themselves",
+        scoring: "neg_log_loss",
+        metric: "log loss",
+        higher: false,
+        says: "How far the chances are from what happened, punishing a confident wrong answer most. Use it when a 30% chance has to come true about 30% of the time."
+      }
+    ],
+    number: [
+      {
+        id: "squared",
+        bench: true,
+        label: "One big miss is worse than several small ones",
+        scoring: "r2",
+        metric: "R squared",
+        higher: true,
+        says: "The benchmark's own score, built on squared error, so one big miss outweighs many small ones. 1 is perfect, 0 is no better than always guessing the average."
+      },
+      {
+        id: "absolute",
+        label: "Every unit of error costs the same",
+        scoring: "neg_mean_absolute_error",
+        metric: "mean absolute error",
+        higher: false,
+        says: "The average size of a miss, in the target's own units. A big miss counts for its size and no more."
+      },
+      {
+        id: "percent",
+        label: "A miss matters relative to the true value",
+        scoring: "neg_mean_absolute_percentage_error",
+        metric: "mean absolute percentage error",
+        higher: false,
+        says: "The average miss as a share of the true value, written as a fraction: 0.12 is 12%. Off by 10 on 20 counts far more than off by 10 on 1,000."
+      }
+    ]
+  };
+  function costTask(task, column) {
+    if (task === "category" || task === "number") return task;
+    if (task === "forecast") return column && !column.numeric ? "category" : "number";
+    return null;
+  }
+  function twoClasses(column) {
+    var _a, _b;
+    if (!column) return null;
+    const counts = /* @__PURE__ */ new Map();
+    for (const v of (_a = column.values) != null ? _a : []) {
+      if (isMissing(v)) continue;
+      const key = String(v).trim();
+      counts.set(key, ((_b = counts.get(key)) != null ? _b : 0) + 1);
+    }
+    if (counts.size !== 2) return null;
+    const [a, b] = [...counts.entries()].sort((x, y) => x[1] - y[1] || (x[0] < y[0] ? 1 : x[0] > y[0] ? -1 : 0));
+    return { rare: a[0], rareCount: a[1], common: b[0], commonCount: b[1] };
+  }
+  function costOptions(kind, column) {
+    var _a;
+    const pair = kind === "category" ? twoClasses(column) : null;
+    return ((_a = OPTIONS[kind]) != null ? _a : []).filter((o) => !o.binary || pair).map((o) => o.id === "miss" ? { ...o, label: `Missing a "${pair.rare}" costs more than a false alarm` } : o);
+  }
+  var benchCost = (kind) => {
+    var _a, _b;
+    return (_b = (_a = OPTIONS[kind]) == null ? void 0 : _a.find((o) => o.bench)) != null ? _b : null;
+  };
+  function costWarning(kind, id, column) {
+    if (kind === "number" && id === "percent" && (column == null ? void 0 : column.zeroRate) > 0) {
+      const share = column.zeroRate * 100;
+      return `${share < 1 ? "Under 1%" : `${Math.round(share)}%`} of the values of ${column.name} are zero, and a miss on a true zero is an infinite share of it. The score will be meaningless unless those rows go.`;
+    }
+    if (kind === "category" && id === "rows") {
+      const pair = twoClasses(column);
+      if (pair) {
+        const share = pair.commonCount / (pair.rareCount + pair.commonCount);
+        if (share >= 0.8) {
+          return `Always answering "${pair.common}" already gets ${Math.round(share * 100)}% of rows right here.`;
+        }
+      }
+    }
+    return "";
+  }
+  function resolveCost(kind, answer, column) {
+    var _a;
+    const options = costOptions(kind, column);
+    const chosen = (_a = options.find((o) => o.id === (answer == null ? void 0 : answer.id))) != null ? _a : benchCost(kind);
+    if (!chosen) return null;
+    const out = {
+      kind,
+      id: chosen.id,
+      bench: !!chosen.bench,
+      label: chosen.label,
+      metric: chosen.metric,
+      higher: chosen.higher,
+      scoring: chosen.scoring,
+      says: chosen.says
+    };
+    if (chosen.id === "rank" && !twoClasses(column)) out.scoring = "roc_auc_ovr";
+    if (chosen.id === "miss") {
+      const pair = twoClasses(column);
+      const ratio = Number(answer == null ? void 0 : answer.ratio);
+      out.ratio = Number.isFinite(ratio) && ratio >= 1 ? Math.min(ratio, MISS_RATIO_MAX) : MISS_RATIO;
+      out.positive = pair.rare;
+      out.threshold = 1 / (1 + out.ratio);
+    }
+    return out;
+  }
+  function costSentence(cost) {
+    if (!cost) return "";
+    if (cost.bench) return `It scores by ${cost.metric}, the benchmark's own score.`;
+    const said = cost.id === "miss" ? `a missed "${cost.positive}" costs ${fmtRatio(cost.ratio)} false alarms` : cost.label.charAt(0).toLowerCase() + cost.label.slice(1);
+    return `It scores by ${cost.metric}, because you said ${said}. The order above is the benchmark's, which scored by ${benchCost(cost.kind).metric}, so on your file the script's order may differ, and for your costs it is the one that counts.`;
+  }
+  var fmtRatio = (r) => Number.isInteger(r) ? String(r) : String(Math.round(r * 100) / 100);
+
   // site/js/report.js
   var line = (text) => String(text != null ? text : "").replace(/\s+/g, " ").trim();
   var cell = (text) => line(text).replace(/\|/g, "\\|");
@@ -2439,7 +2720,8 @@ self.onmessage = async (event) => {
     pipelines,
     notes = {},
     sentences = {},
-    checks = null
+    checks = null,
+    cost = null
   }) {
     var _a, _b, _c, _d, _e, _f, _g;
     const taskLabel = (_b = (_a = T.TASKS.find((t) => t.id === task)) == null ? void 0 : _a.label) != null ? _b : task;
@@ -2500,7 +2782,7 @@ self.onmessage = async (event) => {
     out.push(
       "## Take it home",
       "",
-      `The page can write a Python script that runs the shortlist on the whole file with the benchmark's preprocessing and cross-validation ("Download the script"), or run the same script in the browser ("Run it here").`,
+      `The page can write a Python script that runs the shortlist on the whole file with the benchmark's preprocessing and cross-validation ("Download the script"), or run the same script in the browser ("Run it here").` + (cost ? ` ${costSentence(cost)}` : ""),
       ""
     );
     out.push("---", "", 'Generated by Data Craft Nexus, https://aeternifrigus.github.io/Data-Craft-Nexus/. Every "measured" line comes from its published benchmark, on the evidence tab.', "");
@@ -2779,7 +3061,7 @@ self.onmessage = async (event) => {
     const cls = codes ? ` ${codes.includes(code) ? "hit" : "miss"}` : "";
     return `<span class="chip${cls}" ${attr}="${esc(code)}">${esc(code)}</span>`;
   }
-  function renderResults(T, sig, task, profile, source = null) {
+  function renderResults(T, sig, task, profile, source = null, answer = null) {
     var _a, _b, _c, _d, _e, _f, _g;
     const codes = matchCodes(sig);
     const checks = profile ? runChecks(profile, { target: sig.target, task, order: sig.codes[1] }) : null;
@@ -2893,6 +3175,8 @@ self.onmessage = async (event) => {
     </article>`;
     }).join("");
     renderRuledOut("pipeline-ruled", pipelines.ruledOut, "pipelines");
+    const home = takeHomeTask(task, sig, profile, (_g = (_f = T.TASKS.find((t) => t.id === task)) == null ? void 0 : _f.label) != null ? _g : task);
+    const cost = home.task && profile ? resolveCost(home.task, answer, profile.columns.find((c) => c.name === sig.target)) : null;
     renderSaveBar(() => {
       var _a2, _b2, _c2, _d2;
       return readingMarkdown({
@@ -2907,6 +3191,7 @@ self.onmessage = async (event) => {
         models,
         drifts,
         pipelines,
+        cost,
         checks: checks ? {
           flags: checks.flags.map((f) => ({ ...f, measured: checkSentence(T, f.kind) })),
           clear: checksSummary(checks, sig.target)
@@ -2931,7 +3216,6 @@ self.onmessage = async (event) => {
         });
       }
     });
-    const home = takeHomeTask(task, sig, profile, (_g = (_f = T.TASKS.find((t) => t.id === task)) == null ? void 0 : _f.label) != null ? _g : task);
     const homeModels = home.task && home.task !== task ? rankModels(T, sig, home.task, 4, meta) : models;
     renderTakeHome(
       T,
@@ -2941,7 +3225,8 @@ self.onmessage = async (event) => {
       source,
       homeModels.items.map((m) => m.c),
       home.task ? leadRecommendation(T, sig, home.task) : null,
-      leftOut
+      leftOut,
+      cost
     );
     renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
     renderNeighbours(T, neighbours, task);
@@ -3000,7 +3285,7 @@ self.onmessage = async (event) => {
       </div>
     </article>`;
   }
-  function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftOut = []) {
+  function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftOut = [], cost = null) {
     var _a, _b;
     const el = document.getElementById("takehome");
     if (!el) return;
@@ -3027,7 +3312,8 @@ self.onmessage = async (event) => {
         ordered: sig.codes[1] === "A22",
         ...columnRoles(profile, sig.target, leftOut),
         shortlist: codes,
-        leftOut
+        leftOut,
+        cost
       });
     };
     const framing = home.framed ? `<p class="sect-note">A future value is not something the benchmark or the script covers, so this checks the
@@ -3041,7 +3327,7 @@ self.onmessage = async (event) => {
       return esc((_a2 = names[c]) != null ? _a2 : c);
     }).join(", ")} on your whole file, with the preprocessing and cross-validation the
       benchmark used${lead ? "" : ", and tuned boosting beside them: on the benchmark, a small tuning budget was worth more than the choice among the top models"}.
-      ${leftOut.length ? `It leaves out ${leftOut.map(esc).join(", ")}, which ${leftOut.length === 1 ? "looks" : "look"} like ${leftOut.length === 1 ? "an ID" : "IDs"}. ` : ""}It needs pandas and scikit-learn.</p>
+      ${leftOut.length ? `It leaves out ${leftOut.map(esc).join(", ")}, which ${leftOut.length === 1 ? "looks" : "look"} like ${leftOut.length === 1 ? "an ID" : "IDs"}. ` : ""}${esc(costSentence(cost))}${(cost == null ? void 0 : cost.id) === "miss" ? " The downloaded script also finds the threshold on the chances that cost least on your file." : ""} It needs pandas and scikit-learn.</p>
     <div class="takehome-row">
       <button class="run takehome-btn" id="takehome-btn" type="button">Download the script</button>
       ${(source == null ? void 0 : source.text) ? '<button class="run takehome-btn ghost" id="verify-btn" type="button">Run it here</button>' : ""}
@@ -3052,9 +3338,10 @@ self.onmessage = async (event) => {
       models, so on a large file this takes minutes.</p>
     <div class="verify" id="verify-out" hidden></div>` : ""}`;
     document.getElementById("takehome-btn").addEventListener("click", () => downloadScript(script()));
-    (_b = document.getElementById("verify-btn")) == null ? void 0 : _b.addEventListener("click", (event) => runHere(event.currentTarget, script(), source.text, run, home.framed ? null : lead ? lead.c : codes[0]));
+    (_b = document.getElementById("verify-btn")) == null ? void 0 : _b.addEventListener("click", (event) => runHere(event.currentTarget, script(), source.text, run, home.framed ? null : lead ? lead.c : codes[0], cost));
   }
-  async function runHere(button, script, csv, run, firstCode) {
+  async function runHere(button, script, csv, run, firstCode, cost = null) {
+    const metric = cost ? `${cost.metric}${cost.higher ? "" : ", negative"}` : "score";
     const out = document.getElementById("verify-out");
     const rows = [];
     const needs = run.map((c) => {
@@ -3067,7 +3354,7 @@ self.onmessage = async (event) => {
         return ((_a = b.score) != null ? _a : -Infinity) - ((_b = a.score) != null ? _b : -Infinity);
       }) : rows;
       out.innerHTML = `<p class="verify-status">${esc(status2)}</p>
-      ${rows.length ? `<table class="ev-table verify-table"><thead><tr><th>model</th><th>score</th><th>spread</th>
+      ${rows.length ? `<table class="ev-table verify-table"><thead><tr><th>model</th><th>${esc(metric)}</th><th>spread</th>
         <th>seconds</th></tr></thead><tbody>${sorted.map((r) => {
         var _a, _b;
         return `<tr>
@@ -3423,7 +3710,7 @@ self.onmessage = async (event) => {
     profile: null,
     // How the file was read, so a generated script reads it the same way.
     source: null,
-    decl: { target: null, task: null, order: null, mode: "batch", labels: "delayed", stage: null }
+    decl: { target: null, task: null, order: null, mode: "batch", labels: "delayed", stage: null, cost: null }
   };
   var OPERATING = {
     mode: [
@@ -3518,6 +3805,7 @@ self.onmessage = async (event) => {
       decl.target = sel.value || null;
       setSlot(1, decl.target === "__none__" ? "A12" : "A11", true);
       showMeasuredAxes(decl.target === "__none__" ? null : decl.target);
+      buildCost();
       checkReady();
     });
     t.appendChild(sel);
@@ -3527,8 +3815,11 @@ self.onmessage = async (event) => {
       tk.querySelectorAll("button").forEach((o) => o.classList.remove("sel"));
       b.classList.add("sel");
       decl.task = b.dataset.task;
+      buildCost();
       checkReady();
     }));
+    decl.cost = null;
+    buildCost();
     for (const [key, options] of Object.entries(OPERATING)) {
       const box = document.getElementById(`q-${key}`);
       box.innerHTML = options.map(([value, label]) => `<button class="opt${decl[key] === value ? " sel" : ""}" data-value="${esc(value)}">${esc(label)}</button>`).join("");
@@ -3549,6 +3840,53 @@ self.onmessage = async (event) => {
       setSlot(2, decl.order, true);
       checkReady();
     }));
+  }
+  function targetColumn() {
+    var _a;
+    const { decl, profile } = state;
+    return decl.target && decl.target !== "__none__" ? (_a = profile.columns.find((c) => c.name === decl.target)) != null ? _a : null : null;
+  }
+  function buildCost() {
+    var _a, _b;
+    const { decl } = state;
+    const box = document.getElementById("q-cost");
+    const says = document.getElementById("cost-says");
+    const column = targetColumn();
+    const kind = column ? costTask(decl.task, column) : null;
+    if (!kind) {
+      decl.cost = null;
+      box.innerHTML = "";
+      says.textContent = column && decl.task ? "The script scores a number or a category, so there is nothing to price for this kind of answer." : "Pick the column to predict and the kind of answer first.";
+      return;
+    }
+    const options = costOptions(kind, column);
+    if (!options.some((o) => {
+      var _a2;
+      return o.id === ((_a2 = decl.cost) == null ? void 0 : _a2.id);
+    })) decl.cost = null;
+    const current = (_b = (_a = decl.cost) == null ? void 0 : _a.id) != null ? _b : benchCost(kind).id;
+    box.innerHTML = options.map((o) => `<button class="opt${o.id === current ? " sel" : ""}" data-cost="${esc(o.id)}">${esc(o.label)}</button>`).join("");
+    box.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+      var _a2, _b2;
+      decl.cost = b.dataset.cost === benchCost(kind).id ? null : { id: b.dataset.cost, ratio: (_b2 = (_a2 = decl.cost) == null ? void 0 : _a2.ratio) != null ? _b2 : MISS_RATIO };
+      buildCost();
+    }));
+    showCost(kind, column);
+  }
+  function showCost(kind, column) {
+    var _a;
+    const { decl } = state;
+    const says = document.getElementById("cost-says");
+    const cost = resolveCost(kind, decl.cost, column);
+    const warning = costWarning(kind, cost.id, column);
+    const rare = cost.id === "miss" ? column.values.filter((v) => String(v).trim() === cost.positive).length : 0;
+    says.innerHTML = (cost.id === "miss" ? `<label class="cost-ratio">A missed "${esc(cost.positive)}" (${rare.toLocaleString()} of your rows) costs
+        <input type="number" id="cost-ratio" min="1" max="${MISS_RATIO_MAX}" step="any" value="${esc(fmtRatio(cost.ratio))}"
+        aria-label="How many false alarms one miss costs"> false alarms.</label> ` : "") + esc(cost.says) + (warning ? ` <span class="cost-warn">${esc(warning)}</span>` : "");
+    (_a = document.getElementById("cost-ratio")) == null ? void 0 : _a.addEventListener("change", (e) => {
+      decl.cost = { id: "miss", ratio: Number(e.target.value) };
+      showCost(kind, column);
+    });
   }
   function checkReady() {
     const { decl } = state;
@@ -3595,7 +3933,7 @@ self.onmessage = async (event) => {
       setSlot(5, sig.codes[4], sig.balance != null);
       showFlags(sig);
       document.getElementById("results").classList.add("on");
-      renderResults(state.T, sig, state.decl.task, state.profile, state.source);
+      renderResults(state.T, sig, state.decl.task, state.profile, state.source, state.decl.cost);
       document.getElementById("results").scrollIntoView({ block: "start" });
     });
   }

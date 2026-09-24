@@ -139,6 +139,12 @@ button.link:hover{border-bottom-color:var(--teal)}
 .opt:hover{border-color:var(--dim);color:var(--ink)}
 .opt.sel{border-color:var(--amber);color:var(--amber);background:rgba(224,164,88,.07)}
 select.opt{color:var(--ink);padding-right:28px}
+.cost-says{font-size:12px;color:var(--dim);line-height:1.7;margin-top:10px;max-width:62ch}
+.cost-says:empty{display:none}
+.cost-ratio{display:block;color:var(--ink);margin-bottom:6px}
+.cost-ratio input{width:5.5em;background:none;border:1px solid var(--rule);color:var(--amber);
+  font:inherit;font-size:12.5px;padding:4px 6px;margin:0 4px}
+.cost-warn{color:var(--clay)}
 .runrow{padding-top:30px}
 .run{
   background:var(--chrome);border:none;color:var(--ground);font:inherit;

@@ -8,15 +8,18 @@ import { renderResults } from './results.js';
 import { initDrawer } from './drawer.js';
 import { buildLibrary, initLibrarySearch } from './library.js';
 import { buildEvidence } from './evidence.js';
+import { MISS_RATIO, MISS_RATIO_MAX, benchCost, costOptions, costTask, costWarning, fmtRatio,
+  resolveCost } from './costs.js';
 
 // mode and labels describe how the thing will run once it is built. They
 // start at the common case and can be changed; the other three have no
-// default because the data cannot imply them.
+// default because the data cannot imply them. cost is what a wrong answer
+// costs; null is the benchmark's own score.
 const state = {
   T: null, rows: [], cols: [], profile: null,
   // How the file was read, so a generated script reads it the same way.
   source: null,
-  decl: { target: null, task: null, order: null, mode: 'batch', labels: 'delayed', stage: null },
+  decl: { target: null, task: null, order: null, mode: 'batch', labels: 'delayed', stage: null, cost: null },
 };
 
 const OPERATING = {
@@ -115,6 +118,7 @@ function buildDeclarations() {
     decl.target = sel.value || null;
     setSlot(1, decl.target === '__none__' ? 'A12' : 'A11', true);
     showMeasuredAxes(decl.target === '__none__' ? null : decl.target);
+    buildCost();
     checkReady();
   });
   t.appendChild(sel);
@@ -123,8 +127,10 @@ function buildDeclarations() {
   tk.innerHTML = T.TASKS.map(x => `<button class="opt" data-task="${esc(x.id)}">${esc(x.label)}</button>`).join('');
   tk.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
     tk.querySelectorAll('button').forEach(o => o.classList.remove('sel'));
-    b.classList.add('sel'); decl.task = b.dataset.task; checkReady();
+    b.classList.add('sel'); decl.task = b.dataset.task; buildCost(); checkReady();
   }));
+  decl.cost = null;
+  buildCost();
 
   for (const [key, options] of Object.entries(OPERATING)) {
     const box = document.getElementById(`q-${key}`);
@@ -147,6 +153,56 @@ function buildDeclarations() {
     b.classList.add('sel'); decl.order = b.dataset.o;
     setSlot(2, decl.order, true); checkReady();
   }));
+}
+
+// "What does a wrong answer cost?": the choices depend on the target and the
+// kind of answer, so they are drawn again whenever either changes.
+function targetColumn() {
+  const { decl, profile } = state;
+  return decl.target && decl.target !== '__none__' ? profile.columns.find(c => c.name === decl.target) ?? null : null;
+}
+
+function buildCost() {
+  const { decl } = state;
+  const box = document.getElementById('q-cost');
+  const says = document.getElementById('cost-says');
+  const column = targetColumn();
+  const kind = column ? costTask(decl.task, column) : null;
+  if (!kind) {
+    decl.cost = null;
+    box.innerHTML = '';
+    says.textContent = column && decl.task
+      ? 'The script scores a number or a category, so there is nothing to price for this kind of answer.'
+      : 'Pick the column to predict and the kind of answer first.';
+    return;
+  }
+  const options = costOptions(kind, column);
+  if (!options.some(o => o.id === decl.cost?.id)) decl.cost = null;
+  const current = decl.cost?.id ?? benchCost(kind).id;
+  box.innerHTML = options.map(o =>
+    `<button class="opt${o.id === current ? ' sel' : ''}" data-cost="${esc(o.id)}">${esc(o.label)}</button>`).join('');
+  box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    decl.cost = b.dataset.cost === benchCost(kind).id ? null : { id: b.dataset.cost, ratio: decl.cost?.ratio ?? MISS_RATIO };
+    buildCost();
+  }));
+  showCost(kind, column);
+}
+
+function showCost(kind, column) {
+  const { decl } = state;
+  const says = document.getElementById('cost-says');
+  const cost = resolveCost(kind, decl.cost, column);
+  const warning = costWarning(kind, cost.id, column);
+  const rare = cost.id === 'miss' ? column.values.filter(v => String(v).trim() === cost.positive).length : 0;
+  says.innerHTML = (cost.id === 'miss'
+    ? `<label class="cost-ratio">A missed "${esc(cost.positive)}" (${rare.toLocaleString()} of your rows) costs
+        <input type="number" id="cost-ratio" min="1" max="${MISS_RATIO_MAX}" step="any" value="${esc(fmtRatio(cost.ratio))}"
+        aria-label="How many false alarms one miss costs"> false alarms.</label> `
+    : '') + esc(cost.says) + (warning ? ` <span class="cost-warn">${esc(warning)}</span>` : '');
+  document.getElementById('cost-ratio')?.addEventListener('change', (e) => {
+    decl.cost = { id: 'miss', ratio: Number(e.target.value) };
+    showCost(kind, column);
+  });
 }
 
 function checkReady() {
@@ -188,7 +244,7 @@ function initIntake() {
     // Shown before it is drawn: the plot takes its width from its container,
     // and a hidden one gives Plotly its 700-pixel default, wider than a phone.
     document.getElementById('results').classList.add('on');
-    renderResults(state.T, sig, state.decl.task, state.profile, state.source);
+    renderResults(state.T, sig, state.decl.task, state.profile, state.source, state.decl.cost);
     document.getElementById('results').scrollIntoView({ block: 'start' });
   });
 }

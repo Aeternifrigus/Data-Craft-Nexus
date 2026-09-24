@@ -2048,20 +2048,27 @@ footer .sig{font-size:27px}
       needs: "lightgbm",
       cls: "lightgbm.LGBMClassifier(random_state=SEED, verbose=-1, n_jobs=-1)",
       reg: "lightgbm.LGBMRegressor(random_state=SEED, verbose=-1, n_jobs=-1)"
-    }
+    },
+    // Forecasting models: `fc` names the script's function that predicts each
+    // row from the rows before it. The benchmark never ran these.
+    TSM1: { name: "ARIMA", needs: "statsmodels", fc: "arima" },
+    TSM2: { name: "Exponential Smoothing (Holt-Winters)", needs: "statsmodels", fc: "smoothing" }
+  };
+  var NOT_RUNNABLE = {
+    TSM3: "Prophet needs Stan, a compiled backend that the page cannot load and the script does not install"
   };
   var py = (value) => JSON.stringify(value);
   var pyBool = (b) => b ? "True" : "False";
   var oneLine = (text) => String(text).replace(/[\r\n]+/g, " ");
   var fmtNumber = (x) => Number.isInteger(x) ? String(x) : String(Math.round(x * 1e4) / 1e4);
   function scoringCode(cost, bench) {
-    const shown = (c) => c.metric + (c.higher ? "" : " (shown negative: closer to zero is better)");
+    const shown2 = (c) => c.metric + (c.higher ? "" : " (shown negative: closer to zero is better)");
     if ((cost == null ? void 0 : cost.id) !== "miss") {
       const c = cost != null ? cost : bench === "classification" ? { bench: true, scoring: "balanced_accuracy", metric: "balanced accuracy", higher: true } : { bench: true, scoring: "r2", metric: "R squared", higher: true };
       const why = c.bench ? "the benchmark's own score" : `what you said a wrong answer costs: ${oneLine(c.label.charAt(0).toLowerCase() + c.label.slice(1))}`;
       return `# How every model is scored, and what tuned boosting is tuned for: ${why}.
 SCORING = ${py(c.scoring)}
-METRIC = ${py(shown(c))}`;
+METRIC = ${py(shown2(c))}`;
     }
     return `# How every model is scored, and what tuned boosting is tuned for: what its
 # mistakes cost. You said a missed ${oneLine(py(cost.positive))} costs ${fmtNumber(cost.ratio)} false alarms. A row
@@ -2096,8 +2103,153 @@ def cost_score(model, X, y):
 
 
 SCORING = cost_score
-METRIC = ${py(shown(cost))}`;
+METRIC = ${py(shown2(cost))}`;
   }
+  var FORECAST_METHODS = `
+
+# Forecasting. Every method gets the whole series and one fold (the rows it
+# may learn from, and the rows it is scored on), and predicts each scored row
+# using only the rows before it.
+def last_value(y, train, test):
+    return y[test - 1]
+
+
+def running_average(y, train, test):
+    return np.cumsum(y)[test - 1] / test
+
+
+def one_step(fitted, y, test):
+    """One step ahead through the scored rows, with the parameters fitted on the rows before them."""
+    extended = fitted.append(y[test[0]:test[-1] + 1])
+    return np.asarray(extended.predict(start=int(test[0]), end=int(test[-1])))
+
+
+def arima(y, train, test):
+    """ARIMA, its order chosen by AIC on the training rows, among the small ones."""
+    from statsmodels.tsa.statespace.sarimax import SARIMAX
+    best = None
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")   # statsmodels turns its convergence warnings on when imported
+        for d in (0, 1):
+            for p in (0, 1, 2):
+                for q in (0, 1):
+                    try:
+                        fitted = SARIMAX(y[train], order=(p, d, q), trend="c" if d == 0 else "n").fit(disp=False)
+                    except Exception:
+                        continue
+                    if np.isfinite(fitted.aic) and (best is None or fitted.aic < best.aic):
+                        best = fitted
+        if best is None:
+            raise RuntimeError("no ARIMA order could be fitted")
+        return one_step(best, y, test)
+
+
+def smoothing(y, train, test):
+    """Exponential smoothing of the level, with a trend if AIC prefers one, and SEASON if it is set."""
+    from statsmodels.tsa.statespace.exponential_smoothing import ExponentialSmoothing
+    best = None
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        for trend in (False, True):
+            try:
+                fitted = ExponentialSmoothing(y[train], trend=trend, seasonal=SEASON).fit(disp=False)
+            except Exception:
+                continue
+            if np.isfinite(fitted.aic) and (best is None or fitted.aic < best.aic):
+                best = fitted
+        if best is None:
+            raise RuntimeError("exponential smoothing could not be fitted")
+        return one_step(best, y, test)
+
+
+def recent_changes(y, lags):
+    """Row t's features: the last lags changes before it (row t-1 minus row t-2, and so on), missing
+    where the series has not started. Changes rather than values, so trees can follow a trend."""
+    change = np.r_[np.nan, np.diff(y)]
+    return np.column_stack([np.r_[np.full(k, np.nan), change[:-k]] for k in range(1, lags + 1)])
+
+
+def boosted_lags(y, train, test, lags):
+    """Tuned boosting that predicts the next change from the recent ones, trained on the rows before the
+    scored ones: its forecast is the last known value plus that change."""
+    X = recent_changes(y, lags)
+    change = np.r_[np.nan, np.diff(y)]
+    rows = train[train >= 2]
+    model = TunedHGB("regression").fit(X[rows], change[rows])
+    return y[test - 1] + model.predict(X[test])
+
+`;
+  var FORECAST_EVALUATE = `def series(frame):
+    """The target as numbers, oldest row first, with the rows that have no target dropped."""
+    NOTES.clear()
+    if DATE_COLUMN and DATE_COLUMN in frame:
+        text = frame[DATE_COLUMN].map(as_text)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            try:
+                dates = pd.to_datetime(text, errors="coerce", format="mixed")
+            except (TypeError, ValueError):   # pandas before 2.0
+                dates = pd.to_datetime(text, errors="coerce")
+        steps = dates.dropna().diff().dropna()
+        steps = steps[steps != pd.Timedelta(0)]
+        if len(steps) and (steps < pd.Timedelta(0)).mean() > 0.9:
+            frame = frame.iloc[::-1]
+            NOTES.append(f"The rows ran newest first by {DATE_COLUMN}, so they were turned around.")
+        elif len(steps) and (steps > pd.Timedelta(0)).mean() < 0.9:
+            NOTES.append(f"The rows are not in {DATE_COLUMN} order, so they were taken in file order, "
+                         "which you said is the time order.")
+        known = dates.dropna()
+        if len(known) and known.duplicated().mean() > 0.2:
+            NOTES.append(f"Many rows share a {DATE_COLUMN}. If the file holds several series (one per product "
+                         "or place), these methods treat them as one; forecast each on its own.")
+    y = frame[TARGET].map(as_number).astype(float).to_numpy()
+    return y[~np.isnan(y)]
+
+
+METRIC_FN = {"r2": (r2_score, 1), "neg_mean_absolute_error": (mean_absolute_error, -1),
+             "neg_mean_absolute_percentage_error": (mean_absolute_percentage_error, -1)}
+
+
+def forecast_folds(n):
+    """Five time-ordered folds, keeping those with at least MIN_HISTORY earlier rows to learn from."""
+    if n < MIN_HISTORY + 2:
+        return []
+    return [(train, test) for train, test in TimeSeriesSplit(5).split(np.zeros(n)) if len(train) >= MIN_HISTORY]
+
+
+def evaluate(frame, progress=print):
+    """Doing nothing, each forecasting model, and tuned boosting on the last few values, each row predicted
+    from the rows before it, in the same folds."""
+    y = series(frame)
+    folds = forecast_folds(len(y))
+    lags = max(1, min(7, len(y) // 20))
+    measure, sign = METRIC_FN[SCORING]
+    runs = [("NAIVE-LAST", "Do nothing: the last known value", None, last_value),
+            ("NAIVE-AVERAGE", "Do nothing: the average of every earlier value", None, running_average)]
+    runs += [(code, name, needs, method) for code, (name, needs, method) in SHORTLIST.items()]
+    recent = f"the last {lags} changes" if lags > 1 else "the last change"
+    runs.append(("BASE-HGB-TUNED", f"Tuned boosting on {recent} (reference)", None,
+                 lambda y, train, test: boosted_lags(y, train, test, lags)))
+    results = []
+    for code, name, needs, method in runs:
+        row = {"code": code, "name": name}
+        if needs and not globals().get(needs):
+            row.update(status="skipped", detail=f"{needs} is not installed")
+        elif not folds:
+            row.update(status="skipped", detail=f"too few rows: it needs at least {MIN_HISTORY + 2} with a {TARGET}")
+        else:
+            started = time.time()
+            try:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    scores = [sign * measure(y[test], method(y, train, test)) for train, test in folds]
+                row.update(status="ok", score=float(np.mean(scores)), spread=float(np.std(scores)),
+                           seconds=round(time.time() - started, 1))
+            except Exception as exc:  # a method that cannot handle this series is a result too
+                row.update(status="error", detail=f"{type(exc).__name__}: {exc}"[:200])
+        results.append(row)
+        progress(row)
+    return results`;
   var THRESHOLD_CODE = `
 
 def threshold_report(results, frame):
@@ -2110,6 +2262,8 @@ def threshold_report(results, frame):
     builds = {code: (scale, build) for code, (name, scale, needs, build) in SHORTLIST.items()}
     builds["BASE-HGB-TUNED"] = (False, lambda: TunedHGB(TASK))
     for row in sorted((r for r in results if r["status"] == "ok"), key=lambda r: -r["score"]):
+        if row["code"] not in builds:   # doing nothing has no threshold to tune
+            continue
         scale, build = builds[row["code"]]
         if not hasattr(pipeline(build(), scale), "predict_proba"):
             continue
@@ -2141,7 +2295,7 @@ def threshold_report(results, frame):
     return None
 `;
   function scriptable(codes, task) {
-    const key = task === "category" ? "cls" : "reg";
+    const key = task === "category" ? "cls" : task === "forecast" ? "fc" : "reg";
     const run = codes.filter((c) => {
       var _a;
       return (_a = MODEL_CODE[c]) == null ? void 0 : _a[key];
@@ -2163,7 +2317,7 @@ def threshold_report(results, frame):
         return { task: null, why: 'A future value needs rows in time order. Answer "Yes, it is a sequence" above, and the script can check it split by time.' };
       }
       const target = (_a = profile == null ? void 0 : profile.columns) == null ? void 0 : _a.find((c) => c.name === sig.target);
-      return { task: target && !target.numeric ? "category" : "number", framed: true };
+      return target && !target.numeric ? { task: "category", framed: true } : { task: "number", framed: true, forecast: true };
     }
     return {
       task: null,
@@ -2189,23 +2343,48 @@ def threshold_report(results, frame):
     shortlist,
     leftOut = [],
     cost = null,
+    forecast = null,
     pageUrl = "https://aeternifrigus.github.io/Data-Craft-Nexus/",
     date = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
   }) {
     var _a, _b;
+    const fc = !!forecast && task === "number";
     const bench = task === "category" ? "classification" : "regression";
-    const { run, skipped } = scriptable(shortlist, task);
+    const { run, skipped } = scriptable(shortlist, fc ? "forecast" : task);
     const key = task === "category" ? "cls" : "reg";
-    const entries = run.map((c) => `    ${py(c)}: (${py(MODEL_CODE[c].name)}, ${pyBool(!!MODEL_CODE[c].scale)}, ${MODEL_CODE[c].needs ? py(MODEL_CODE[c].needs) : "None"}, lambda: ${MODEL_CODE[c][key]}),`).join("\n");
+    const needs = (c) => MODEL_CODE[c].needs ? py(MODEL_CODE[c].needs) : "None";
+    const entries = fc ? run.map((c) => `    ${py(c)}: (${py(MODEL_CODE[c].name)}, ${needs(c)}, ${MODEL_CODE[c].fc}),`).join("\n") : run.map((c) => `    ${py(c)}: (${py(MODEL_CODE[c].name)}, ${pyBool(!!MODEL_CODE[c].scale)}, ${needs(c)}, lambda: ${MODEL_CODE[c][key]}),`).join("\n");
     const skippedNote = skipped.length ? `
-# Recommended but not runnable on a table here: ${skipped.join(", ")}.` : "";
+# Recommended but not runnable ${fc ? "here" : "on a table here"}: ${skipped.map((c) => NOT_RUNNABLE[c] ? `${c} (${oneLine(NOT_RUNNABLE[c])})` : c).join(", ")}.` : "";
     const priced = cost && cost.kind === task ? cost : null;
     const miss = (priced == null ? void 0 : priced.id) === "miss";
     const leftOutNote = leftOut.length ? `
 # Left out of the features: ${leftOut.join(", ")}. The page found a different value in almost every row,
 # like an ID, which a model can memorise and which says nothing about new rows.` : "";
-    return `#!/usr/bin/env python3
-"""Run the shortlist Data Craft Nexus recommended, on your own data.
+    const pricedNote = !priced || priced.bench ? "" : fc ? `
+It scores by ${priced.metric}, from what you said a wrong answer costs.
+` : `
+It scores by ${priced.metric}, from what you said a wrong answer costs. The
+benchmark scored by ${bench === "classification" ? "balanced accuracy" : "R squared"}, so the order here can differ from the
+benchmark's; for your costs, this one counts.
+`;
+    const doc = fc ? `Test the forecasting models Data Craft Nexus showed, on your own data.
+
+Generated ${date} by ${pageUrl}
+for ${fileName}, forecasting ${target} from its own past values.
+
+Every method predicts each row's value from the rows before it and never
+after: one step ahead, in time-ordered folds. Two ways of doing nothing are
+scored the same way, carrying the last value forward and the average of
+every earlier value, and tuned boosting on the last few values runs beside
+them as the reference: on real business data it is often what wins. The
+benchmark behind the site never measured forecasting, so none of these has a
+measured record, and this run is the evidence. The other columns are not used.
+${pricedNote}
+    python dcn_shortlist.py path/to/${fileName}
+
+Needs pandas, scikit-learn and statsmodels (a missing one is reported and
+skipped). Every row of the file is used; the page read at most the first 5,000.` : `Run the shortlist Data Craft Nexus recommended, on your own data.
 
 Generated ${date} by ${pageUrl}
 for ${fileName}, predicting ${target} (${bench}).
@@ -2214,16 +2393,16 @@ It uses the preprocessing, estimators and cross-validation the site's
 benchmark uses, and runs tuned boosting beside the shortlist: on the
 benchmark, ten configurations of boosting were worth more than the choice
 among the top model families, so a recommendation should be checked against it.
-${priced && !priced.bench ? `
-It scores by ${priced.metric}, from what you said a wrong answer costs. The
-benchmark scored by ${bench === "classification" ? "balanced accuracy" : "R squared"}, and the page's order is by that, so
-the order here can differ from the page's; for your costs, this one counts.
-` : ""}
+Doing nothing is scored the same way (the most common answer, the average, or
+the last known value), so a model that cannot beat it is plain to see.
+${pricedNote}
     python dcn_shortlist.py path/to/${fileName}
 
 Needs pandas and scikit-learn; XGBoost and LightGBM if the shortlist has them
 (a missing one is reported and skipped). Every row of the file is used; the
-page read at most the first 5,000.
+page read at most the first 5,000.`;
+    return `#!/usr/bin/env python3
+"""${doc}
 """
 import re
 import sys
@@ -2235,6 +2414,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.dummy import DummyClassifier, DummyRegressor
 from sklearn.ensemble import (AdaBoostClassifier, AdaBoostRegressor, ExtraTreesClassifier, ExtraTreesRegressor,
                               GradientBoostingClassifier, GradientBoostingRegressor, HistGradientBoostingClassifier,
                               HistGradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor,
@@ -2242,6 +2422,7 @@ from sklearn.ensemble import (AdaBoostClassifier, AdaBoostRegressor, ExtraTreesC
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import (BayesianRidge, ElasticNet, Lasso, LinearRegression, LogisticRegression,
                                   Perceptron, Ridge)
+from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, r2_score
 from sklearn.model_selection import (GridSearchCV, KFold, ParameterSampler, ShuffleSplit, StratifiedKFold,
                                      StratifiedShuffleSplit, TimeSeriesSplit, cross_val_score)
 from sklearn.naive_bayes import GaussianNB
@@ -2264,6 +2445,11 @@ ORDERED = ${pyBool(ordered2)}   # you said row order matters: split by time, nev
 NUMERIC = ${py(numeric)}
 CATEGORICAL = ${py(categorical)}
 SEED = 0${skippedNote}${leftOutNote}
+FORECAST = ${pyBool(fc)}   # ${fc ? "a future value: each row predicted from the rows before it, from its own past" : "you asked for a number or a category: predicted from the other columns"}
+NOTES = []   # what the run noticed about the file, printed under the scores${fc ? `
+DATE_COLUMN = ${forecast.dateColumn ? py(forecast.dateColumn) : "None"}   # checked to see the rows run oldest first
+SEASON = None   # set it to 7, 12, ... if the values repeat every so many rows: smoothing then uses it
+MIN_HISTORY = 10   # a fold is scored only when at least this many earlier rows are there to learn from` : ""}
 
 
 def base_learners():
@@ -2281,9 +2467,9 @@ def optional(module):
         return None
 
 
-xgboost, lightgbm = optional("xgboost"), optional("lightgbm")
-
-# The shortlist, in the order the page showed it: code -> (name, scaled, library, estimator).
+xgboost, lightgbm = optional("xgboost"), optional("lightgbm")${fc ? '\nstatsmodels = optional("statsmodels")' : ""}
+${fc ? FORECAST_METHODS : ""}
+${fc ? "# The forecasting models, in the order the page showed them: code -> (name, library, method)." : "# The shortlist, in the order the page showed it: code -> (name, scaled, library, estimator)."}
 SHORTLIST = {
 ${entries}
 }
@@ -2403,11 +2589,54 @@ def splits(y):
     return KFold(5, shuffle=True, random_state=SEED)
 
 
+${fc ? FORECAST_EVALUATE : `class LastValue(BaseEstimator):
+    """Doing nothing on rows in time order: every row gets the last value seen in training."""
+
+    def __init__(self, task="classification"):
+        self.task = task
+
+    def fit(self, X, y):
+        y = np.asarray(y)
+        self.last_ = y[-1]
+        if self.task == "classification":
+            self.classes_ = np.unique(y)
+        return self
+
+    def predict(self, X):
+        return np.full(len(X), self.last_)
+
+    def predict_proba(self, X):
+        return np.tile((self.classes_ == self.last_).astype(float), (len(X), 1))
+
+    @property
+    def _estimator_type(self):   # scikit-learn before 1.6
+        return "classifier" if self.task == "classification" else "regressor"
+
+    def __sklearn_tags__(self):   # scikit-learn 1.6 and later
+        tags = super().__sklearn_tags__()
+        tags.estimator_type = self._estimator_type
+        return tags
+
+
+def baselines():
+    """Doing nothing, scored the same way as every model: the bar a model has to clear."""
+    if TASK == "classification":
+        runs = [("NAIVE-COMMON", "Do nothing: the most common answer", lambda: DummyClassifier(strategy="prior"))]
+    elif SCORING == "r2":
+        runs = [("NAIVE-AVERAGE", "Do nothing: the average", lambda: DummyRegressor(strategy="mean"))]
+    else:   # the constant that misses by least, when every unit or share of a miss counts the same
+        runs = [("NAIVE-AVERAGE", "Do nothing: the median", lambda: DummyRegressor(strategy="median"))]
+    if ORDERED:
+        runs.append(("NAIVE-LAST", "Do nothing: the last known value", lambda: LastValue(TASK)))
+    return runs
+
+
 def evaluate(frame, progress=print):
-    """Every model on the shortlist, and tuned boosting, cross-validated the same way."""
+    """Doing nothing, every model on the shortlist, and tuned boosting, cross-validated the same way."""
     X, y = prepare(frame)
     cv = splits(y)
-    runs = [(code, name, scale, needs, build) for code, (name, scale, needs, build) in SHORTLIST.items()]
+    runs = [(code, name, False, None, build) for code, name, build in baselines()]
+    runs += [(code, name, scale, needs, build) for code, (name, scale, needs, build) in SHORTLIST.items()]
     runs.append(("BASE-HGB-TUNED", "Histogram Gradient Boosting, tuned (reference)", False, None,
                  lambda: TunedHGB(TASK)))
     results = []
@@ -2430,16 +2659,40 @@ def evaluate(frame, progress=print):
                 row.update(status="error", detail=detail[:200])
         results.append(row)
         progress(row)
-    return results
+    return results`}
+
+
+def verdict(results):
+    """Whether any model beat doing nothing, compared at the four decimals shown."""
+    ok = [r for r in results if r["status"] == "ok"]
+    bars = [r for r in ok if r["code"].startswith("NAIVE-")]
+    models = [r for r in ok if not r["code"].startswith("NAIVE-")]
+    if not bars or not models:
+        return None
+    bar = max(bars, key=lambda r: r["score"])
+    best = max(models, key=lambda r: r["score"])
+    plain = bar["name"].replace("Do nothing: ", "")
+    if round(best["score"], 4) <= round(bar["score"], 4):
+        return (f"No model beat doing nothing ({plain}, {bar['score']:.4f}): on this file the models found "
+                "nothing it does not already know.")
+    return (f"The best model, {best['name']}, beat doing nothing ({plain}, {bar['score']:.4f}) by "
+            f"{best['score'] - bar['score']:.4f}. Compare that with the spread beside each score.")
 
 
 def report(results):
-    print(f"\\n{len(results)} models, 5-fold {'time-ordered ' if ORDERED else ''}cross-validation, {METRIC}:\\n")
+    how = ("one step ahead in time-ordered folds" if FORECAST
+           else f"5-fold {'time-ordered ' if ORDERED else ''}cross-validation")
+    print(f"\\n{len(results)} {'methods' if FORECAST else 'models'}, {how}, {METRIC}:\\n")
     for row in sorted(results, key=lambda r: -r.get("score", -np.inf)):
         if row["status"] == "ok":
             print(f"  {row['score']:.4f} \xB1 {row['spread']:.4f}  {row['code']:15} {row['name']}  ({row['seconds']}s)")
         else:
             print(f"  {row['status']:>15}  {row['code']:15} {row['name']}: {row.get('detail', '')}")
+    said = verdict(results)
+    if said:
+        print(f"\\n{said}")
+    for note in NOTES:
+        print(f"\\nNote: {note}")
 ${miss ? THRESHOLD_CODE : ""}
 
 def load(source):
@@ -2522,8 +2775,9 @@ self.onmessage = async (event) => {
   }
 };
 `;
+  var OPTIONAL = /* @__PURE__ */ new Set(["lightgbm", "statsmodels", "xgboost"]);
   function packagesFor(needs = []) {
-    const extra = [...new Set(needs.filter((n) => n === "xgboost" || n === "lightgbm"))].sort();
+    const extra = [...new Set(needs.filter((n) => OPTIONAL.has(n)))].sort();
     return ["numpy", "pandas", "scikit-learn", ...extra];
   }
   function startWorker(WorkerImpl) {
@@ -2576,22 +2830,33 @@ self.onmessage = async (event) => {
     const lines = String(text).trim().split("\n").filter((l) => l.trim());
     return lines.length ? lines[lines.length - 1].trim() : "Python stopped without saying why.";
   }
+  var shown = (x) => Math.round(x * 1e4);
+  var doesNothing = (r) => String(r.code).startsWith("NAIVE-");
   function verdict(results, firstCode) {
-    const shown = (x) => Math.round(x * 1e4);
-    const ok = results.filter((r) => r.status === "ok" && r.score != null).sort((a, b) => b.score - a.score);
+    const finished = results.filter((r) => r.status === "ok" && r.score != null).sort((a, b) => b.score - a.score);
+    const ok = finished.filter((r) => !doesNothing(r));
     if (!ok.length) return "No model finished on this file.";
     const best = ok[0];
-    if (!firstCode) return `The best of ${ok.length} on your file was ${best.name}, at ${best.score.toFixed(4)}.`;
+    const floor = barSentence(best, finished.find(doesNothing));
+    if (!firstCode) return `The best of ${ok.length} on your file was ${best.name}, at ${best.score.toFixed(4)}.${floor}`;
     const first = ok.find((r) => r.code === firstCode);
     if (!first) {
       const why = results.some((r) => r.code === firstCode) ? "did not finish here" : "is not a model the script can run";
-      return `The page's first pick ${why}; the best of what ran was ${best.name} at ${best.score.toFixed(4)}.`;
+      return `The page's first pick ${why}; the best of what ran was ${best.name} at ${best.score.toFixed(4)}.${floor}`;
     }
     const above = ok.filter((r) => shown(r.score) > shown(first.score));
     const level = ok.filter((r) => r !== first && shown(r.score) === shown(first.score)).map((r) => r.name);
     const tie = level.length ? `, level with ${level.join(" and ")}` : "";
-    if (!above.length) return `The page's first pick, ${first.name}, was the best of ${ok.length} on your file${tie}.`;
-    return `The page's first pick, ${first.name}, came ${ordinal(above.length + 1)} of ${ok.length} on your file${tie}, ${(best.score - first.score).toFixed(4)} below ${best.name}. Cross-validation on one file has its own luck: compare the gap with the spread beside each score.`;
+    if (!above.length) return `The page's first pick, ${first.name}, was the best of ${ok.length} on your file${tie}.${floor}`;
+    return `The page's first pick, ${first.name}, came ${ordinal(above.length + 1)} of ${ok.length} on your file${tie}, ${(best.score - first.score).toFixed(4)} below ${best.name}. Cross-validation on one file has its own luck: compare the gap with the spread beside each score.${floor}`;
+  }
+  function barSentence(best, bar) {
+    if (!bar) return "";
+    const plain = bar.name.replace(/^Do nothing: /, "");
+    if (shown(best.score) <= shown(bar.score)) {
+      return ` No model beat doing nothing (${plain}, ${bar.score.toFixed(4)}): on this file the models found nothing that guess does not already know. Too few rows, or no signal in these columns.`;
+    }
+    return ` The best model beat doing nothing (${plain}, ${bar.score.toFixed(4)}) by ${(best.score - bar.score).toFixed(4)}.`;
   }
   function ordinal(n) {
     var _a;
@@ -2743,11 +3008,15 @@ self.onmessage = async (event) => {
     }
     return out;
   }
-  function costSentence(cost) {
+  function costSentence(cost, benchOrder = true) {
     if (!cost) return "";
-    if (cost.bench) return `It scores by ${cost.metric}, the benchmark's own score.`;
+    if (cost.bench) {
+      return benchOrder ? `It scores by ${cost.metric}, the benchmark's own score.` : `It scores by ${cost.metric}, the page's default for ${cost.kind === "category" ? "a category" : "a number"}.`;
+    }
     const said = cost.id === "miss" ? `a missed "${cost.positive}" costs ${fmtRatio(cost.ratio)} false alarms` : cost.label.charAt(0).toLowerCase() + cost.label.slice(1);
-    return `It scores by ${cost.metric}, because you said ${said}. The order above is the benchmark's, which scored by ${benchCost(cost.kind).metric}, so on your file the script's order may differ, and for your costs it is the one that counts.`;
+    const why = `It scores by ${cost.metric}, because you said ${said}.`;
+    if (!benchOrder) return why;
+    return `${why} The order above is the benchmark's, which scored by ${benchCost(cost.kind).metric}, so on your file the script's order may differ, and for your costs it is the one that counts.`;
   }
   var fmtRatio = (r) => Number.isInteger(r) ? String(r) : String(Math.round(r * 100) / 100);
 
@@ -2773,7 +3042,8 @@ self.onmessage = async (event) => {
     notes = {},
     sentences = {},
     checks = null,
-    cost = null
+    cost = null,
+    costNote = null
   }) {
     var _a, _b, _c, _d, _e, _f, _g;
     const taskLabel = (_b = (_a = T.TASKS.find((t) => t.id === task)) == null ? void 0 : _a.label) != null ? _b : task;
@@ -2834,7 +3104,7 @@ self.onmessage = async (event) => {
     out.push(
       "## Take it home",
       "",
-      `The page can write a Python script that runs the shortlist on the whole file with the benchmark's preprocessing and cross-validation ("Download the script"), or run the same script in the browser ("Run it here").` + (cost ? ` ${costSentence(cost)}` : ""),
+      `The page can write a Python script that runs the shortlist on the whole file with the benchmark's preprocessing and cross-validation ("Download the script"), or run the same script in the browser ("Run it here").` + ((costNote != null ? costNote : costSentence(cost)) ? ` ${costNote != null ? costNote : costSentence(cost)}` : ""),
       ""
     );
     out.push("---", "", 'Generated by Data Craft Nexus, https://aeternifrigus.github.io/Data-Craft-Nexus/. Every "measured" line comes from its published benchmark, on the evidence tab.', "");
@@ -3167,9 +3437,9 @@ self.onmessage = async (event) => {
     }).join("");
     const ruled = document.getElementById("ruled-out");
     if (models.ruledOut.length) {
-      const shown = models.ruledOut.slice(0, 8);
-      const rest = models.ruledOut.length - shown.length;
-      ruled.innerHTML = `<p class="sect-note" style="margin-bottom:12px">Ruled out for this data:</p><ul class="ruled">${shown.map((m) => `<li>${esc(m.n)} ${codeTag("model", m.c)}: ${esc(plainReason(T, m.why))}</li>`).join("")}` + (rest ? `<li>and ${rest} more</li>` : "") + `</ul>`;
+      const shown2 = models.ruledOut.slice(0, 8);
+      const rest = models.ruledOut.length - shown2.length;
+      ruled.innerHTML = `<p class="sect-note" style="margin-bottom:12px">Ruled out for this data:</p><ul class="ruled">${shown2.map((m) => `<li>${esc(m.n)} ${codeTag("model", m.c)}: ${esc(plainReason(T, m.why))}</li>`).join("")}` + (rest ? `<li>and ${rest} more</li>` : "") + `</ul>`;
     } else {
       ruled.innerHTML = "";
     }
@@ -3239,6 +3509,7 @@ self.onmessage = async (event) => {
         drifts,
         pipelines,
         cost,
+        costNote: costSentence(cost, !home.framed),
         checks: checks ? {
           flags: checks.flags.map((f) => ({ ...f, measured: checkSentence(T, f.kind) })),
           clear: checksSummary(checks, sig.target)
@@ -3264,7 +3535,7 @@ self.onmessage = async (event) => {
         });
       }
     });
-    const homeModels = home.task && home.task !== task ? rankModels(T, sig, home.task, 4, meta) : models;
+    const homeModels = home.task && home.task !== task && !home.forecast ? rankModels(T, sig, home.task, 4, meta) : models;
     renderTakeHome(
       T,
       sig,
@@ -3272,7 +3543,7 @@ self.onmessage = async (event) => {
       profile,
       source,
       homeModels.items.map((m) => m.c),
-      home.task ? leadRecommendation(T, sig, home.task) : null,
+      home.task && !home.forecast ? leadRecommendation(T, sig, home.task) : null,
       leftOut,
       cost
     );
@@ -3363,15 +3634,19 @@ self.onmessage = async (event) => {
       return;
     }
     const task = home.task;
-    const { run } = task ? scriptable(codes, task) : { run: [] };
-    if (!task || !run.length) {
+    const { run, skipped } = task ? scriptable(codes, home.forecast ? "forecast" : task) : { run: [], skipped: [] };
+    if (!task || !run.length && !home.forecast) {
       el.innerHTML = `<p class="takehome-h">Take it home</p>
       <p class="sect-note">${esc((_a = home.why) != null ? _a : "None of the models shown can run on a table here, so there is no script for them.")}</p>`;
       return;
     }
     const names = Object.fromEntries(T.MODELS.map((m) => [m.c, m.n]));
+    const list = (codes2) => codes2.map((c) => {
+      var _a2;
+      return esc((_a2 = names[c]) != null ? _a2 : c);
+    }).join(", ");
     const script = () => {
-      var _a2, _b2;
+      var _a2, _b2, _c, _d;
       return pythonScript({
         fileName: (_a2 = source == null ? void 0 : source.fileName) != null ? _a2 : "data.csv",
         read: source == null ? void 0 : source.read,
@@ -3382,29 +3657,43 @@ self.onmessage = async (event) => {
         ...columnRoles(profile, sig.target, leftOut),
         shortlist: codes,
         leftOut,
-        cost
+        cost,
+        forecast: home.forecast ? { dateColumn: (_d = (_c = profile.dateCols[0]) == null ? void 0 : _c.name) != null ? _d : null } : null
       });
     };
-    const framing = home.framed ? `<p class="sect-note">A future value is not something the benchmark or the script covers, so this checks the
-      nearest thing it can: models that predict ${esc(sig.target)} as ${task === "number" ? "a number" : "a category"}
-      from your other columns, split by time so no later row helps predict an earlier one. It does not build lag
-      features, and it does not run the forecasting models above.</p>` : "";
-    el.innerHTML = `<p class="takehome-h">Take it home</p>
-    ${framing}
-    <p class="sect-note">A Python script that runs ${lead ? home.framed ? "tuned boosting and " : "tuned boosting, which the page puts first, and " : ""}${run.map((c) => {
+    const idNote = leftOut.length ? `It leaves out ${leftOut.map(esc).join(", ")}, which ${leftOut.length === 1 ? "looks" : "look"} like ${leftOut.length === 1 ? "an ID" : "IDs"}. ` : "";
+    const costNote = esc(costSentence(cost, !home.framed)) + ((cost == null ? void 0 : cost.id) === "miss" ? " The downloaded script also finds the threshold on the chances that cost least on your file." : "");
+    const notRun = skipped.filter((c) => NOT_RUNNABLE[c]).map((c) => {
       var _a2;
-      return esc((_a2 = names[c]) != null ? _a2 : c);
-    }).join(", ")} on your whole file, with the preprocessing and cross-validation the
+      return ` ${esc((_a2 = names[c]) != null ? _a2 : c)} is not run: ${esc(NOT_RUNNABLE[c].replace(/^\S+ /, "it "))}.`;
+    }).join("");
+    let body;
+    if (home.forecast) {
+      body = `<p class="sect-note">A Python script that forecasts ${esc(sig.target)} from its own past, on your whole file:
+      each value predicted from the values before it, one step ahead, in time-ordered folds, never from a later row.
+      It runs ${run.length ? `${list(run)} from the cards above, ` : ""}tuned boosting on the last few changes, and two
+      ways of doing nothing (carrying the last value forward, and the average so far), so a model that cannot beat a
+      guess is plain to see.${notRun} The other columns are not used. The benchmark never measured forecasting, so this
+      run is the only evidence for any of these on your data. ${costNote} It needs pandas, scikit-learn and statsmodels.</p>`;
+    } else {
+      const framing = home.framed ? `<p class="sect-note">The forecasting models above predict a number from its own past, and ${esc(sig.target)} is a
+        category, so the script checks the nearest thing it can: the category predicted from your other columns, split by
+        time so no later row helps predict an earlier one. It runs the category shortlist, not the models above.</p>` : "";
+      body = `${framing}
+    <p class="sect-note">A Python script that runs ${lead ? home.framed ? "tuned boosting and " : "tuned boosting, which the page puts first, and " : ""}${list(run)} on your whole file, with the preprocessing and cross-validation the
       benchmark used${lead ? "" : ", and tuned boosting beside them: on the benchmark, a small tuning budget was worth more than the choice among the top models"}.
-      ${leftOut.length ? `It leaves out ${leftOut.map(esc).join(", ")}, which ${leftOut.length === 1 ? "looks" : "look"} like ${leftOut.length === 1 ? "an ID" : "IDs"}. ` : ""}${esc(costSentence(cost))}${(cost == null ? void 0 : cost.id) === "miss" ? " The downloaded script also finds the threshold on the chances that cost least on your file." : ""} It needs pandas and scikit-learn.</p>
+      Doing nothing is scored the same way (${task === "category" ? "always the most common answer" : "always the average"}${sig.codes[1] === "A22" ? ", or the last known value" : ""}), so a model that cannot beat a guess is plain to see. ${idNote}${costNote} It needs pandas and scikit-learn.</p>`;
+    }
+    el.innerHTML = `<p class="takehome-h">Take it home</p>
+    ${body}
     <div class="takehome-row">
       <button class="run takehome-btn" id="takehome-btn" type="button">Download the script</button>
       ${(source == null ? void 0 : source.text) ? '<button class="run takehome-btn ghost" id="verify-btn" type="button">Run it here</button>' : ""}
     </div>
     ${(source == null ? void 0 : source.text) ? `<p class="sect-note takehome-fine">\u201CRun it here\u201D runs the same script in this page: it downloads
-      Python (Pyodide ${esc(PYODIDE_VERSION)}, with pandas and scikit-learn, tens of megabytes) from cdn.jsdelivr.net the
-      first time. Your file is not uploaded anywhere; Python runs inside your browser. Tuned boosting alone fits 150
-      models, so on a large file this takes minutes.</p>
+      Python (Pyodide ${esc(PYODIDE_VERSION)}, with pandas and scikit-learn${home.forecast ? " and statsmodels" : ""}, tens of
+      megabytes) from cdn.jsdelivr.net the first time. Your file is not uploaded anywhere; Python runs inside your browser.
+      Tuned boosting alone fits 150 models, so on a large file this takes minutes.</p>
     <div class="verify" id="verify-out" hidden></div>` : ""}`;
     document.getElementById("takehome-btn").addEventListener("click", () => downloadScript(script()));
     (_b = document.getElementById("verify-btn")) == null ? void 0 : _b.addEventListener("click", (event) => runHere(event.currentTarget, script(), source.text, run, home.framed ? null : lead ? lead.c : codes[0], cost));
@@ -3535,11 +3824,11 @@ self.onmessage = async (event) => {
       el.innerHTML = "";
       return;
     }
-    const shown = ruledOut.slice(0, 6);
-    const rest = ruledOut.length - shown.length;
+    const shown2 = ruledOut.slice(0, 6);
+    const rest = ruledOut.length - shown2.length;
     el.innerHTML = `<p class="sect-note" style="margin-top:22px">Ruled out by how it will run
       (${ruledOut.length} ${noun}):</p>
-    <ul class="ruled">${shown.map((d) => `<li>${esc(d.n)} ${codeTag(noun.startsWith("drift") ? "drift" : "pipeline", d.c)}: ${esc(d.why)}</li>`).join("")}${rest ? `<li>and ${rest} more</li>` : ""}</ul>`;
+    <ul class="ruled">${shown2.map((d) => `<li>${esc(d.n)} ${codeTag(noun.startsWith("drift") ? "drift" : "pipeline", d.c)}: ${esc(d.why)}</li>`).join("")}${rest ? `<li>and ${rest} more</li>` : ""}</ul>`;
   }
   function renderNeighbours(T, neighbours, task) {
     var _a;

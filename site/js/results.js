@@ -7,7 +7,7 @@ import { driftUnmeasured, leadRecommendation, paradigmOf, paradigmLabel, rankMod
 import { checkSentence, driftSentence, evidenceFor, evidenceSentence, leadSentence, messyNote } from './evidence.js';
 import { rankingProvenance } from './ranking.js';
 import { coverageNotes, metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
-import { MODEL_CODE, columnRoles, downloadScript, pythonScript, scriptable, takeHomeTask } from './export.js';
+import { MODEL_CODE, NOT_RUNNABLE, columnRoles, downloadScript, pythonScript, scriptable, takeHomeTask } from './export.js';
 import { PYODIDE_VERSION, verdict, verifyInBrowser } from './verify.js';
 import { downloadReading, readingFileName, readingMarkdown } from './report.js';
 import { checksSummary, runChecks } from './checks.js';
@@ -183,6 +183,7 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
     T, sig, task, fileName: source?.fileName ?? 'data.csv', date: new Date().toISOString().slice(0, 10),
     build: document.querySelector('meta[name="dcn-build"]')?.content?.split(' ')[0] ?? null,
     lead, leadText: lead ? leadSentence(T, lead) : '', models, drifts, pipelines, cost,
+    costNote: costSentence(cost, !home.framed),
     checks: checks ? { flags: checks.flags.map(f => ({ ...f, measured: checkSentence(T, f.kind) })),
       clear: checksSummary(checks, sig.target) } : null,
     notes: { models: document.getElementById('model-note').textContent,
@@ -205,9 +206,11 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
     }
   });
 
-  const homeModels = home.task && home.task !== task ? rankModels(T, sig, home.task, 4, meta) : models;
+  // A future number is forecast with the models on the cards; a future
+  // category is checked with the category shortlist, which the note names.
+  const homeModels = home.task && home.task !== task && !home.forecast ? rankModels(T, sig, home.task, 4, meta) : models;
   renderTakeHome(T, sig, home, profile, source, homeModels.items.map(m => m.c),
-    home.task ? leadRecommendation(T, sig, home.task) : null, leftOut, cost);
+    home.task && !home.forecast ? leadRecommendation(T, sig, home.task) : null, leftOut, cost);
   renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
   renderNeighbours(T, neighbours, task);
   plotSpace(T, sig, meta, neighbours);
@@ -290,40 +293,60 @@ function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftO
   if (!el) return;
   if (!profile) { el.innerHTML = ''; return; }
   const task = home.task;
-  const { run } = task ? scriptable(codes, task) : { run: [] };
-  if (!task || !run.length) {
+  const { run, skipped } = task ? scriptable(codes, home.forecast ? 'forecast' : task) : { run: [], skipped: [] };
+  // A forecast still has something to run when no card can: doing nothing, and tuned boosting on recent changes.
+  if (!task || (!run.length && !home.forecast)) {
     // Said, not hidden: a reader looking for the script learns what it needs.
     el.innerHTML = `<p class="takehome-h">Take it home</p>
       <p class="sect-note">${esc(home.why ?? 'None of the models shown can run on a table here, so there is no script for them.')}</p>`;
     return;
   }
   const names = Object.fromEntries(T.MODELS.map(m => [m.c, m.n]));
+  const list = (codes) => codes.map(c => esc(names[c] ?? c)).join(', ');
   const script = () => pythonScript({
     fileName: source?.fileName ?? 'data.csv', read: source?.read, columns: source?.columns ?? profile.columns.map(c => c.name),
     target: sig.target, task, ordered: sig.codes[1] === 'A22', ...columnRoles(profile, sig.target, leftOut),
     shortlist: codes, leftOut, cost,
+    forecast: home.forecast ? { dateColumn: profile.dateCols[0]?.name ?? null } : null,
   });
-  const framing = home.framed
-    ? `<p class="sect-note">A future value is not something the benchmark or the script covers, so this checks the
-      nearest thing it can: models that predict ${esc(sig.target)} as ${task === 'number' ? 'a number' : 'a category'}
-      from your other columns, split by time so no later row helps predict an earlier one. It does not build lag
-      features, and it does not run the forecasting models above.</p>`
-    : '';
-  el.innerHTML = `<p class="takehome-h">Take it home</p>
-    ${framing}
+  const idNote = leftOut.length
+    ? `It leaves out ${leftOut.map(esc).join(', ')}, which ${leftOut.length === 1 ? 'looks' : 'look'} like ${leftOut.length === 1 ? 'an ID' : 'IDs'}. ` : '';
+  const costNote = esc(costSentence(cost, !home.framed))
+    + (cost?.id === 'miss' ? ' The downloaded script also finds the threshold on the chances that cost least on your file.' : '');
+  const notRun = skipped.filter(c => NOT_RUNNABLE[c]).map(c => ` ${esc(names[c] ?? c)} is not run: ${esc(NOT_RUNNABLE[c].replace(/^\S+ /, 'it '))}.`).join('');
+
+  let body;
+  if (home.forecast) {
+    body = `<p class="sect-note">A Python script that forecasts ${esc(sig.target)} from its own past, on your whole file:
+      each value predicted from the values before it, one step ahead, in time-ordered folds, never from a later row.
+      It runs ${run.length ? `${list(run)} from the cards above, ` : ''}tuned boosting on the last few changes, and two
+      ways of doing nothing (carrying the last value forward, and the average so far), so a model that cannot beat a
+      guess is plain to see.${notRun} The other columns are not used. The benchmark never measured forecasting, so this
+      run is the only evidence for any of these on your data. ${costNote} It needs pandas, scikit-learn and statsmodels.</p>`;
+  } else {
+    const framing = home.framed
+      ? `<p class="sect-note">The forecasting models above predict a number from its own past, and ${esc(sig.target)} is a
+        category, so the script checks the nearest thing it can: the category predicted from your other columns, split by
+        time so no later row helps predict an earlier one. It runs the category shortlist, not the models above.</p>`
+      : '';
+    body = `${framing}
     <p class="sect-note">A Python script that runs ${lead ? (home.framed ? 'tuned boosting and ' : 'tuned boosting, which the page puts first, and ') : ''}${
-      run.map(c => esc(names[c] ?? c)).join(', ')} on your whole file, with the preprocessing and cross-validation the
+      list(run)} on your whole file, with the preprocessing and cross-validation the
       benchmark used${lead ? '' : ', and tuned boosting beside them: on the benchmark, a small tuning budget was worth more than the choice among the top models'}.
-      ${leftOut.length ? `It leaves out ${leftOut.map(esc).join(', ')}, which ${leftOut.length === 1 ? 'looks' : 'look'} like ${leftOut.length === 1 ? 'an ID' : 'IDs'}. ` : ''}${
-      esc(costSentence(cost))}${cost?.id === 'miss' ? ' The downloaded script also finds the threshold on the chances that cost least on your file.' : ''} It needs pandas and scikit-learn.</p>
+      Doing nothing is scored the same way (${task === 'category' ? 'always the most common answer' : 'always the average'}${
+      sig.codes[1] === 'A22' ? ', or the last known value' : ''}), so a model that cannot beat a guess is plain to see. ${idNote}${costNote} It needs pandas and scikit-learn.</p>`;
+  }
+
+  el.innerHTML = `<p class="takehome-h">Take it home</p>
+    ${body}
     <div class="takehome-row">
       <button class="run takehome-btn" id="takehome-btn" type="button">Download the script</button>
       ${source?.text ? '<button class="run takehome-btn ghost" id="verify-btn" type="button">Run it here</button>' : ''}
     </div>
     ${source?.text ? `<p class="sect-note takehome-fine">“Run it here” runs the same script in this page: it downloads
-      Python (Pyodide ${esc(PYODIDE_VERSION)}, with pandas and scikit-learn, tens of megabytes) from cdn.jsdelivr.net the
-      first time. Your file is not uploaded anywhere; Python runs inside your browser. Tuned boosting alone fits 150
-      models, so on a large file this takes minutes.</p>
+      Python (Pyodide ${esc(PYODIDE_VERSION)}, with pandas and scikit-learn${home.forecast ? ' and statsmodels' : ''}, tens of
+      megabytes) from cdn.jsdelivr.net the first time. Your file is not uploaded anywhere; Python runs inside your browser.
+      Tuned boosting alone fits 150 models, so on a large file this takes minutes.</p>
     <div class="verify" id="verify-out" hidden></div>` : ''}`;
   document.getElementById('takehome-btn').addEventListener('click', () => downloadScript(script()));
   document.getElementById('verify-btn')?.addEventListener('click', (event) =>

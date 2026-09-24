@@ -66,6 +66,8 @@ test('only the libraries the shortlist needs are loaded', () => {
   assert.deepEqual(packagesFor([]), ['numpy', 'pandas', 'scikit-learn']);
   assert.deepEqual(packagesFor(['lightgbm', 'xgboost', 'lightgbm']), ['numpy', 'pandas', 'scikit-learn', 'lightgbm', 'xgboost']);
   assert.deepEqual(packagesFor(['torch']), ['numpy', 'pandas', 'scikit-learn'], 'nothing outside the list is fetched');
+  assert.deepEqual(packagesFor(['statsmodels', 'statsmodels']), ['numpy', 'pandas', 'scikit-learn', 'statsmodels'],
+    'a forecast needs statsmodels');
 });
 
 test('Python is pinned to one release on the CDN, fetched only by the worker', () => {
@@ -92,4 +94,14 @@ test('the verdict says where the page\'s first pick landed', () => {
   assert.equal(verdict([r('A', 0.8), r('B', 0.9)], null), 'The best of 2 on your file was B, at 0.9000.');
   assert.match(verdict([r('A', 0.5), r('B', 0.5), r('C', 0.4)], 'A'), /A, was the best of 3 on your file, level with B\./);
   assert.match(verdict([r('A', 0.8), r('B', 0.9), r('C', 0.8)], 'A'), /came 2nd of 3 on your file, level with C,/);
+});
+
+test('the verdict says whether any model beat doing nothing, and leaves doing nothing out of the ranking', () => {
+  const r = (code, score, name = code) => ({ code, name, status: 'ok', score });
+  const last = r('NAIVE-LAST', 0.8, 'Do nothing: the last known value');
+  assert.equal(verdict([last, r('A', 0.9), r('B', 0.85)], 'A'),
+    'The page\'s first pick, A, was the best of 2 on your file. The best model beat doing nothing (the last known value, 0.8000) by 0.1000.');
+  const lost = verdict([r('NAIVE-AVERAGE', 0.5, 'Do nothing: the average'), r('A', 0.49999), r('B', 0.3)], null);
+  assert.match(lost, /^The best of 2 on your file was A, at 0\.5000\. No model beat doing nothing \(the average, 0\.5000\)/);
+  assert.equal(verdict([last], 'A'), 'No model finished on this file.', 'doing nothing is not a model');
 });

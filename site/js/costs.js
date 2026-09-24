@@ -126,15 +126,21 @@ export function resolveCost(kind, answer, column) {
   return out;
 }
 
-// One line for the page and the saved reading: what the script scores by, and why.
-export function costSentence(cost) {
+// One line for the page and the saved reading: what the script scores by, and
+// why. `benchOrder` says whether the cards above are in the benchmark's order;
+// they are not for a future value, which the benchmark never measured.
+export function costSentence(cost, benchOrder = true) {
   if (!cost) return '';
-  if (cost.bench) return `It scores by ${cost.metric}, the benchmark's own score.`;
+  if (cost.bench) {
+    return benchOrder ? `It scores by ${cost.metric}, the benchmark's own score.`
+      : `It scores by ${cost.metric}, the page's default for ${cost.kind === 'category' ? 'a category' : 'a number'}.`;
+  }
   const said = cost.id === 'miss'
     ? `a missed "${cost.positive}" costs ${fmtRatio(cost.ratio)} false alarms`
     : cost.label.charAt(0).toLowerCase() + cost.label.slice(1);
-  return `It scores by ${cost.metric}, because you said ${said}. The order above is the benchmark's, which scored by `
-    + `${benchCost(cost.kind).metric}, `
+  const why = `It scores by ${cost.metric}, because you said ${said}.`;
+  if (!benchOrder) return why;
+  return `${why} The order above is the benchmark's, which scored by ${benchCost(cost.kind).metric}, `
     + 'so on your file the script\'s order may differ, and for your costs it is the one that counts.';
 }
 

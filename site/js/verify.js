@@ -64,9 +64,11 @@ self.onmessage = async (event) => {
 `;
 
 // The packages the script needs: scikit-learn brings scipy and joblib with it,
-// and XGBoost or LightGBM only when the shortlist has them.
+// XGBoost or LightGBM only when the shortlist has them, and statsmodels only
+// for a forecast (ARIMA and exponential smoothing).
+const OPTIONAL = new Set(['lightgbm', 'statsmodels', 'xgboost']);
 export function packagesFor(needs = []) {
-  const extra = [...new Set(needs.filter(n => n === 'xgboost' || n === 'lightgbm'))].sort();
+  const extra = [...new Set(needs.filter(n => OPTIONAL.has(n)))].sort();
   return ['numpy', 'pandas', 'scikit-learn', ...extra];
 }
 
@@ -111,27 +113,43 @@ function lastLine(text) {
 }
 
 // What the results say about the page's own order: where its first pick
-// landed among everything that ran, and what beat it. Scores are compared at
-// the four decimals shown, so a difference too small to see is a tie.
+// landed among the models that ran, what beat it, and whether any model beat
+// doing nothing (the script's NAIVE- rows). Scores are compared at the four
+// decimals shown, so a difference too small to see is a tie.
+const shown = (x) => Math.round(x * 1e4);
+const doesNothing = (r) => String(r.code).startsWith('NAIVE-');
+
 export function verdict(results, firstCode) {
-  const shown = (x) => Math.round(x * 1e4);
-  const ok = results.filter(r => r.status === 'ok' && r.score != null).sort((a, b) => b.score - a.score);
+  const finished = results.filter(r => r.status === 'ok' && r.score != null).sort((a, b) => b.score - a.score);
+  const ok = finished.filter(r => !doesNothing(r));
   if (!ok.length) return 'No model finished on this file.';
   const best = ok[0];
+  const floor = barSentence(best, finished.find(doesNothing));
   // No first pick to judge when the page's own list is not what the script ran.
-  if (!firstCode) return `The best of ${ok.length} on your file was ${best.name}, at ${best.score.toFixed(4)}.`;
+  if (!firstCode) return `The best of ${ok.length} on your file was ${best.name}, at ${best.score.toFixed(4)}.${floor}`;
   const first = ok.find(r => r.code === firstCode);
   if (!first) {
     const why = results.some(r => r.code === firstCode) ? 'did not finish here' : 'is not a model the script can run';
-    return `The page's first pick ${why}; the best of what ran was ${best.name} at ${best.score.toFixed(4)}.`;
+    return `The page's first pick ${why}; the best of what ran was ${best.name} at ${best.score.toFixed(4)}.${floor}`;
   }
   const above = ok.filter(r => shown(r.score) > shown(first.score));
   const level = ok.filter(r => r !== first && shown(r.score) === shown(first.score)).map(r => r.name);
   const tie = level.length ? `, level with ${level.join(' and ')}` : '';
-  if (!above.length) return `The page's first pick, ${first.name}, was the best of ${ok.length} on your file${tie}.`;
+  if (!above.length) return `The page's first pick, ${first.name}, was the best of ${ok.length} on your file${tie}.${floor}`;
   return `The page's first pick, ${first.name}, came ${ordinal(above.length + 1)} of ${ok.length} on your file${tie}, `
     + `${(best.score - first.score).toFixed(4)} below ${best.name}. Cross-validation on one file has its own luck: `
-    + `compare the gap with the spread beside each score.`;
+    + `compare the gap with the spread beside each score.${floor}`;
+}
+
+// The bar every model has to clear: the best way of doing nothing.
+function barSentence(best, bar) {
+  if (!bar) return '';
+  const plain = bar.name.replace(/^Do nothing: /, '');
+  if (shown(best.score) <= shown(bar.score)) {
+    return ` No model beat doing nothing (${plain}, ${bar.score.toFixed(4)}): on this file the models found nothing `
+      + 'that guess does not already know. Too few rows, or no signal in these columns.';
+  }
+  return ` The best model beat doing nothing (${plain}, ${bar.score.toFixed(4)}) by ${(best.score - bar.score).toFixed(4)}.`;
 }
 
 function ordinal(n) {

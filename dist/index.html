@@ -230,6 +230,14 @@ select.opt{color:var(--ink);padding-right:28px}
 .coverage-p{color:var(--ink);font-size:13px;line-height:1.75}
 .coverage-p + .coverage-p{margin-top:8px}
 
+/* before you trust a score */
+.check{border-left:2px solid var(--clay);background:rgba(201,106,90,.07);
+  padding:12px 16px;margin:0 0 14px;max-width:72ch}
+.check-h{color:var(--clay);font-size:13px;letter-spacing:.02em;margin-bottom:6px}
+.check-p{color:var(--ink);font-size:13px;line-height:1.75}
+.check-fix{color:var(--ink);font-size:13px;line-height:1.75;margin-top:6px}
+#checks:empty{display:none}
+
 /* evidence tables */
 .ev-h{
   font-family:'Instrument Serif',serif;font-size:21px;font-weight:400;
@@ -517,6 +525,11 @@ footer .sig{font-size:27px}
 
   <div class="results" id="results">
     <div class="savebar" id="savebar"></div>
+    <section class="sect" id="checks-sect">
+      <h2 class="sect-h">Before you trust a score</h2>
+      <p class="sect-note" id="checks-note"></p>
+      <div id="checks"></div>
+    </section>
     <section class="sect">
       <h2 class="sect-h">Where your data sits</h2>
       <p class="sect-note" id="plot-note">
@@ -1948,8 +1961,8 @@ footer .sig{font-size:27px}
       why: `The script checks models that predict a number or a category from the other columns, and "${taskLabel}" is a different kind of answer, so there is no script for it. Answer "A number" or "A category" above to get one.`
     };
   }
-  function columnRoles(profile, target) {
-    const features = profile.columns.filter((c) => c.name !== target);
+  function columnRoles(profile, target, leftOut = []) {
+    const features = profile.columns.filter((c) => c.name !== target && !leftOut.includes(c.name));
     return {
       numeric: features.filter((c) => c.numeric).map((c) => c.name),
       categorical: features.filter((c) => !c.numeric).map((c) => c.name)
@@ -1965,6 +1978,7 @@ footer .sig{font-size:27px}
     numeric,
     categorical,
     shortlist,
+    leftOut = [],
     pageUrl = "https://aeternifrigus.github.io/Data-Craft-Nexus/",
     date = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
   }) {
@@ -1975,6 +1989,9 @@ footer .sig{font-size:27px}
     const entries = run.map((c) => `    ${py(c)}: (${py(MODEL_CODE[c].name)}, ${pyBool(!!MODEL_CODE[c].scale)}, ${MODEL_CODE[c].needs ? py(MODEL_CODE[c].needs) : "None"}, lambda: ${MODEL_CODE[c][key]}),`).join("\n");
     const skippedNote = skipped.length ? `
 # Recommended but not runnable on a table here: ${skipped.join(", ")}.` : "";
+    const leftOutNote = leftOut.length ? `
+# Left out of the features: ${leftOut.join(", ")}. The page found a different value in almost every row,
+# like an ID, which a model can memorise and which says nothing about new rows.` : "";
     return `#!/usr/bin/env python3
 """Run the shortlist Data Craft Nexus recommended, on your own data.
 
@@ -2030,7 +2047,7 @@ TASK = ${py(bench)}
 ORDERED = ${pyBool(ordered2)}   # you said row order matters: split by time, never shuffle
 NUMERIC = ${py(numeric)}
 CATEGORICAL = ${py(categorical)}
-SEED = 0${skippedNote}
+SEED = 0${skippedNote}${leftOutNote}
 
 
 def base_learners():
@@ -2367,7 +2384,8 @@ self.onmessage = async (event) => {
     drifts,
     pipelines,
     notes = {},
-    sentences = {}
+    sentences = {},
+    checks = null
   }) {
     var _a, _b, _c, _d, _e, _f, _g;
     const taskLabel = (_b = (_a = T.TASKS.find((t) => t.id === task)) == null ? void 0 : _a.label) != null ? _b : task;
@@ -2379,6 +2397,15 @@ self.onmessage = async (event) => {
       `${(_e = (_d = (_c = sig.rows) == null ? void 0 : _c.toLocaleString) == null ? void 0 : _d.call(_c, "en-US")) != null ? _e : sig.rows} rows, ${sig.features} feature columns. Target: ${sig.target ? `\`${line(sig.target)}\`` : "none"}. Predicting: ${line(taskLabel).toLowerCase()}. Row order ${sig.codes[1] === "A22" ? "matters" : "does not matter"}.`,
       ""
     );
+    if (checks) {
+      out.push("## Before you trust a score", "");
+      if (checks.flags.length) {
+        for (const f of checks.flags) out.push(`- **${line(f.title)}.** ${line(f.text)} What to do: ${line(f.fix)}`);
+      } else {
+        out.push(`Nothing found: ${checks.clear.map(line).join(", ")}.`);
+      }
+      out.push("");
+    }
     out.push("## Signature", "", `\`${codes.join(" ")}\``, "", "| code | what it means |", "|---|---|");
     for (const code of codes) {
       const c = T.CODES[code];
@@ -2432,6 +2459,215 @@ self.onmessage = async (event) => {
     setTimeout(() => URL.revokeObjectURL(url), 1e3);
   }
 
+  // site/js/checks.js
+  var LEAK_SCORE = 0.99;
+  var LEAK_MIN_ROWS = 30;
+  var ID_DISTINCT = 0.98;
+  var ID_MIN_ROWS = 20;
+  var DUPLICATE_SHARE = 0.01;
+  var DUPLICATE_OVER_CHANCE = 3;
+  var BINS = 32;
+  var ID_NAME = /(^|[^a-z])(id|uuid|guid|idx|index|key|no|nr|num|number)$|^(id|uuid|guid)([^a-z]|$)/i;
+  var ID_CAMEL = /[a-z](Id|ID|Key|No|Nr|Num|Number)$/;
+  function idLike(col, n, rows = null) {
+    if (col.dateLike || n < ID_MIN_ROWS) return false;
+    const present = (rows ? rows.map((i) => col.values[i]) : col.values).filter((v) => !isMissing(v));
+    if (present.length < ID_MIN_ROWS || new Set(present).size < ID_DISTINCT * present.length) return false;
+    const named = ID_NAME.test(col.name.trim()) || ID_CAMEL.test(col.name.trim());
+    if (col.numeric) {
+      const nums = present.map(Number);
+      if (!nums.every(Number.isInteger)) return false;
+      const span = Math.max(...nums) - Math.min(...nums) + 1;
+      return named || span <= 1.1 * present.length;
+    }
+    const avgLen = present.reduce((s, v) => s + v.length, 0) / present.length;
+    const spaced = present.filter((v) => /\s/.test(v.trim())).length / present.length;
+    return named || avgLen <= 32 && spaced <= 0.2;
+  }
+  function targetValues(profile, target, task) {
+    const col = profile.columns.find((c) => c.name === target);
+    if (!col) return null;
+    const asNumber = task === "number" || task !== "category" && col.numeric;
+    const values = col.values.map((v) => {
+      if (isMissing(v)) return null;
+      if (!asNumber) return String(v).trim();
+      const x = Number(v);
+      return Number.isFinite(x) ? x : null;
+    });
+    return { values, kind: asNumber ? "number" : "category" };
+  }
+  function keyer(col, train) {
+    if (!col.numeric) return (i) => isMissing(col.values[i]) ? "\u2205" : String(col.values[i]).trim();
+    const xs = train.map((i) => Number(col.values[i])).filter(Number.isFinite).sort((a, b) => a - b);
+    const distinct = [...new Set(xs)];
+    const edges = distinct.length <= BINS ? distinct : [...new Set(Array.from({ length: BINS - 1 }, (_, k) => xs[Math.floor((k + 1) * xs.length / BINS)]))];
+    return (i) => {
+      const x = Number(col.values[i]);
+      if (isMissing(col.values[i]) || !Number.isFinite(x)) return "\u2205";
+      let lo = 0, hi = edges.length;
+      while (lo < hi) {
+        const mid = lo + hi >> 1;
+        if (edges[mid] <= x) lo = mid + 1;
+        else hi = mid;
+      }
+      return "b" + lo;
+    };
+  }
+  function singleColumnScore(col, target, rows) {
+    const halves = [rows.filter((_, k) => k % 2 === 0), rows.filter((_, k) => k % 2 === 1)];
+    const predicted = /* @__PURE__ */ new Map();
+    for (const [fit, apply] of [[halves[0], halves[1]], [halves[1], halves[0]]]) {
+      const key = keyer(col, fit);
+      const groups = /* @__PURE__ */ new Map();
+      for (const i of fit) {
+        const k = key(i);
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k).push(target.values[i]);
+      }
+      const summarise = target.kind === "number" ? (ys) => ys.reduce((a, b) => a + b, 0) / ys.length : (ys) => {
+        const c = /* @__PURE__ */ new Map();
+        for (const y of ys) c.set(y, (c.get(y) || 0) + 1);
+        return [...c.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])))[0][0];
+      };
+      const fallback = summarise(fit.map((i) => target.values[i]));
+      const fitted = new Map([...groups].map(([k, ys]) => [k, summarise(ys)]));
+      for (const i of apply) predicted.set(i, fitted.has(key(i)) ? fitted.get(key(i)) : fallback);
+    }
+    if (target.kind === "number") {
+      const ys = rows.map((i) => target.values[i]);
+      const mean = ys.reduce((a, b) => a + b, 0) / ys.length;
+      const sst = ys.reduce((s, y) => s + (y - mean) ** 2, 0);
+      if (sst === 0) return null;
+      const sse = rows.reduce((s, i) => s + (target.values[i] - predicted.get(i)) ** 2, 0);
+      return 1 - sse / sst;
+    }
+    const byClass = /* @__PURE__ */ new Map();
+    for (const i of rows) {
+      const y = target.values[i];
+      if (!byClass.has(y)) byClass.set(y, [0, 0]);
+      const c = byClass.get(y);
+      c[0] += 1;
+      if (predicted.get(i) === y) c[1] += 1;
+    }
+    if (byClass.size < 2) return null;
+    return [...byClass.values()].reduce((s, [n, hit]) => s + hit / n, 0) / byClass.size;
+  }
+  function repeatedRows(profile, target) {
+    const n = profile.n;
+    const cols = profile.columns;
+    const seen = /* @__PURE__ */ new Set();
+    let copies = 0;
+    const byInputs = /* @__PURE__ */ new Map();
+    for (let i = 0; i < n; i++) {
+      const row = JSON.stringify(cols.map((c) => c.values[i]));
+      if (seen.has(row)) copies += 1;
+      else seen.add(row);
+      if (target) {
+        const inputs = JSON.stringify(cols.filter((c) => c.name !== target).map((c) => c.values[i]));
+        if (!byInputs.has(inputs)) byInputs.set(inputs, /* @__PURE__ */ new Map());
+        const ys = byInputs.get(inputs);
+        const y = cols.find((c) => c.name === target).values[i];
+        ys.set(y, (ys.get(y) || 0) + 1);
+      }
+    }
+    let match = n > 1 ? 1 : 0;
+    for (const c of cols) {
+      const counts = /* @__PURE__ */ new Map();
+      for (const v of c.values) counts.set(v, (counts.get(v) || 0) + 1);
+      let pairs = 0;
+      for (const k of counts.values()) pairs += k * (k - 1);
+      match *= n > 1 ? pairs / (n * (n - 1)) : 0;
+    }
+    const expected = Math.min(n - 1, n * (n - 1) / 2 * match);
+    let conflicting = 0;
+    for (const ys of byInputs.values()) if (ys.size > 1) for (const k of ys.values()) conflicting += k;
+    return { copies, share: n ? copies / n : 0, expected, conflicting };
+  }
+  function runChecks(profile, decl) {
+    const target = decl.target && decl.target !== "__none__" ? decl.target : null;
+    const n = profile.n;
+    const flags = [];
+    const ran = [];
+    const firsts = [];
+    const seenRows = /* @__PURE__ */ new Set();
+    for (let i = 0; i < n; i++) {
+      const row = JSON.stringify(profile.columns.map((c) => c.values[i]));
+      if (!seenRows.has(row)) {
+        seenRows.add(row);
+        firsts.push(i);
+      }
+    }
+    const ids = profile.columns.filter((c) => c.name !== target && idLike(c, n, firsts));
+    ran.push("id");
+    for (const c of ids) {
+      flags.push({
+        kind: "id",
+        column: c.name,
+        title: `${c.name} looks like an ID`,
+        text: `It has a different value in ${c.uniq === firsts.length ? "every row" : "almost every row"}, like an order number. A model can memorise it and score well on rows it has seen, and it says nothing about new ones.`,
+        fix: "Leave it out of the features. The script this page writes already does."
+      });
+    }
+    let leakRows = 0;
+    const t = target ? targetValues(profile, target, decl.task) : null;
+    if (t) {
+      const rows = [];
+      for (let i = 0; i < n; i++) if (t.values[i] !== null) rows.push(i);
+      leakRows = rows.length;
+      if (rows.length >= LEAK_MIN_ROWS) {
+        ran.push("leak");
+        const idNames = new Set(ids.map((c) => c.name));
+        const scored2 = profile.columns.filter((c) => c.name !== target && !idNames.has(c.name) && !c.dateLike && !c.textLike).map((c) => ({ col: c, score: singleColumnScore(c, t, rows) })).filter((s) => s.score !== null && s.score >= LEAK_SCORE).sort((a, b) => b.score - a.score);
+        const measure = t.kind === "number" ? "R\xB2" : "balanced accuracy";
+        for (const s of scored2.slice(0, 3)) {
+          flags.push({
+            kind: "leak",
+            column: s.col.name,
+            score: s.score,
+            title: `${s.col.name} predicts ${target} almost perfectly on its own`,
+            text: `Used alone, on rows it was not fitted on, it reaches ${measure} ${s.score.toFixed(3)}. Real predictors are rarely this good by themselves. This usually means it was recorded after the outcome, or computed from it, and it will not be there when you predict.`,
+            fix: `Check when ${s.col.name} becomes known. If it is only known after ${target} is, leave it out.`
+          });
+        }
+      }
+    }
+    const rep = repeatedRows(profile, target);
+    ran.push("duplicates");
+    if (rep.copies >= 2 && rep.share >= DUPLICATE_SHARE && rep.copies > DUPLICATE_OVER_CHANCE * rep.expected) {
+      const conflict2 = target && rep.conflicting ? ` ${rep.conflicting.toLocaleString("en-US")} rows share their inputs with a row whose ${target} is different, which caps how well any model can do.` : "";
+      flags.push({
+        kind: "duplicates",
+        copies: rep.copies,
+        share: rep.share,
+        title: `${rep.copies.toLocaleString("en-US")} rows are exact copies of other rows`,
+        text: `That is ${(100 * rep.share).toFixed(1)}% of the file, more than chance would give. A random split puts a copy in the test set whose twin the model trained on, so the score is higher than it will be on new rows.${conflict2}`,
+        fix: "Remove the copies, or keep each set of copies in the same fold when you split."
+      });
+    }
+    const dates = profile.columns.filter((c) => c.dateLike && c.name !== target);
+    if (target) ran.push("time");
+    if (target && dates.length && decl.order === "A21") {
+      const col = dates[0].name;
+      flags.push({
+        kind: "time",
+        column: col,
+        title: `${col} holds dates, and the rows were declared independent`,
+        text: "If the model will be used on rows that come later, a random split lets it learn from rows after the ones it is tested on. The score will be higher than what you see once it runs.",
+        fix: 'Answer "Yes, it is a sequence" to row order, and the script splits by time instead.'
+      });
+    }
+    return { flags, ran, rows: n, leakRows };
+  }
+  function checksSummary(result, target) {
+    const parts = [];
+    if (result.ran.includes("leak")) parts.push(`no column predicts ${target} on its own`);
+    else if (target) parts.push(`too few rows with ${target} (${result.leakRows}) to test whether one column predicts it on its own`);
+    parts.push("no column looks like a row ID");
+    parts.push("no more repeated rows than chance");
+    if (result.ran.includes("time")) parts.push("no dates split at random");
+    return parts;
+  }
+
   // site/js/results.js
   function tieNote(result, noun = "models") {
     if (result.tied <= 1) return "";
@@ -2459,6 +2695,9 @@ self.onmessage = async (event) => {
   function renderResults(T, sig, task, profile, source = null) {
     var _a, _b, _c, _d, _e, _f, _g;
     const codes = matchCodes(sig);
+    const checks = profile ? runChecks(profile, { target: sig.target, task, order: sig.codes[1] }) : null;
+    const leftOut = checks ? checks.flags.filter((f) => f.kind === "id").map((f) => f.column) : [];
+    renderChecks(checks, sig.target);
     const meta = profile ? metaFeatures(profile, (_a = sig.target) != null ? _a : null) : null;
     if (meta && sig.drift) meta.drift_psi = Math.min(sig.drift.psi, 5);
     const models = rankModels(T, sig, task, 4, meta);
@@ -2581,6 +2820,7 @@ self.onmessage = async (event) => {
         models,
         drifts,
         pipelines,
+        checks: checks ? { flags: checks.flags, clear: checksSummary(checks, sig.target) } : null,
         notes: {
           models: document.getElementById("model-note").textContent,
           drifts: document.getElementById("drift-note").textContent
@@ -2610,11 +2850,34 @@ self.onmessage = async (event) => {
       profile,
       source,
       homeModels.items.map((m) => m.c),
-      home.task ? leadRecommendation(T, sig, home.task) : null
+      home.task ? leadRecommendation(T, sig, home.task) : null,
+      leftOut
     );
     renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
     renderNeighbours(T, neighbours, task);
     plotSpace(T, sig, meta, neighbours);
+  }
+  function renderChecks(checks, target) {
+    const note = document.getElementById("checks-note");
+    const el = document.getElementById("checks");
+    if (!note || !el) return;
+    if (!checks) {
+      note.textContent = "";
+      el.innerHTML = "";
+      return;
+    }
+    if (!checks.flags.length) {
+      note.textContent = `Nothing found: ${checksSummary(checks, target).join(", ")}. These are what most often make a score look better than it will be on new data, and no choice of model fixes them.`;
+      el.innerHTML = "";
+      return;
+    }
+    note.textContent = "Choosing among good models moves a score by about a point on the benchmark. What follows can move it by far more, and no choice of model fixes it. Worth settling before reading any number below.";
+    el.innerHTML = checks.flags.map((f) => `
+    <div class="check" data-kind="${esc(f.kind)}">
+      <p class="check-h">${esc(f.title)}</p>
+      <p class="check-p">${esc(f.text)}</p>
+      <p class="check-fix">What to do: ${esc(f.fix)}</p>
+    </div>`).join("");
   }
   function renderSaveBar(make, name) {
     const el = document.getElementById("savebar");
@@ -2646,7 +2909,7 @@ self.onmessage = async (event) => {
       </div>
     </article>`;
   }
-  function renderTakeHome(T, sig, home, profile, source, codes, lead = null) {
+  function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftOut = []) {
     var _a, _b;
     const el = document.getElementById("takehome");
     if (!el) return;
@@ -2671,8 +2934,9 @@ self.onmessage = async (event) => {
         target: sig.target,
         task,
         ordered: sig.codes[1] === "A22",
-        ...columnRoles(profile, sig.target),
-        shortlist: codes
+        ...columnRoles(profile, sig.target, leftOut),
+        shortlist: codes,
+        leftOut
       });
     };
     const framing = home.framed ? `<p class="sect-note">A future value is not something the benchmark or the script covers, so this checks the
@@ -2686,7 +2950,7 @@ self.onmessage = async (event) => {
       return esc((_a2 = names[c]) != null ? _a2 : c);
     }).join(", ")} on your whole file, with the preprocessing and cross-validation the
       benchmark used${lead ? "" : ", and tuned boosting beside them: on the benchmark, a small tuning budget was worth more than the choice among the top models"}.
-      It needs pandas and scikit-learn.</p>
+      ${leftOut.length ? `It leaves out ${leftOut.map(esc).join(", ")}, which ${leftOut.length === 1 ? "looks" : "look"} like ${leftOut.length === 1 ? "an ID" : "IDs"}. ` : ""}It needs pandas and scikit-learn.</p>
     <div class="takehome-row">
       <button class="run takehome-btn" id="takehome-btn" type="button">Download the script</button>
       ${(source == null ? void 0 : source.text) ? '<button class="run takehome-btn ghost" id="verify-btn" type="button">Run it here</button>' : ""}

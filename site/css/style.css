@@ -203,6 +203,14 @@ select.opt{color:var(--ink);padding-right:28px}
 .coverage-p{color:var(--ink);font-size:13px;line-height:1.75}
 .coverage-p + .coverage-p{margin-top:8px}
 
+/* before you trust a score */
+.check{border-left:2px solid var(--clay);background:rgba(201,106,90,.07);
+  padding:12px 16px;margin:0 0 14px;max-width:72ch}
+.check-h{color:var(--clay);font-size:13px;letter-spacing:.02em;margin-bottom:6px}
+.check-p{color:var(--ink);font-size:13px;line-height:1.75}
+.check-fix{color:var(--ink);font-size:13px;line-height:1.75;margin-top:6px}
+#checks:empty{display:none}
+
 /* evidence tables */
 .ev-h{
   font-family:'Instrument Serif',serif;font-size:21px;font-weight:400;

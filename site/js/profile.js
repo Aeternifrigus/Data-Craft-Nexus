@@ -16,7 +16,7 @@ import { psiNumeric, psiCategorical, PSI_SHIFT } from './stats.js';
 import { countDateLike } from './dates.js';
 
 const MISSING_WORDS = new Set(['', 'na', 'n/a', 'null', 'nan', 'none', '-']);
-const isMissing = (v) => v == null || MISSING_WORDS.has(String(v).trim().toLowerCase());
+export const isMissing = (v) => v == null || MISSING_WORDS.has(String(v).trim().toLowerCase());
 
 export function profileData(head, body) {
   const n = body.length;

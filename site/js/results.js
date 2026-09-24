@@ -10,6 +10,7 @@ import { coverageNotes, metaFeatures, nearestDatasets, performanceOn, winnerAmon
 import { MODEL_CODE, columnRoles, downloadScript, pythonScript, scriptable, takeHomeTask } from './export.js';
 import { PYODIDE_VERSION, verdict, verifyInBrowser } from './verify.js';
 import { downloadReading, readingFileName, readingMarkdown } from './report.js';
+import { checksSummary, runChecks } from './checks.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
@@ -43,6 +44,11 @@ function chip(code, kind, codes) {
 
 export function renderResults(T, sig, task, profile, source = null) {
   const codes = matchCodes(sig);
+
+  // What can make any score look better than it is, before any score.
+  const checks = profile ? runChecks(profile, { target: sig.target, task, order: sig.codes[1] }) : null;
+  const leftOut = checks ? checks.flags.filter(f => f.kind === 'id').map(f => f.column) : [];
+  renderChecks(checks, sig.target);
 
   // Where this dataset sits among the benchmark datasets, measured the same
   // way. The order can depend on it, so it is measured first.
@@ -174,6 +180,7 @@ export function renderResults(T, sig, task, profile, source = null) {
     T, sig, task, fileName: source?.fileName ?? 'data.csv', date: new Date().toISOString().slice(0, 10),
     build: document.querySelector('meta[name="dcn-build"]')?.content?.split(' ')[0] ?? null,
     lead, leadText: lead ? leadSentence(T, lead) : '', models, drifts, pipelines,
+    checks: checks ? { flags: checks.flags, clear: checksSummary(checks, sig.target) } : null,
     notes: { models: document.getElementById('model-note').textContent,
       drifts: document.getElementById('drift-note').textContent },
     sentences: Object.fromEntries([
@@ -197,10 +204,32 @@ export function renderResults(T, sig, task, profile, source = null) {
   const home = takeHomeTask(task, sig, profile, T.TASKS.find(t => t.id === task)?.label ?? task);
   const homeModels = home.task && home.task !== task ? rankModels(T, sig, home.task, 4, meta) : models;
   renderTakeHome(T, sig, home, profile, source, homeModels.items.map(m => m.c),
-    home.task ? leadRecommendation(T, sig, home.task) : null);
+    home.task ? leadRecommendation(T, sig, home.task) : null, leftOut);
   renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
   renderNeighbours(T, neighbours, task);
   plotSpace(T, sig, meta, neighbours);
+}
+
+// "Before you trust a score": the checks, or what they looked at when nothing was found.
+function renderChecks(checks, target) {
+  const note = document.getElementById('checks-note');
+  const el = document.getElementById('checks');
+  if (!note || !el) return;
+  if (!checks) { note.textContent = ''; el.innerHTML = ''; return; }
+  if (!checks.flags.length) {
+    note.textContent = `Nothing found: ${checksSummary(checks, target).join(', ')}. These are what most often make a `
+      + 'score look better than it will be on new data, and no choice of model fixes them.';
+    el.innerHTML = '';
+    return;
+  }
+  note.textContent = 'Choosing among good models moves a score by about a point on the benchmark. What follows can '
+    + 'move it by far more, and no choice of model fixes it. Worth settling before reading any number below.';
+  el.innerHTML = checks.flags.map(f => `
+    <div class="check" data-kind="${esc(f.kind)}">
+      <p class="check-h">${esc(f.title)}</p>
+      <p class="check-p">${esc(f.text)}</p>
+      <p class="check-fix">What to do: ${esc(f.fix)}</p>
+    </div>`).join('');
 }
 
 // "Save this reading": the page's findings as a Markdown file.
@@ -236,7 +265,7 @@ function leadCard(T, lead) {
 
 // "Take it home": the shortlist as a Python script, for the tasks the
 // benchmark covers (it needs a target to score against).
-function renderTakeHome(T, sig, home, profile, source, codes, lead = null) {
+function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftOut = []) {
   const el = document.getElementById('takehome');
   if (!el) return;
   if (!profile) { el.innerHTML = ''; return; }
@@ -251,7 +280,8 @@ function renderTakeHome(T, sig, home, profile, source, codes, lead = null) {
   const names = Object.fromEntries(T.MODELS.map(m => [m.c, m.n]));
   const script = () => pythonScript({
     fileName: source?.fileName ?? 'data.csv', read: source?.read, columns: source?.columns ?? profile.columns.map(c => c.name),
-    target: sig.target, task, ordered: sig.codes[1] === 'A22', ...columnRoles(profile, sig.target), shortlist: codes,
+    target: sig.target, task, ordered: sig.codes[1] === 'A22', ...columnRoles(profile, sig.target, leftOut),
+    shortlist: codes, leftOut,
   });
   const framing = home.framed
     ? `<p class="sect-note">A future value is not something the benchmark or the script covers, so this checks the
@@ -264,7 +294,7 @@ function renderTakeHome(T, sig, home, profile, source, codes, lead = null) {
     <p class="sect-note">A Python script that runs ${lead ? (home.framed ? 'tuned boosting and ' : 'tuned boosting, which the page puts first, and ') : ''}${
       run.map(c => esc(names[c] ?? c)).join(', ')} on your whole file, with the preprocessing and cross-validation the
       benchmark used${lead ? '' : ', and tuned boosting beside them: on the benchmark, a small tuning budget was worth more than the choice among the top models'}.
-      It needs pandas and scikit-learn.</p>
+      ${leftOut.length ? `It leaves out ${leftOut.map(esc).join(', ')}, which ${leftOut.length === 1 ? 'looks' : 'look'} like ${leftOut.length === 1 ? 'an ID' : 'IDs'}. ` : ''}It needs pandas and scikit-learn.</p>
     <div class="takehome-row">
       <button class="run takehome-btn" id="takehome-btn" type="button">Download the script</button>
       ${source?.text ? '<button class="run takehome-btn ghost" id="verify-btn" type="button">Run it here</button>' : ''}

@@ -7,6 +7,9 @@
 // shortlist, because on the benchmark a small tuning budget was worth more
 // than the choice among the top families.
 //
+// What it scores by is what the page was told a wrong answer costs
+// (costs.js). Left alone, that is the benchmark's own score.
+//
 // Nothing runs here. The script is text; tests/export.test.js checks what goes
 // in, and bench/tests/test_export.py runs generated scripts with Python and
 // checks every estimator against the benchmark's registry. verify.js can run
@@ -53,6 +56,102 @@ export const MODEL_CODE = {
 
 const py = (value) => JSON.stringify(value);   // a JSON string or list is a valid Python literal
 const pyBool = (b) => (b ? 'True' : 'False');
+const oneLine = (text) => String(text).replace(/[\r\n]+/g, ' ');   // safe inside a Python comment
+const fmtNumber = (x) => (Number.isInteger(x) ? String(x) : String(Math.round(x * 1e4) / 1e4));
+
+// How the script scores, from a resolved cost (costs.js resolveCost), or the
+// benchmark's own score when there is none.
+function scoringCode(cost, bench) {
+  const shown = (c) => c.metric + (c.higher ? '' : ' (shown negative: closer to zero is better)');
+  if (cost?.id !== 'miss') {
+    const c = cost ?? (bench === 'classification'
+      ? { bench: true, scoring: 'balanced_accuracy', metric: 'balanced accuracy', higher: true }
+      : { bench: true, scoring: 'r2', metric: 'R squared', higher: true });
+    const why = c.bench ? 'the benchmark\'s own score'
+      : `what you said a wrong answer costs: ${oneLine(c.label.charAt(0).toLowerCase() + c.label.slice(1))}`;
+    return `# How every model is scored, and what tuned boosting is tuned for: ${why}.
+SCORING = ${py(c.scoring)}
+METRIC = ${py(shown(c))}`;
+  }
+  return `# How every model is scored, and what tuned boosting is tuned for: what its
+# mistakes cost. You said a missed ${oneLine(py(cost.positive))} costs ${fmtNumber(cost.ratio)} false alarms. A row
+# is flagged when its chance of being POSITIVE is above THRESHOLD, where a miss
+# and a false alarm cost the same if the chances are right; a model that gives
+# no chances is scored on its plain answer.
+POSITIVE = ${py(cost.positive)}
+MISS_COST = ${fmtNumber(cost.ratio)}
+THRESHOLD = 1 / (1 + MISS_COST)
+
+
+def cost_per_row(y, flagged):
+    """A missed case costs MISS_COST, a false alarm costs 1."""
+    y = np.asarray(y)
+    return float(MISS_COST * np.sum((y == 1) & ~flagged) + np.sum((y == 0) & flagged)) / len(y)
+
+
+def chances(model, X):
+    """Each row's chance of being POSITIVE, or None from a model that gives none."""
+    if not hasattr(model, "predict_proba"):
+        return None
+    classes = list(model.classes_)
+    if 1 not in classes:   # a training fold with no case in it
+        return np.zeros(len(X))
+    return model.predict_proba(X)[:, classes.index(1)]
+
+
+def cost_score(model, X, y):
+    p = chances(model, X)
+    flagged = np.asarray(model.predict(X)) == 1 if p is None else p > THRESHOLD
+    return -cost_per_row(y, flagged)
+
+
+SCORING = cost_score
+METRIC = ${py(shown(cost))}`;
+}
+
+// The threshold that cost least on the user's file, when a miss is priced.
+const THRESHOLD_CODE = `
+
+def threshold_report(results, frame):
+    """The threshold on the chances that cost least on your file, for the best model that gives chances.
+
+    The chances come from rows each model did not train on, in the same folds as above.
+    """
+    X, y = prepare(frame)
+    cv = splits(y)
+    builds = {code: (scale, build) for code, (name, scale, needs, build) in SHORTLIST.items()}
+    builds["BASE-HGB-TUNED"] = (False, lambda: TunedHGB(TASK))
+    for row in sorted((r for r in results if r["status"] == "ok"), key=lambda r: -r["score"]):
+        scale, build = builds[row["code"]]
+        if not hasattr(pipeline(build(), scale), "predict_proba"):
+            continue
+        print(f"\\nThreshold, for {row['name']}, the best model that gives chances:")
+        p, seen = np.zeros(len(y)), np.zeros(len(y), dtype=bool)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for train, test in cv.split(X, y):
+                fitted = pipeline(build(), scale).fit(X.iloc[train], y[train])
+                p[test], seen[test] = chances(fitted, X.iloc[test]), True
+        p, truth = p[seen], y[seen]
+        order = np.argsort(p)
+        cases_below = np.concatenate([[0], np.cumsum(truth[order] == 1)])   # cases among the k lowest chances
+        grid = np.linspace(0, 1, 1001)
+        kept = np.searchsorted(p[order], grid, side="right")               # rows at or below each threshold
+        missed = cases_below[kept]
+        false_alarms = (len(p) - kept) - (cases_below[-1] - missed)
+        costs = (MISS_COST * missed + false_alarms) / len(p)
+        ties = grid[costs == costs.min()]   # of equally cheap thresholds, the one nearest THRESHOLD
+        best = float(ties[np.argmin(np.abs(ties - THRESHOLD))])
+        print(f"  flag a row as {POSITIVE!r} when its chance is above")
+        print(f"    {best:.3f}  cost {costs.min():.4f} per row on your file, the least of any threshold")
+        print(f"    {THRESHOLD:.3f}  cost {cost_per_row(truth, p > THRESHOLD):.4f}, where a miss and a false alarm cost the same")
+        print(f"    0.500  cost {cost_per_row(truth, p > 0.5):.4f}, what a plain yes or no from the model does")
+        print(f"  The first was picked on the rows it is scored on, so it flatters itself; {THRESHOLD:.3f} was set")
+        print("  before looking. Prefer it unless the gap is large.")
+        return {"code": row["code"], "best": best, "cost": float(costs.min())}
+    print("\\nNo model that finished gives chances, so there is no threshold to tune.")
+    return None
+`;
 
 // The shortlist codes the script can run, in the page's order, and the ones
 // it cannot, with why.
@@ -101,7 +200,7 @@ export function columnRoles(profile, target, leftOut = []) {
 }
 
 export function pythonScript({ fileName, read, columns, target, task, ordered, numeric, categorical, shortlist,
-  leftOut = [], pageUrl = 'https://aeternifrigus.github.io/Data-Craft-Nexus/', date = new Date().toISOString().slice(0, 10) }) {
+  leftOut = [], cost = null, pageUrl = 'https://aeternifrigus.github.io/Data-Craft-Nexus/', date = new Date().toISOString().slice(0, 10) }) {
   const bench = task === 'category' ? 'classification' : 'regression';
   const { run, skipped } = scriptable(shortlist, task);
   const key = task === 'category' ? 'cls' : 'reg';
@@ -109,6 +208,9 @@ export function pythonScript({ fileName, read, columns, target, task, ordered, n
     MODEL_CODE[c].needs ? py(MODEL_CODE[c].needs) : 'None'}, lambda: ${MODEL_CODE[c][key]}),`).join('\n');
   const skippedNote = skipped.length
     ? `\n# Recommended but not runnable on a table here: ${skipped.join(', ')}.` : '';
+  // A cost set for the other kind of answer (the answer changed after it was set) is not used.
+  const priced = cost && cost.kind === task ? cost : null;
+  const miss = priced?.id === 'miss';
   const leftOutNote = leftOut.length
     ? `\n# Left out of the features: ${leftOut.join(', ')}. The page found a different value in almost every row,\n# like an ID, which a model can memorise and which says nothing about new rows.` : '';
 
@@ -122,7 +224,11 @@ It uses the preprocessing, estimators and cross-validation the site's
 benchmark uses, and runs tuned boosting beside the shortlist: on the
 benchmark, ten configurations of boosting were worth more than the choice
 among the top model families, so a recommendation should be checked against it.
-
+${priced && !priced.bench ? `
+It scores by ${priced.metric}, from what you said a wrong answer costs. The
+benchmark scored by ${bench === 'classification' ? 'balanced accuracy' : 'R squared'}, and the page's order is by that, so
+the order here can differ from the page's; for your costs, this one counts.
+` : ''}
     python dcn_shortlist.py path/to/${fileName}
 
 Needs pandas and scikit-learn; XGBoost and LightGBM if the shortlist has them
@@ -229,8 +335,22 @@ class TunedHGB(BaseEstimator):
     def predict(self, X):
         return self.search_.predict(X)
 
+    def predict_proba(self, X):
+        return self.search_.predict_proba(X)
 
-SCORING = "balanced_accuracy" if TASK == "classification" else "r2"
+    # A classifier to scikit-learn when it predicts a category, so a score
+    # that needs chances can ask it for them.
+    @property
+    def _estimator_type(self):   # scikit-learn before 1.6
+        return "classifier" if self.task == "classification" else "regressor"
+
+    def __sklearn_tags__(self):   # scikit-learn 1.6 and later
+        tags = super().__sklearn_tags__()
+        tags.estimator_type = self._estimator_type
+        return tags
+
+
+${scoringCode(priced, bench)}
 
 
 def pipeline(estimator, scale):
@@ -275,7 +395,10 @@ def prepare(frame):
     frame = frame[frame[TARGET].map(as_text).notna()]
     X = frame[NUMERIC + CATEGORICAL]
     if TASK == "classification":
-        y = LabelEncoder().fit_transform(frame[TARGET].astype(str))
+        ${miss ? `y = (frame[TARGET].astype(str).str.strip() == POSITIVE).astype(int).to_numpy()   # 1 is a case
+        if not y.any():
+            raise SystemExit(f"No row of {TARGET} is {POSITIVE!r}, the case the page priced. Is this the same file?")`
+    : 'y = LabelEncoder().fit_transform(frame[TARGET].astype(str))'}
     else:
         y = frame[TARGET].map(as_number).astype(float)
         X, y = X[y.notna()], y[y.notna()].to_numpy()
@@ -313,21 +436,22 @@ def evaluate(frame, progress=print):
                 row.update(status="ok", score=float(np.mean(scores)), spread=float(np.std(scores)),
                            seconds=round(time.time() - started, 1))
             except Exception as exc:  # a model that cannot handle this data is a result too
-                row.update(status="error", detail=f"{type(exc).__name__}: {exc}"[:200])
+                detail = ("gives no chances, which this score needs" if "predict_proba" in str(exc)
+                          else f"{type(exc).__name__}: {exc}")
+                row.update(status="error", detail=detail[:200])
         results.append(row)
         progress(row)
     return results
 
 
 def report(results):
-    metric = "balanced accuracy" if TASK == "classification" else "R squared"
-    print(f"\\n{len(results)} models, 5-fold {'time-ordered ' if ORDERED else ''}cross-validation, {metric}:\\n")
+    print(f"\\n{len(results)} models, 5-fold {'time-ordered ' if ORDERED else ''}cross-validation, {METRIC}:\\n")
     for row in sorted(results, key=lambda r: -r.get("score", -np.inf)):
         if row["status"] == "ok":
             print(f"  {row['score']:.4f} ± {row['spread']:.4f}  {row['code']:15} {row['name']}  ({row['seconds']}s)")
         else:
             print(f"  {row['status']:>15}  {row['code']:15} {row['name']}: {row.get('detail', '')}")
-
+${miss ? THRESHOLD_CODE : ''}
 
 def load(source):
     """The file as the page read it: every cell as text, under the page's column names.
@@ -346,7 +470,9 @@ def load(source):
 
 def main():
     path = sys.argv[1] if len(sys.argv) > 1 else FILE
-    report(evaluate(load(path), progress=lambda row: print(".", end="", flush=True)))
+    frame = load(path)
+    results = evaluate(frame, progress=lambda row: print(".", end="", flush=True))
+    report(results)${miss ? '\n    threshold_report(results, frame)' : ''}
 
 
 if __name__ == "__main__":

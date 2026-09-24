@@ -63,7 +63,7 @@ test('the script is offered for every answer it can check, and a reason is given
 test('a future number is forecast with the models on the cards, and the one that cannot run is named', () => {
   const forecasting = T.MODELS.filter(m => m.c.startsWith('TSM')).map(m => m.c);
   const { run, skipped } = scriptable(forecasting, 'forecast');
-  assert.deepEqual(run, ['TSM1', 'TSM2']);
+  assert.deepEqual(run, ['TSM1', 'TSM2', 'TSM4', 'TSM5']);
   assert.deepEqual(skipped, ['TSM3']);
   assert.match(NOT_RUNNABLE.TSM3, /Prophet needs Stan/);
   const base = {
@@ -73,6 +73,10 @@ test('a future number is forecast with the models on the cards, and the one that
   const text = pythonScript({ ...base, forecast: { dateColumn: 'day' } });
   assert.match(text, /^FORECAST = True/m);
   assert.match(text, /^DATE_COLUMN = "day"/m);
+  assert.match(text, /^SEASON = None /m, 'no season unless the dates give one');
+  assert.match(text, /"TSM4": \("Croston's method \(SBA\)", None, croston_sba\),/);
+  const seasonal = pythonScript({ ...base, forecast: { dateColumn: 'day', season: 12, seasonNote: 'the dates step by a month, so a year is 12 rows' } });
+  assert.match(seasonal, /^SEASON = 12   # the dates step by a month, so a year is 12 rows/m);
   assert.match(text, /"TSM1": \("ARIMA", "statsmodels", arima\),/);
   assert.match(text, /Recommended but not runnable here: TSM3 \(Prophet needs Stan/);
   assert.match(text, /^statsmodels = optional\("statsmodels"\)$/m);

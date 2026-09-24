@@ -13,6 +13,7 @@ import { downloadReading, readingFileName, readingMarkdown } from './report.js';
 import { checksSummary, runChecks } from './checks.js';
 import { costSentence, resolveCost } from './costs.js';
 import { codeTag, nameChip, plainFlowchart, plainReason } from './names.js';
+import { forecastSetup } from './series.js';
 
 // A tie means the data can't separate those models. Say so rather than
 // letting the order on the page look like a verdict.
@@ -307,7 +308,7 @@ function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftO
     fileName: source?.fileName ?? 'data.csv', read: source?.read, columns: source?.columns ?? profile.columns.map(c => c.name),
     target: sig.target, task, ordered: sig.codes[1] === 'A22', ...columnRoles(profile, sig.target, leftOut),
     shortlist: codes, leftOut, cost,
-    forecast: home.forecast ? { dateColumn: profile.dateCols[0]?.name ?? null } : null,
+    forecast: home.forecast ? forecastSetup(profile, sig.target) : null,
   });
   const idNote = leftOut.length
     ? `It leaves out ${leftOut.map(esc).join(', ')}, which ${leftOut.length === 1 ? 'looks' : 'look'} like ${leftOut.length === 1 ? 'an ID' : 'IDs'}. ` : '';

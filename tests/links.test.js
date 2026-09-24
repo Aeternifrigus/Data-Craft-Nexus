@@ -24,6 +24,8 @@ const ALLOWED_HOSTS = [
   'umap-learn.readthedocs.io', 'xgboost.readthedocs.io', 'lightgbm.readthedocs.io', 'imbalanced-learn.org',
   'librosa.org', 'networkx.org', 'pandas.pydata.org', 'geopandas.org', 'gymnasium.farama.org',
   'stable-baselines3.readthedocs.io', 'optuna.readthedocs.io', 'mlflow.org', 'airflow.apache.org',
+  // Open copies of forecasting papers at the authors' universities, and Hyndman and Athanasopoulos's open textbook.
+  'eprints.lancs.ac.uk', 'research.rug.nl', 'otexts.com',
 ];
 
 test('every link is https and points at an allowed reference site', () => {

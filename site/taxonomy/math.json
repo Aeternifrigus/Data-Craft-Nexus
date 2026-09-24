@@ -1501,6 +1501,54 @@
     "label": "statsmodels ExponentialSmoothing",
     "url": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.holtwinters.ExponentialSmoothing.html"
    }
+  },
+  "TS6": {
+   "name": "Croston's method with the SBA correction",
+   "f": "ŷ = (1 − α/2) · ẑ / p̂,  ẑ ← ẑ + α(y_t − ẑ) and p̂ ← p̂ + α(q − p̂) when y_t > 0",
+   "domain": "TS",
+   "mech": "ẑ smooths the size of each demand and p̂ the number of periods q since the previous one; both change only in a period with demand. Their ratio is a demand rate per period, and (1 − α/2) removes the upward bias Syntetos and Boylan found in Croston's original ẑ / p̂.",
+   "fail": "A quiet spell never lowers the forecast, because nothing is updated until the next demand. The bias correction assumes α is small.",
+   "intu": "Estimate how big an order usually is and how long you usually wait for one, then divide: that is how much to expect in an average period.",
+   "ref": {
+    "label": "Syntetos and Boylan (2005)",
+    "url": "https://eprints.lancs.ac.uk/id/eprint/73097/"
+   }
+  },
+  "TS7": {
+   "name": "TSB demand probability",
+   "f": "ŷ = π̂ · ẑ,  π̂ ← π̂ + β(𝟙[y_t > 0] − π̂) every period,  ẑ ← ẑ + α(y_t − ẑ) when y_t > 0",
+   "domain": "TS",
+   "mech": "π̂ smooths whether a period had any demand, in every period, and ẑ smooths the size of a demand when one comes. Their product is the expected demand per period.",
+   "fail": "β sets how quickly a product is written off: too high and a normal quiet spell looks like obsolescence, too low and a dead item keeps a forecast.",
+   "intu": "The chance that anything sells this period, times how much sells when something does.",
+   "ref": {
+    "label": "Teunter, Syntetos and Babai (2011)",
+    "url": "https://research.rug.nl/en/publications/intermittent-demand-linking-forecasting-to-inventory-obsolescence/"
+   }
+  },
+  "TS8": {
+   "name": "Demand categorization (ADI and CV²)",
+   "f": "ADI = n / #{t : y_t > 0},  CV² = (σ / μ)² of the non-zero values;  intermittent if ADI ≥ 1.32, lumpy if also CV² ≥ 0.49",
+   "domain": "TS",
+   "mech": "The average demand interval (ADI) says how many periods pass per demand; the squared coefficient of variation of the demand sizes says how much they vary. Syntetos, Boylan and Croston derived the cut-offs from where Croston-type methods start to beat exponential smoothing.",
+   "fail": "The cut-offs were derived for mean squared error on their demand model; for other scores and other data the boundary moves. A series with negative values is not demand and has no category.",
+   "intu": "Two questions about a sales history: how often does anything sell, and when it does, how different are the amounts?",
+   "ref": {
+    "label": "Syntetos, Boylan and Croston (2005)",
+    "url": "https://eprints.lancs.ac.uk/id/eprint/73095/"
+   }
+  },
+  "TS9": {
+   "name": "Seasonal and trend strength",
+   "f": "y = T + S + R,  F_S = max(0, 1 − Var(R) / Var(S + R)),  F_T = max(0, 1 − Var(R) / Var(T + R))",
+   "domain": "TS",
+   "mech": "Split the series into a trend (a centred moving average over one season), a season (the average detrended value at each position in the cycle) and what is left. Each strength is the share of the variation, once the other part is removed, that the part explains: near 1 when the remainder is small beside it, 0 when it is not there.",
+   "fail": "A classical decomposition assumes the season keeps its shape and size; a season that grows with the level (multiplicative) is measured less cleanly. A random walk reads as a strong trend, because its level moves slowly and persistently.",
+   "intu": "How much of the wiggle is the calendar, and how much is the series drifting somewhere?",
+   "ref": {
+    "label": "Hyndman and Athanasopoulos, Forecasting: Principles and Practice, 4.3",
+    "url": "https://otexts.com/fpp3/stlfeatures.html"
+   }
   }
  }
 }

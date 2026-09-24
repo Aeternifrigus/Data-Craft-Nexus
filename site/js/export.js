@@ -53,9 +53,12 @@ export const MODEL_CODE = {
   EN4: { name: 'LightGBM', needs: 'lightgbm', cls: 'lightgbm.LGBMClassifier(random_state=SEED, verbose=-1, n_jobs=-1)',
     reg: 'lightgbm.LGBMRegressor(random_state=SEED, verbose=-1, n_jobs=-1)' },
   // Forecasting models: `fc` names the script's function that predicts each
-  // row from the rows before it. The benchmark never ran these.
+  // row from the rows before it. bench/dcn/forecast.py runs these same
+  // functions on real series.
   TSM1: { name: 'ARIMA', needs: 'statsmodels', fc: 'arima' },
   TSM2: { name: 'Exponential Smoothing (Holt-Winters)', needs: 'statsmodels', fc: 'smoothing' },
+  TSM4: { name: "Croston's method (SBA)", fc: 'croston_sba' },
+  TSM5: { name: 'TSB (Teunter-Syntetos-Babai)', fc: 'tsb' },
 };
 
 // Models the page can recommend that the script does not run, and why.
@@ -161,21 +164,96 @@ def arima(y, train, test):
 
 
 def smoothing(y, train, test):
-    """Exponential smoothing of the level, with a trend if AIC prefers one, and SEASON if it is set."""
+    """Exponential smoothing of the level, with a trend and with a SEASON-row season where AIC prefers them.
+
+    A season is tried when the training rows hold two full cycles of it and it is at most 24 rows long, the
+    limit R's forecast::ets keeps: a longer one has more starting values to fit than the method handles well."""
     from statsmodels.tsa.statespace.exponential_smoothing import ExponentialSmoothing
     best = None
+    seasons = (None, SEASON) if SEASON and 1 < SEASON <= 24 and len(train) >= 2 * SEASON else (None,)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         for trend in (False, True):
-            try:
-                fitted = ExponentialSmoothing(y[train], trend=trend, seasonal=SEASON).fit(disp=False)
-            except Exception:
-                continue
-            if np.isfinite(fitted.aic) and (best is None or fitted.aic < best.aic):
-                best = fitted
+            for seasonal in seasons:
+                try:
+                    fitted = ExponentialSmoothing(y[train], trend=trend, seasonal=seasonal).fit(disp=False)
+                except Exception:
+                    continue
+                if np.isfinite(fitted.aic) and (best is None or fitted.aic < best.aic):
+                    best = fitted
         if best is None:
             raise RuntimeError("exponential smoothing could not be fitted")
         return one_step(best, y, test)
+
+
+def seasonal_last(y, train, test):
+    """Doing nothing, a season at a time: the value SEASON rows earlier (the last value before a season has passed)."""
+    back = test - SEASON
+    return np.where(back >= 0, y[np.maximum(back, 0)], y[test - 1])
+
+
+# Intermittent demand: most periods sell nothing. Both methods smooth the size
+# of a demand separately from how often one comes, and never see a row at or
+# after the one they predict. The smoothing constants are chosen on the
+# training rows by the squared error of their own one-step forecasts.
+SMOOTHING_GRID = (0.05, 0.1, 0.2, 0.3)
+
+
+def demand_only(y, train):
+    if np.any(y[train] < 0):
+        raise ValueError("needs demand that is never negative")
+
+
+def croston_path(y, alpha, upto):
+    """Row t's forecast from rows before t: (1 - alpha/2) times smoothed size over smoothed interval
+    (Syntetos and Boylan's correction of Croston's method)."""
+    out = np.zeros(upto)
+    size = interval = None
+    since = 1
+    for t in range(upto):
+        out[t] = 0.0 if size is None else (1 - alpha / 2) * size / interval
+        if y[t] > 0:
+            if size is None:
+                size, interval = y[t], since
+            else:
+                size += alpha * (y[t] - size)
+                interval += alpha * (since - interval)
+            since = 1
+        else:
+            since += 1
+    return out
+
+
+def croston_sba(y, train, test):
+    demand_only(y, train)
+    end = int(train[-1]) + 1
+    alpha = min(SMOOTHING_GRID, key=lambda a: np.mean((croston_path(y, a, end) - y[:end]) ** 2))
+    return croston_path(y, alpha, int(test[-1]) + 1)[test]
+
+
+def tsb_path(y, alpha, beta, upto, start):
+    """Row t's forecast from rows before t: smoothed chance of a demand times smoothed size
+    (Teunter, Syntetos and Babai), starting from the training rows' share and mean size."""
+    chance, size = start
+    out = np.zeros(upto)
+    for t in range(upto):
+        out[t] = chance * size
+        if y[t] > 0:
+            chance += beta * (1 - chance)
+            size += alpha * (y[t] - size)
+        else:
+            chance -= beta * chance
+    return out
+
+
+def tsb(y, train, test):
+    demand_only(y, train)
+    seen = y[train]
+    start = (float(np.mean(seen > 0)), float(seen[seen > 0].mean()) if np.any(seen > 0) else 0.0)
+    end = int(train[-1]) + 1
+    alpha, beta = min(((a, b) for a in SMOOTHING_GRID for b in SMOOTHING_GRID),
+                      key=lambda ab: np.mean((tsb_path(y, *ab, end, start) - y[:end]) ** 2))
+    return tsb_path(y, alpha, beta, int(test[-1]) + 1, start)[test]
 
 
 def recent_changes(y, lags):
@@ -234,21 +312,35 @@ def forecast_folds(n):
     return [(train, test) for train, test in TimeSeriesSplit(5).split(np.zeros(n)) if len(train) >= MIN_HISTORY]
 
 
+def forecast_runs(y):
+    """What is scored: doing nothing, each forecasting model, and tuned boosting on the last few changes."""
+    lags = max(1, min(7, len(y) // 20))
+    runs = [("NAIVE-LAST", "Do nothing: the last known value", None, last_value),
+            ("NAIVE-AVERAGE", "Do nothing: the average of every earlier value", None, running_average)]
+    if SEASON and SEASON > 1:
+        runs.append(("NAIVE-SEASON", f"Do nothing: the value {SEASON} rows earlier", None, seasonal_last))
+    runs += [(code, name, needs, method) for code, (name, needs, method) in SHORTLIST.items()]
+    recent = f"the last {lags} changes" if lags > 1 else "the last change"
+    runs.append(("BASE-HGB-TUNED", f"Tuned boosting on {recent} (reference)", None,
+                 lambda y, train, test: boosted_lags(y, train, test, lags)))
+    return runs
+
+
+def fold_forecasts(y, folds, method):
+    """A method's forecasts for each fold's scored rows, each from the rows before it."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return [(test, np.asarray(method(y, train, test), dtype=float)) for train, test in folds]
+
+
 def evaluate(frame, progress=print):
     """Doing nothing, each forecasting model, and tuned boosting on the last few values, each row predicted
     from the rows before it, in the same folds."""
     y = series(frame)
     folds = forecast_folds(len(y))
-    lags = max(1, min(7, len(y) // 20))
     measure, sign = METRIC_FN[SCORING]
-    runs = [("NAIVE-LAST", "Do nothing: the last known value", None, last_value),
-            ("NAIVE-AVERAGE", "Do nothing: the average of every earlier value", None, running_average)]
-    runs += [(code, name, needs, method) for code, (name, needs, method) in SHORTLIST.items()]
-    recent = f"the last {lags} changes" if lags > 1 else "the last change"
-    runs.append(("BASE-HGB-TUNED", f"Tuned boosting on {recent} (reference)", None,
-                 lambda y, train, test: boosted_lags(y, train, test, lags)))
     results = []
-    for code, name, needs, method in runs:
+    for code, name, needs, method in forecast_runs(y):
         row = {"code": code, "name": name}
         if needs and not globals().get(needs):
             row.update(status="skipped", detail=f"{needs} is not installed")
@@ -257,9 +349,7 @@ def evaluate(frame, progress=print):
         else:
             started = time.time()
             try:
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    scores = [sign * measure(y[test], method(y, train, test)) for train, test in folds]
+                scores = [sign * measure(y[test], forecast) for test, forecast in fold_forecasts(y, folds, method)]
                 row.update(status="ok", score=float(np.mean(scores)), spread=float(np.std(scores)),
                            seconds=round(time.time() - started, 1))
             except Exception as exc:  # a method that cannot handle this series is a result too
@@ -473,7 +563,8 @@ FORECAST = ${pyBool(fc)}   # ${fc ? 'a future value: each row predicted from the
     : 'you asked for a number or a category: predicted from the other columns'}
 NOTES = []   # what the run noticed about the file, printed under the scores${fc ? `
 DATE_COLUMN = ${forecast.dateColumn ? py(forecast.dateColumn) : 'None'}   # checked to see the rows run oldest first
-SEASON = None   # set it to 7, 12, ... if the values repeat every so many rows: smoothing then uses it
+SEASON = ${forecast.season ? `${forecast.season}   # ${oneLine(forecast.seasonNote ?? 'rows in one cycle')}: smoothing may use it, and doing nothing repeats it`
+    : 'None   # set it to 7, 12, ... if the values repeat every so many rows: smoothing may then use it'}
 MIN_HISTORY = 10   # a fold is scored only when at least this many earlier rows are there to learn from` : ''}
 
 

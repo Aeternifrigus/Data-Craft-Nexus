@@ -1935,6 +1935,62 @@
     "label": "Prophet on GitHub",
     "url": "https://github.com/facebook/prophet"
    }
+  },
+  {
+   "c": "TSM4",
+   "n": "Croston's method (SBA)",
+   "p": "SL",
+   "dom": "Time series",
+   "task": [
+    "forecast"
+   ],
+   "met": "Two clocks: one for how much is ordered, one for how long between orders.",
+   "data": [
+    "A11",
+    "A22",
+    "A31"
+   ],
+   "math": [
+    "TS6",
+    "TS8",
+    "TS5"
+   ],
+   "mech": "Most periods of intermittent demand are zero, and smoothing the raw series drags every forecast toward zero after a quiet spell and toward a spike after a sale. Croston's method smooths two things separately, updated only when a demand arrives: its size and the interval since the last one (TS5 on each). The forecast is size over interval, a demand rate per period. Syntetos and Boylan showed that ratio is biased upward and multiply it by 1 - alpha/2 (TS6). Which series need it is decided by how often demand arrives and how much its size varies (TS8).",
+   "fail": "It forecasts a flat rate, so it cannot say which period the next demand falls in, and it only updates when a demand arrives: if an item stops selling, the forecast never falls (TSB fixes that). On smooth, regular demand it is simply a slower exponential smoothing.",
+   "alt": "TSM5 (TSB) when items go obsolete; TSM2 when demand is regular.",
+   "dfit": "Intermittent demand: counts that are zero in many periods (spare parts, slow-moving items).",
+   "ref": {
+    "label": "Syntetos and Boylan (2005)",
+    "url": "https://eprints.lancs.ac.uk/id/eprint/73097/"
+   }
+  },
+  {
+   "c": "TSM5",
+   "n": "TSB (Teunter-Syntetos-Babai)",
+   "p": "SL",
+   "dom": "Time series",
+   "task": [
+    "forecast"
+   ],
+   "met": "Croston that notices when a product stops selling.",
+   "data": [
+    "A11",
+    "A22",
+    "A31"
+   ],
+   "math": [
+    "TS7",
+    "TS8",
+    "TS5"
+   ],
+   "mech": "Smooths the chance that a period has any demand at all, every period, and the size of a demand when one arrives (TS5 on each). The forecast is chance times size (TS7). Because the chance is updated in quiet periods too, a run of zeros steadily lowers the forecast, which Croston's method never does.",
+   "fail": "Two smoothing constants to choose, and on short histories the choice is noisy. Like Croston, it forecasts a rate, not the timing of the next demand, and on regular demand it adds nothing over exponential smoothing.",
+   "alt": "TSM4 (Croston, SBA) when obsolescence is not a concern; TSM2 when demand is regular.",
+   "dfit": "Intermittent demand where items can stop selling for good.",
+   "ref": {
+    "label": "Teunter, Syntetos and Babai (2011)",
+    "url": "https://research.rug.nl/en/publications/intermittent-demand-linking-forecasting-to-inventory-obsolescence/"
+   }
   }
  ]
 }

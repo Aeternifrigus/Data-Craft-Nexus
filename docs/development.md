@@ -1,6 +1,6 @@
 # Development
 
-[README](../README.md) · [Docs](README.md) · [How it works](how-it-works.md) · [The evidence](evidence.md) · **Development**
+[README](../README.md) · [Docs](README.md) · [How it works](how-it-works.md) · [The evidence](evidence.md) · **Development** · [For coding agents](mcp.md)
 
 ## Contents
 
@@ -21,7 +21,7 @@ To work on the code:
 ```bash
 git clone https://github.com/Aeternifrigus/Data-Craft-Nexus.git
 cd Data-Craft-Nexus
-npm install          # only installs esbuild, for the build step
+npm install          # esbuild for the build step, and the MCP SDK for the server in mcp/
 npm run serve        # serves site/ at http://localhost:8000
 ```
 
@@ -58,6 +58,8 @@ npm test             # Node 20+
 - `tests/check_links.test.js`: the link checker against a fake network. A connection that resets and then answers passes, a 404 fails on the first answer, no host gets more than two requests at once, and a DOI is checked where it is registered (doi.org), not at a publisher that turns away anything but a browser. `npm run check:links` runs the real check, which needs the internet and runs in CI.
 - `tests/favicon.test.js`: the favicon inlined into the page matches `site/favicon.svg` and stays self-contained.
 - `tests/build.test.js`: the built page is self-contained, carries exactly the taxonomy in `site/`, and is up to date.
+- `tests/analysis.test.js`: a reading worked out without the page: every part the page draws, ID columns left out of the script, and when there is no script and why.
+- `tests/mcp.test.js`: the MCP server. Each problem the checks look for is planted in a generated table and found; the signature, order, lead, drift checkers, pipelines and script match the page's for the same file; bad requests come back as tool errors; the protocol runs in memory and over stdio; and the npm package carries every file the server loads.
 - `tests/recommend.snapshot.test.js`: runs every fixture in `tests/fixtures/` through every target, task and order answer, and compares what gets recommended with `tests/snapshots/recommendations.json`. When a change to the profiler or the ranking is intended, run `npm run test:update` and review the snapshot diff in the commit.
 
 ## The benchmark
@@ -88,6 +90,7 @@ site/                  the source
     profile.js         measures the axes (no DOM)
     series.js          the shape of a series: intermittent, seasonal, trending (no DOM)
     recommend.js       rules out and ranks models, drift checkers, pipelines (no DOM)
+    analysis.js        a whole reading worked out, for the page and the MCP server (no DOM)
     ranking.js         the learned order, fitted by the benchmark
     forecasting.js     the order of forecasters, and what the forecasting benchmark measured (no DOM)
     anomalies.js       the order of anomaly detectors, and what the anomaly benchmark measured (no DOM)
@@ -103,13 +106,18 @@ site/                  the source
     drawer.js          the definition drawer
     library.js         "The reference" view
     app.js             entry point
+mcp/                   the MCP server for coding agents (docs/mcp.md)
+  dcn-mcp.mjs          entry point: the server on stdio
+  server.mjs           the four tools and their descriptions
+  tools.mjs            reads a file from disk and says a reading in words
+server.json            the server's MCP Registry entry
 scripts/build.mjs      bundles site/ into dist/index.html
 bench/                 the benchmark, in Python: runs, results, and the tests that hold it to the page
 docs/                  these pages, the tour video and gif (media/), and the original taxonomy notes (taxonomy/)
 tests/
 ```
 
-`profile.js` and `recommend.js` don't touch the page, so the same logic runs in the browser, in the tests and in the benchmark's Python copy, which the tests hold to agree with it.
+`profile.js` and `recommend.js` don't touch the page, so the same logic runs in the browser, in the tests and in the benchmark's Python copy, which the tests hold to agree with it. `analysis.js` puts them together into a reading, which the page draws and the MCP server returns to an agent.
 
 ## Stack
 

@@ -1,6 +1,6 @@
 # The evidence
 
-[README](../README.md) · [Docs](README.md) · [How it works](how-it-works.md) · **The evidence** · [Development](development.md)
+[README](../README.md) · [Docs](README.md) · [How it works](how-it-works.md) · **The evidence** · [Development](development.md) · [For coding agents](mcp.md)
 
 Every recommendation on the page is measured, and this is the record: what each benchmark ran, what it found, the rule written down before it ran that decided what the page does with the result, and, where the mathematics can say why, the argument. The page shows the same record in its **The evidence** tab. Every number here is also in [`bench/results/`](../bench/results), with the places where the site loses, and how each run was set up is in [`bench/README.md`](../bench/README.md).
 

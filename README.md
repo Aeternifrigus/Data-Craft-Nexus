@@ -78,6 +78,12 @@ npm install && npm run serve    # http://localhost:8000
 npm test                        # Node 20+
 ```
 
+Or hand it to a coding agent. It also runs as an MCP server, so Claude Code, Cursor and other agents can check a CSV and shortlist models the same way before they train anything ([set it up](docs/mcp.md)):
+
+```bash
+claude mcp add data-craft-nexus -- node /absolute/path/to/Data-Craft-Nexus/mcp/dcn-mcp.mjs
+```
+
 ## Docs
 
 | page | what is in it |
@@ -85,6 +91,7 @@ npm test                        # Node 20+
 | [How it works](docs/how-it-works.md) | what is measured and asked, how models are ruled out and ranked, the take-home script |
 | [The evidence](docs/evidence.md) | every benchmark, every number, the mathematics, and what is not done yet |
 | [Development](docs/development.md) | tests, project layout, stack, deployment |
+| [For coding agents](docs/mcp.md) | the MCP server: the checks, shortlist and script as tools an agent can call |
 | [The benchmark](bench/README.md) | how each run was set up, written down before it ran |
 
 ## License

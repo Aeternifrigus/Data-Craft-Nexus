@@ -1,6 +1,6 @@
 # How it works
 
-[README](../README.md) · [Docs](README.md) · **How it works** · [The evidence](evidence.md) · [Development](development.md)
+[README](../README.md) · [Docs](README.md) · **How it works** · [The evidence](evidence.md) · [Development](development.md) · [For coding agents](mcp.md)
 
 Most tabular ML advice fits in one line: tune gradient boosting. The 195-dataset benchmark behind this site agrees. Data Craft Nexus is for the three things that line leaves out, answered from your own CSV, in your browser, with nothing uploaded:
 

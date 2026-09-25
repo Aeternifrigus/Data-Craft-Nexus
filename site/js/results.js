@@ -3,18 +3,18 @@
 
 import { esc } from './html.js';
 import { matchCodes } from './profile.js';
-import { driftUnmeasured, leadRecommendation, paradigmOf, paradigmLabel, rankModels, rankDrifts, rankPipelines, plotCoords } from './recommend.js';
+import { analyse, scriptPlan, takeHomeScript } from './analysis.js';
+import { driftUnmeasured, paradigmOf, paradigmLabel } from './recommend.js';
 import { checkSentence, driftSentence, evidenceFor, evidenceSentence, leadSentence, messyNote } from './evidence.js';
 import { rankingProvenance } from './ranking.js';
-import { coverageNotes, metaFeatures, nearestDatasets, performanceOn, winnerAmong } from './nearest.js';
-import { MODEL_CODE, NOT_RUNNABLE, columnRoles, downloadScript, pythonScript, scriptable, takeHomeTask } from './export.js';
+import { coverageNotes, performanceOn, winnerAmong } from './nearest.js';
+import { MODEL_CODE, NOT_RUNNABLE, downloadScript } from './export.js';
 import { PYODIDE_VERSION, verdict, verifyInBrowser } from './verify.js';
 import { downloadReading, readingFileName, readingMarkdown } from './report.js';
-import { checksSummary, runChecks } from './checks.js';
-import { costSentence, resolveCost } from './costs.js';
+import { checksSummary } from './checks.js';
+import { costSentence } from './costs.js';
 import { codeTag, nameChip, plainFlowchart, plainReason } from './names.js';
-import { forecastSetup } from './series.js';
-import { describeSeries, forecastMetric, forecastNote, forecasterSentence } from './forecasting.js';
+import { forecastNote, forecasterSentence } from './forecasting.js';
 import { anomalyNote, detectorSentence } from './anomalies.js';
 
 // A tie means the data can't separate those models. Say so rather than
@@ -46,24 +46,11 @@ function refLinks(entry) {
 export function renderResults(T, sig, task, profile, source = null, answer = null) {
   const codes = matchCodes(sig);
 
-  // What can make any score look better than it is, before any score.
-  const checks = profile ? runChecks(profile, { target: sig.target, task, order: sig.codes[1] }) : null;
-  const leftOut = checks ? checks.flags.filter(f => f.kind === 'id').map(f => f.column) : [];
+  // Everything is worked out first (analysis.js); the rest of this draws it.
+  const { checks, leftOut, meta, models, neighbours, lead, drifts, pipelines, home, cost, takeHome } =
+    analyse(T, sig, task, profile, answer);
   renderChecks(T, checks, sig.target);
 
-  // Where this dataset sits among the benchmark datasets, measured the same
-  // way. The order can depend on it, so it is measured first.
-  const meta = profile ? metaFeatures(profile, sig.target ?? null) : null;
-  if (meta && sig.drift) meta.drift_psi = Math.min(sig.drift.psi, 5);
-  // A future number: measure the series the way the forecasting benchmark
-  // did, since its kind (intermittent, seasonal, trending...) can decide the order.
-  const targetColumn = profile?.columns.find(c => c.name === sig.target);
-  if (task === 'forecast' && targetColumn?.numeric && sig.codes[1] === 'A22') {
-    sig.series = describeSeries(forecastSetup(profile, sig.target),
-      forecastMetric(resolveCost('number', answer, targetColumn)));
-  }
-  const models = rankModels(T, sig, task, 4, meta);
-  const neighbours = meta ? nearestDatasets(T, meta, task) : [];
   const taskLabel = T.TASKS.find(t => t.id === task).label.toLowerCase();
 
   const provenance = rankingProvenance(T, task);
@@ -75,7 +62,6 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
       : ` Ordered by what each model was worth on ${provenance.datasets} benchmark datasets, not by how many coordinates it matches.`)
     : ' Ordered by coordinates matched: the benchmark has not covered this task, so there is nothing measured to rank them by.';
 
-  const lead = leadRecommendation(T, sig, task);
   const leadNote = lead ? ' Tuned boosting comes first, before the order: on the benchmark it beat the order\'s first pick.' : '';
 
   const note = document.getElementById('model-note');
@@ -133,7 +119,6 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
     ruled.innerHTML = '';
   }
 
-  const drifts = rankDrifts(T, sig);
   const driftMsg = sig.drift
     ? `Worst shift between the first and second half of your file: PSI ${sig.drift.psi.toFixed(2)} on ${sig.drift.column}${sig.drift.scope === 'target' ? ' (the target itself)' : ''}, ${sig.drift.psi > 0.25 ? 'above' : 'below'} the 0.25 cutoff in DR-M2.`
     : `Drift across the file could not be measured: too few rows, or no column steady enough to compare.${
@@ -165,7 +150,6 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
 
   renderRuledOut('drift-ruled', drifts.ruledOut, 'drift checkers');
 
-  const pipelines = rankPipelines(T, sig, task);
   document.getElementById('pipeline-note').textContent =
     'Pipelines ranked by fit to your data signature and task.' + tieNote(pipelines, 'pipelines');
 
@@ -188,11 +172,6 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
     </article>`).join('');
 
   renderRuledOut('pipeline-ruled', pipelines.ruledOut, 'pipelines');
-
-  // The script's task can differ from the answer: a future value is checked as a number, split by time.
-  const home = takeHomeTask(task, sig, profile, T.TASKS.find(t => t.id === task)?.label ?? task);
-  const cost = home.task && profile
-    ? resolveCost(home.task, answer, profile.columns.find(c => c.name === sig.target)) : null;
 
   renderSaveBar(() => readingMarkdown({
     T, sig, task, fileName: source?.fileName ?? 'data.csv', date: new Date().toISOString().slice(0, 10),
@@ -223,9 +202,7 @@ export function renderResults(T, sig, task, profile, source = null, answer = nul
 
   // A future number is forecast with the models on the cards; a future
   // category is checked with the category shortlist, which the note names.
-  const homeModels = home.task && home.task !== task && !home.forecast ? rankModels(T, sig, home.task, 4, meta) : models;
-  renderTakeHome(T, sig, home, profile, source, homeModels.items.map(m => m.c),
-    home.task && !home.forecast ? leadRecommendation(T, sig, home.task) : null, leftOut, cost);
+  renderTakeHome(T, sig, home, profile, source, takeHome.codes, takeHome.lead, leftOut, cost);
   renderCoverage(coverageNotes(T, meta, sig.rows, task, neighbours));
   renderNeighbours(T, neighbours, task);
   plotSpace(T, sig, meta, neighbours);
@@ -308,9 +285,8 @@ function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftO
   if (!el) return;
   if (!profile) { el.innerHTML = ''; return; }
   const task = home.task;
-  const { run, skipped } = task ? scriptable(codes, home.forecast ? 'forecast' : task) : { run: [], skipped: [] };
-  // A forecast still has something to run when no card can: doing nothing, and tuned boosting on recent changes.
-  if (!task || (!run.length && !home.forecast)) {
+  const { run, skipped, runnable } = scriptPlan(home, codes);
+  if (!runnable) {
     // Said, not hidden: a reader looking for the script learns what it needs.
     el.innerHTML = `<p class="takehome-h">Take it home</p>
       <p class="sect-note">${esc(home.why ?? 'None of the models shown can run on a table here, so there is no script for them.')}</p>`;
@@ -318,12 +294,7 @@ function renderTakeHome(T, sig, home, profile, source, codes, lead = null, leftO
   }
   const names = Object.fromEntries(T.MODELS.map(m => [m.c, m.n]));
   const list = (codes) => codes.map(c => esc(names[c] ?? c)).join(', ');
-  const script = () => pythonScript({
-    fileName: source?.fileName ?? 'data.csv', read: source?.read, columns: source?.columns ?? profile.columns.map(c => c.name),
-    target: sig.target, task, ordered: sig.codes[1] === 'A22', ...columnRoles(profile, sig.target, leftOut),
-    shortlist: codes, leftOut, cost,
-    forecast: home.forecast ? forecastSetup(profile, sig.target) : null,
-  });
+  const script = () => takeHomeScript({ sig, home, profile, source, codes, leftOut, cost });
   const idNote = leftOut.length
     ? `It leaves out ${leftOut.map(esc).join(', ')}, which ${leftOut.length === 1 ? 'looks' : 'look'} like ${leftOut.length === 1 ? 'an ID' : 'IDs'}. ` : '';
   const costNote = esc(costSentence(cost, !home.framed))

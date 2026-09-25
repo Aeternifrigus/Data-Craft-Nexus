@@ -10,12 +10,17 @@
     "build": "node scripts/build.mjs",
     "check:links": "node tools/check_links.mjs",
     "build:check": "node scripts/build.mjs --check",
-    "serve": "python3 -m http.server 8000 -d site"
+    "serve": "python3 -m http.server 8000 -d site",
+    "mcp": "node mcp/dcn-mcp.mjs"
   },
   "engines": {
     "node": ">=20"
   },
   "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.1",
+    "zod": "^4.6.5"
+  },
   "devDependencies": {
     "esbuild": "^0.25.12"
   }

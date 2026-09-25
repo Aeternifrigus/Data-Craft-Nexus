@@ -1,9 +1,18 @@
 {
   "name": "data-craft-nexus",
-  "version": "0.2.0",
-  "private": true,
-  "description": "Reads a dataset's six-axis signature and recommends models, drift checkers and pipelines.",
+  "version": "0.3.0",
+  "description": "Reads a dataset's six-axis signature, checks it for what makes a score lie, and recommends models, drift checkers and pipelines. A web page, and an MCP server for coding agents.",
+  "mcpName": "io.github.Aeternifrigus/data-craft-nexus",
   "type": "module",
+  "bin": {
+    "data-craft-nexus": "mcp/dcn-mcp.mjs"
+  },
+  "files": [
+    "mcp/*.mjs",
+    "site/js/*.js",
+    "site/taxonomy/*.json",
+    "server.json"
+  ],
   "scripts": {
     "test": "node --test \"tests/**/*.test.js\"",
     "test:update": "UPDATE_SNAPSHOTS=1 node --test \"tests/**/*.test.js\"",
@@ -16,7 +25,22 @@
   "engines": {
     "node": ">=20"
   },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "machine-learning",
+    "data-leakage",
+    "model-selection",
+    "tabular-data",
+    "drift"
+  ],
+  "author": "Kumar Kaustuv Das",
   "license": "MIT",
+  "homepage": "https://aeternifrigus.github.io/Data-Craft-Nexus/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aeternifrigus/Data-Craft-Nexus.git"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.1",
     "zod": "^4.6.5"

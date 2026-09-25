@@ -1,6 +1,6 @@
 # Data Craft Nexus docs
 
-[README](../README.md) · **Docs** · [How it works](how-it-works.md) · [The evidence](evidence.md) · [Development](development.md)
+[README](../README.md) · **Docs** · [How it works](how-it-works.md) · [The evidence](evidence.md) · [Development](development.md) · [For coding agents](mcp.md)
 
 The [README](../README.md) is the short version. These pages are the long one: everything the page does, every number behind it, and how to work on it.
 
@@ -9,6 +9,7 @@ The [README](../README.md) is the short version. These pages are the long one: e
 | [How it works](how-it-works.md) | what is measured and what is asked, how models are ruled out and ordered, the checks before a score, datasets like yours, the take-home script, "Run it here", features, the taxonomy |
 | [The evidence](evidence.md) | every benchmark and what it found: tables and tuned boosting, significance, the luck of the split, messy data, TabPFN, forecasting (two runs), anomalies, drift checkers, the checks, the mathematics, and what is not done yet |
 | [Development](development.md) | running it locally, the tests, the benchmark, the project layout, the stack, how the live page is deployed |
+| [For coding agents](mcp.md) | the MCP server: the page's checks, shortlist and script as tools an agent calls before it trains anything, how to set it up, and what it reads |
 | [The benchmark](../bench/README.md) | how every run was set up, with what each had to show written down before it ran |
 | [The taxonomy notes](taxonomy) | the original notes on data, math, models, stacking, drift and pipelines |
 

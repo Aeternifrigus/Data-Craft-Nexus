@@ -2,17 +2,21 @@
 // can be tested on their own (tests/mcp.test.js).
 //
 // Every answer comes from the page's own code in site/js: the file is decoded,
-// parsed, profiled and checked by the same functions the page runs in
+// parsed, profiled, checked and ranked by the same functions the page runs in
 // the browser, on the same first 5,000 rows. Nothing here decides anything the
 // page does not; it only reads the file from disk and says the result in words
 // a coding agent can act on.
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { analyse } from '../site/js/analysis.js';
+import { analyse, scriptPlan, takeHomeScript } from '../site/js/analysis.js';
+import { anomalyNote, detectorSentence } from '../site/js/anomalies.js';
 import { checksSummary } from '../site/js/checks.js';
+import { costSentence } from '../site/js/costs.js';
 import { decodeBytes, delimiterName, MAX_ROWS, parseCSV } from '../site/js/csv.js';
-import { checkSentence } from '../site/js/evidence.js';
+import { checkSentence, driftSentence, evidenceFor, evidenceSentence, leadSentence } from '../site/js/evidence.js';
+import { forecasterSentence, forecastNote } from '../site/js/forecasting.js';
+import { nameOf, plainReason } from '../site/js/names.js';
 import { measuredAxes, profileData, signature } from '../site/js/profile.js';
 import { assembleTaxonomy, TAXONOMY_FILES } from '../site/js/taxonomy.js';
 
@@ -22,6 +26,9 @@ export const MAX_BYTES = 64 * 1024 * 1024;
 
 // The same answers the page asks for, with the page's defaults.
 export const TASKS = ['category', 'number', 'forecast', 'survival', 'group', 'anomaly', 'compress', 'generate'];
+export const RUNS_AS = ['batch', 'streaming'];
+export const LABELS_ARRIVE = ['immediate', 'delayed', 'none'];
+export const STAGES = ['data', 'train', 'ship', 'llm'];
 
 // A mistake in what the agent asked for, reported back to it as a tool error
 // rather than thrown at the protocol layer.
@@ -67,6 +74,7 @@ export function readTable({ path: file, csv }) {
   if (!file === !csv) throw new InputError('Pass exactly one of path (a file on this machine) or csv (its contents).');
   let text, encoding, fileName, bytesCut = false;
   if (file) {
+    file = path.resolve(file);
     const { bytes, cut } = readBytes(file);
     ({ text, encoding } = decodeBytes(bytes));
     fileName = path.basename(file);
@@ -140,10 +148,10 @@ function declare(profile, args) {
 // The page's advice on two flags points at its own buttons and script. An
 // agent has neither, so it gets the same advice in terms of these tools.
 const AGENT_FIX = {
-  id: (f) => `Leave ${f.column} out of the features. If it counts time instead (a year, a day number), keep it and `
-    + 'pass rows_in_time_order: true, so the split follows it.',
-  time: () => 'If the model will be used on rows that come later, split by time, not at random, and pass '
-    + 'rows_in_time_order: true. If the rows really are independent, ignore this.',
+  id: (f) => `Leave ${f.column} out of the features; take_home_script already does. If it counts time instead (a year, `
+    + 'a day number), keep it and pass rows_in_time_order: true, so the split follows it.',
+  time: () => 'If the model will be used on rows that come later, split by time, not at random: pass '
+    + 'rows_in_time_order: true and take_home_script splits by time. If the rows really are independent, ignore this.',
 };
 
 function flagOut(T, f) {
@@ -232,5 +240,126 @@ export function profileDataset(args) {
       measured: { numeric_columns: axes.numericCols, categorical_columns: axes.catCols, text_columns: axes.textCols,
         missing_share: axes.miss, odd_values_share: axes.noise, sparsity: axes.sparsity, high_dimensional: axes.highDim },
       columns },
+  };
+}
+
+// ── recommend_models ─────────────────────────────────────────────────────
+
+function orderNote(T, models) {
+  if (models.forecast) return forecastNote(T, models.forecast).trim();
+  if (models.anomaly) return anomalyNote(T, models.anomaly).trim();
+  if (models.rankedBy === 'evidence') return 'Ordered by what each model was worth on the benchmark datasets, not by how many coordinates it matches.';
+  return 'Ordered by coordinates matched: the benchmark has not covered this task, so there is nothing measured to rank them by.';
+}
+
+function modelOut(T, m, task, models) {
+  const measured = models.forecast?.kind ? forecasterSentence(T, models.forecast.kind, m.c)
+    : models.anomaly?.kind ? detectorSentence(T, models.anomaly.kind, m.c)
+    : evidenceSentence(evidenceFor(T, m.c, task));
+  return {
+    code: m.c, name: m.n, evidence_score: m.evidenceScore ?? null, coordinates_matched: `${m.score} of ${m.of}`,
+    how: m.mech, measured: measured || null, caution: m.caution || null, fails_when: m.fail || null,
+  };
+}
+
+export function recommendModels(args) {
+  const T = loadTaxonomy();
+  const { profile, file } = readTable(args);
+  const { decl, target, task, inferred } = declare(profile, args);
+  const sig = signature(profile, decl);
+  const a = analyse(T, sig, task, profile);
+  const plan = scriptPlan(a.home, a.takeHome.codes);
+  const models = a.models.items.map(m => modelOut(T, m, task, a.models));
+  const lead = a.lead ? { code: a.lead.c, name: a.lead.n, measured: leadSentence(T, a.lead) } : null;
+  const ruledOut = a.models.ruledOut.map(m => ({ code: m.c, name: m.n, why: plainReason(T, m.why) }));
+  const drifts = a.drifts.items.map(d => ({
+    code: d.c, name: d.n, how: d.mech, threshold: d.thr, fails_when: d.fail,
+    measured: d.measure ? driftSentence(d.measure, T.EVIDENCE?.drift?.datasets?.length ?? 0) : null,
+  }));
+  const driftRuledOut = a.drifts.ruledOut.map(d => ({ code: d.c, name: d.n, why: d.why }));
+  // A pipeline's stages can be pipelines themselves, as on the page.
+  const stageName = (code) => nameOf(T, 'stage', code) ?? nameOf(T, 'pipeline', code) ?? code;
+  const pipelines = a.pipelines.items.map(p => ({
+    code: p.c, name: p.n, how: p.mech, stages: p.stages.map(stageName), fails_when: p.fail,
+  }));
+  const flags = a.checks.flags.map(f => flagOut(T, f));
+
+  const lines = [header(file)];
+  if (inferred) lines.push(`Note: ${inferred}`);
+  if (flags.length) {
+    lines.push('', `First: ${flags.length} ${flags.length === 1 ? 'problem' : 'problems'} would make any score here look better than it is `
+      + `(${flags.map(f => f.title).join('; ')}). Call check_dataset for what to do about ${flags.length === 1 ? 'it' : 'them'}.`);
+  }
+  if (lead) lines.push('', `Start with ${lead.name}. ${lead.measured}`);
+  if (models.length) {
+    lines.push('', lead ? 'Then these, in order.' : 'In order.', orderNote(T, a.models));
+    models.forEach((m, i) => {
+      lines.push(`${i + 1}. ${m.name} (${m.code})${m.measured ? `. ${m.measured}` : ''}`);
+      if (m.caution) lines.push(`   Caution: ${m.caution}`);
+      if (m.fails_when) lines.push(`   Fails when: ${m.fails_when}`);
+    });
+  } else {
+    lines.push('', ruledOut.length ? 'No model fits: every model that could give this kind of answer is ruled out by the data.'
+      : 'No model in the taxonomy gives this kind of answer.');
+  }
+  if (ruledOut.length) {
+    lines.push('', 'Ruled out by the data:', ...ruledOut.slice(0, 8).map(m => `  ${m.name} (${m.code}): ${m.why}`));
+    if (ruledOut.length > 8) lines.push(`  and ${ruledOut.length - 8} more`);
+  }
+  if (drifts.length) {
+    lines.push('', `Drift checkers for data that runs ${decl.mode === 'streaming' ? 'as a stream' : 'in batches'} with labels arriving ${
+      { immediate: 'straight away', delayed: 'later', none: 'never' }[decl.labels]}:`);
+    drifts.forEach((d, i) => lines.push(`${i + 1}. ${d.name} (${d.code})${d.measured ? `. ${d.measured}` : ''}`));
+  }
+  if (pipelines.length) {
+    lines.push('', `Pipelines${decl.stage ? ` for this stage (${decl.stage})` : ''}, by fit to the data and the task:`);
+    pipelines.forEach((pl, i) => lines.push(`${i + 1}. ${pl.name} (${pl.code}): ${pl.stages.join(', ')}`));
+  }
+  lines.push('', plan.runnable
+    ? `take_home_script writes a Python script that runs ${lead && !a.home.forecast ? 'tuned boosting and ' : ''}${
+      plan.run.length} of these on the whole file with the benchmark's cross-validation, next to a do-nothing baseline. `
+      + `${costSentence(a.cost, !a.home.framed)}`
+    : `No take-home script for this: ${a.home.why ?? 'none of these models can run on a table.'}`);
+
+  return {
+    text: lines.join('\n'),
+    data: { file, target, task, task_inferred: Boolean(inferred), checks: flags, start_with: lead, models,
+      ordered_by: orderNote(T, a.models), ruled_out: ruledOut, drift_checkers: drifts, drift_ruled_out: driftRuledOut, pipelines,
+      take_home: { available: plan.runnable, runs: plan.run, not_runnable: plan.skipped, why_not: plan.runnable ? null : a.home.why ?? null } },
+  };
+}
+
+// ── take_home_script ─────────────────────────────────────────────────────
+
+export function takeHome(args) {
+  const T = loadTaxonomy();
+  const { profile, file, source } = readTable(args);
+  const { decl, target, task, inferred } = declare(profile, args);
+  if (!target) throw new InputError('The script checks models that predict a column. Pass target, the column to predict.');
+  const sig = signature(profile, decl);
+  const a = analyse(T, sig, task, profile);
+  const plan = scriptPlan(a.home, a.takeHome.codes);
+  if (!plan.runnable) {
+    throw new InputError(`No script for this: ${a.home.why ?? 'none of the recommended models can run on a table.'}`);
+  }
+  const script = takeHomeScript({
+    sig, home: a.home, profile, source, codes: a.takeHome.codes, leftOut: a.leftOut, cost: a.cost,
+  });
+  const needs = a.home.forecast ? 'pandas, scikit-learn and statsmodels' : 'pandas and scikit-learn';
+  const where = source.path ? JSON.stringify(source.path) : 'path/to/your.csv';
+  const lines = [header(file)];
+  if (inferred) lines.push(`Note: ${inferred}`);
+  lines.push(
+    `Save the script below as dcn_shortlist.py and run: python dcn_shortlist.py ${where}`,
+    `It needs ${needs}.${file.truncated ? ` It reads every row of the file, not only the first ${
+      MAX_ROWS.toLocaleString('en-US')} the checks used.` : ''}`,
+  );
+  if (a.leftOut.length) lines.push(`It leaves out ${a.leftOut.join(', ')}, which the checks found look like IDs.`);
+  if (a.home.framed) lines.push(`${target} is a category, so the script predicts it from the other columns, split by time.`);
+  lines.push('', '```python', script.trimEnd(), '```');
+  return {
+    text: lines.join('\n'),
+    data: { file, target, task: a.home.task, forecast: Boolean(a.home.forecast), runs: plan.run,
+      not_runnable: plan.skipped, left_out: a.leftOut, needs, script },
   };
 }

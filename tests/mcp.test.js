@@ -11,8 +11,8 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createServer } from '../mcp/server.mjs';
-import { checkDataset, InputError, profileDataset, readTable } from '../mcp/tools.mjs';
-import { analyse } from '../site/js/analysis.js';
+import { checkDataset, InputError, profileDataset, readTable, recommendModels, takeHome } from '../mcp/tools.mjs';
+import { analyse, takeHomeScript } from '../site/js/analysis.js';
 import { parseCSV } from '../site/js/csv.js';
 import { profileData, signature } from '../site/js/profile.js';
 import { fixturesDir, loadTaxonomyFromDisk } from './helpers.js';
@@ -86,10 +86,10 @@ test('the target under another name is flagged as a leak, with what to do', () =
   assert.match(flag.measured, /benchmark datasets/);
 });
 
-test('row numbers and order codes are flagged as IDs, with advice an agent can follow', () => {
+test('row numbers and order codes are flagged as IDs, and the advice names the script tool', () => {
   const out = checkDataset({ csv: shipments({ idCode: true, rowNumber: true }), target: 'late', task: 'category' });
   assert.deepEqual(kinds(out), ['id:order_ref', 'id:row_no']);
-  assert.match(out.data.flags[0].fix, /^Leave order_ref out of the features/);
+  assert.match(out.data.flags[0].fix, /take_home_script already does/);
 });
 
 test('copied rows are flagged when there are more than chance allows', () => {
@@ -174,6 +174,71 @@ test('profile_dataset gives the signature the page shows', () => {
   assert.equal(out.data.columns.find(c => c.name === 'delayed').target, true);
 });
 
+test('recommend_models gives the page\'s order, lead and drift checkers', () => {
+  for (const [task, target, order] of [['category', 'delayed', 'A21'], ['number', 'transit_days', 'A21'],
+    ['forecast', 'freight_rate_usd', 'A22']]) {
+    const decl = { target, task, order, mode: 'batch', labels: 'delayed', stage: null };
+    const { a } = pageReading(sample, decl);
+    const out = recommendModels({ path: sample, target, task, rows_in_time_order: order === 'A22' });
+    assert.deepEqual(out.data.models.map(m => m.code), a.models.items.map(m => m.c), task);
+    assert.equal(out.data.start_with?.code ?? null, a.lead?.c ?? null, task);
+    assert.deepEqual(out.data.drift_checkers.map(d => d.code), a.drifts.items.map(d => d.c), task);
+    assert.deepEqual(out.data.pipelines.map(p => p.code), a.pipelines.items.map(p => p.c), task);
+  }
+});
+
+test('the stage being built decides the pipelines, as on the page', () => {
+  const decl = { target: 'delayed', task: 'category', order: 'A21', mode: 'batch', labels: 'delayed', stage: 'ship' };
+  const { a } = pageReading(sample, decl);
+  const out = recommendModels({ path: sample, target: 'delayed', task: 'category', stage: 'ship' });
+  assert.deepEqual(out.data.pipelines.map(p => p.code), a.pipelines.items.map(p => p.c));
+  assert.notDeepEqual(out.data.pipelines.map(p => p.code),
+    recommendModels({ path: sample, target: 'delayed', task: 'category', stage: 'train' }).data.pipelines.map(p => p.code));
+  assert.ok(out.data.pipelines.every(p => p.stages.every(s => !/^PL-S\d/.test(s))));
+});
+
+test('how the model will run decides which drift checkers are ruled out, as on the page', () => {
+  const decl = { target: 'transit_days', task: 'number', order: 'A21', mode: 'streaming', labels: 'none', stage: null };
+  const { a } = pageReading(sample, decl);
+  const batch = recommendModels({ path: sample, target: 'transit_days', task: 'number' });
+  const stream = recommendModels({ path: sample, target: 'transit_days', task: 'number', runs_as: 'streaming', labels_arrive: 'none' });
+  assert.deepEqual(stream.data.drift_ruled_out.map(d => d.code), a.drifts.ruledOut.map(d => d.c));
+  assert.notDeepEqual(stream.data.drift_ruled_out.map(d => d.code), batch.data.drift_ruled_out.map(d => d.code));
+  // Nothing that needs labels survives when labels never arrive.
+  assert.ok(stream.data.drift_ruled_out.some(d => /needs labels/.test(d.why)));
+});
+
+test('recommend_models puts the checks first when something is wrong', () => {
+  const out = recommendModels({ csv: shipments({ leak: true }), target: 'late', task: 'category' });
+  assert.match(out.text, /^First: 1 problem would make any score here look better than it is/m);
+  assert.equal(out.data.checks[0].kind, 'leak');
+});
+
+test('take_home_script is the page\'s script for the same file and answers', () => {
+  const decl = { target: 'delayed', task: 'category', order: 'A22', mode: 'batch', labels: 'delayed', stage: null };
+  const { profile, sig, a } = pageReading(sample, decl);
+  const source = readTable({ path: sample }).source;
+  const expected = takeHomeScript({ sig, home: a.home, profile, source, codes: a.takeHome.codes, leftOut: a.leftOut, cost: a.cost });
+  const out = takeHome({ path: sample, target: 'delayed', task: 'category', rows_in_time_order: true });
+  // The script carries the date it was written; compare the rest.
+  const undated = (s) => s.replace(/\d{4}-\d{2}-\d{2}/g, 'DATE');
+  assert.equal(undated(out.data.script), undated(expected));
+  assert.match(out.text, new RegExp(`python dcn_shortlist.py "${sample.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
+  assert.match(out.text, /```python\n#!\/usr\/bin\/env python3/);
+});
+
+test('take_home_script leaves ID columns out of the features', () => {
+  const out = takeHome({ csv: shipments({ idCode: true }), target: 'late', task: 'category' });
+  assert.deepEqual(out.data.left_out, ['order_ref']);
+  const line = (name) => out.data.script.split('\n').find(l => l.startsWith(`${name} = `));
+  assert.doesNotMatch(line('NUMERIC') + line('CATEGORICAL'), /order_ref/);
+});
+
+test('take_home_script says why when there is no script', () => {
+  assert.throws(() => takeHome({ path: sample, target: 'transit_days', task: 'group' }), /No script for this/);
+  assert.throws(() => takeHome({ path: sample, target: 'freight_rate_usd', task: 'forecast' }), /needs rows in time order/);
+});
+
 // ── the protocol ─────────────────────────────────────────────────────────
 
 async function connected() {
@@ -183,15 +248,16 @@ async function connected() {
   return client;
 }
 
-test('the server lists its tools, all read-only', async () => {
+test('the server lists its four tools, all read-only', async () => {
   const client = await connected();
   const { tools } = await client.listTools();
-  assert.deepEqual(tools.map(t => t.name).sort(), ['check_dataset', 'profile_dataset']);
+  assert.deepEqual(tools.map(t => t.name).sort(), ['check_dataset', 'profile_dataset', 'recommend_models', 'take_home_script']);
   for (const t of tools) {
     assert.equal(t.annotations.readOnlyHint, true, t.name);
     assert.ok(t.description.length > 100, t.name);
   }
   assert.match(client.getInstructions(), /call check_dataset/);
+  assert.match(tools.find(t => t.name === 'recommend_models').description, /benchmark of 195 datasets/);
   await client.close();
 });
 
@@ -210,7 +276,7 @@ test('a bad request is a tool error the agent can read, not a protocol failure',
   const res = await client.callTool({ name: 'check_dataset', arguments: { path: sample, target: 'nope' } });
   assert.equal(res.isError, true);
   assert.match(res.content[0].text, /There is no column called "nope"/);
-  const bad = await client.callTool({ name: 'check_dataset', arguments: { path: sample, target: 'delayed', task: 'regression' } });
+  const bad = await client.callTool({ name: 'recommend_models', arguments: { path: sample, task: 'regression' } });
   assert.equal(bad.isError, true);
   await client.close();
 });

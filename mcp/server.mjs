@@ -1,5 +1,6 @@
-// The Data Craft Nexus MCP server: the page's checks and signature, as tools
-// a coding agent can call on a CSV before it trains anything.
+// The Data Craft Nexus MCP server: the page's checks, signature, model
+// shortlist and take-home script, as tools a coding agent can call on a CSV
+// before it trains anything.
 //
 // Everything is read-only and local. The server reads the file it is pointed
 // at and nothing else, sends nothing anywhere, and writes nothing.
@@ -7,7 +8,9 @@
 import fs from 'node:fs';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { checkDataset, InputError, profileDataset, TASKS } from './tools.mjs';
+import {
+  checkDataset, InputError, LABELS_ARRIVE, loadTaxonomy, profileDataset, recommendModels, RUNS_AS, STAGES, takeHome, TASKS,
+} from './tools.mjs';
 
 const { name, version } = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
@@ -42,12 +45,20 @@ function reply(fn) {
 }
 
 export function createServer() {
+  // The benchmark's sizes, from the committed evidence, so the descriptions
+  // cannot drift from what the page says.
+  const T = loadTaxonomy();
+  const tables = T.EVIDENCE?.datasets?.length ?? 0;
+  const series = T.FORECAST?.series ?? 0;
+  const anomalyTables = T.ANOMALY?.datasets ?? 0;
+
   const server = new McpServer({ name, version }, {
     instructions: 'Data Craft Nexus reads a tabular dataset the way its web page does '
       + '(https://aeternifrigus.github.io/Data-Craft-Nexus/). Before training a model on a CSV, call check_dataset: '
       + 'it finds what makes a validation score look better than it will be on new data (a column that leaks the '
-      + 'target, ID columns, repeated rows, dates split at random). profile_dataset describes the file. '
-      + 'Only the first 5,000 rows are read, as on the page.',
+      + 'target, ID columns, repeated rows, dates split at random). Then recommend_models for a shortlist backed by '
+      + `a ${tables}-dataset benchmark, and take_home_script for a script that scores that shortlist against a do-nothing `
+      + 'baseline. Only the first 5,000 rows are read for the checks; the script reads the whole file.',
   });
 
   server.registerTool('check_dataset', {
@@ -71,6 +82,34 @@ export function createServer() {
     inputSchema: { ...file, target: target.optional(), rows_in_time_order: ordered },
     annotations: readOnly,
   }, reply(profileDataset));
+
+  server.registerTool('recommend_models', {
+    title: 'Shortlist models for a dataset',
+    description: 'Ranks the models that can give the asked-for kind of answer on this data, by what each was worth '
+      + `on a benchmark of ${tables} datasets (${series} series for forecasts, ${anomalyTables} tables for anomalies), with the measured `
+      + 'record, cautions and failure modes of each. Says which models the data rules out and why, which drift '
+      + 'checkers suit how the model will run, and which pipelines fit the part of the work being built. Also repeats '
+      + 'any check_dataset flags, since they matter more than the choice of model.',
+    inputSchema: {
+      ...file, target: target.optional(), task, rows_in_time_order: ordered,
+      runs_as: z.enum(RUNS_AS).optional().describe('How the model will run: batch (default) or streaming, row by row.'),
+      labels_arrive: z.enum(LABELS_ARRIVE).optional()
+        .describe('When the true answers arrive after a prediction: immediate, delayed (default) or none.'),
+      stage: z.enum(STAGES).optional()
+        .describe('Which part of the work is being built, for the pipelines: data, train, ship or llm. Default all.'),
+    },
+    annotations: readOnly,
+  }, reply(recommendModels));
+
+  server.registerTool('take_home_script', {
+    title: 'Write a script that tests the shortlist',
+    description: 'Returns a Python script (pandas and scikit-learn) that runs tuned gradient boosting and the '
+      + 'recommended models on the whole file with the benchmark\'s preprocessing and cross-validation, next to a '
+      + 'baseline that does nothing, so a model that cannot beat a guess is plain to see. ID-like columns are left out; '
+      + 'rows in time order are split by time. Save it and run it with the file\'s path as the argument.',
+    inputSchema: { ...file, target, task, rows_in_time_order: ordered },
+    annotations: readOnly,
+  }, reply(takeHome));
 
   return server;
 }

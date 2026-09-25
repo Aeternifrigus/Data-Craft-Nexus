@@ -292,3 +292,34 @@ test('the command starts the server over stdio', async () => {
   assert.match(res.content[0].text, /^Read 20 rows and 10 columns from sample.csv/);
   await client.close();
 });
+
+// ── the package ──────────────────────────────────────────────────────────
+
+test('the npm package and server.json name and version the same server', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const server = JSON.parse(fs.readFileSync(path.join(root, 'server.json'), 'utf8'));
+  assert.equal(server.name, pkg.mcpName);
+  assert.equal(server.version, pkg.version);
+  assert.equal(server.packages[0].identifier, pkg.name);
+  assert.equal(server.packages[0].version, pkg.version);
+  assert.ok(server.description.length <= 100);
+  assert.equal(pkg.bin[pkg.name], 'mcp/dcn-mcp.mjs');
+});
+
+test('the package carries every file the server loads', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const globs = pkg.files.map(g => new RegExp(`^${g.replace(/\./g, '\\.').replace(/\*/g, '[^/]+')}$`));
+  const shipped = (rel) => globs.some(re => re.test(rel));
+  // Follow the relative imports from the entry point.
+  const seen = new Set();
+  const visit = (rel) => {
+    if (seen.has(rel)) return;
+    seen.add(rel);
+    const src = fs.readFileSync(path.join(root, rel), 'utf8');
+    for (const [, spec] of src.matchAll(/from '(\.[^']+)'/g)) visit(path.posix.join(path.posix.dirname(rel), spec));
+  };
+  visit('mcp/dcn-mcp.mjs');
+  assert.ok(seen.has('site/js/analysis.js'));
+  for (const rel of seen) assert.ok(shipped(rel), rel);
+  for (const name of ['axes', 'models', 'evidence', 'ranking']) assert.ok(shipped(`site/taxonomy/${name}.json`), name);
+});
